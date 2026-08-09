@@ -1,10 +1,13 @@
-"""Event routes"""
+"""Event routes (business-scoped)"""
 from typing import Any, Dict
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/events", tags=["events"])
+from ..deps import get_owned_business
+from ...models.business_schemas import BusinessOut
+
+router = APIRouter(prefix="/api/businesses/{business_id}/events", tags=["events"])
 
 
 class PublishEventRequest(BaseModel):
@@ -14,13 +17,17 @@ class PublishEventRequest(BaseModel):
 
 
 @router.get("")
-async def list_events(request: Request, limit: int = 100):
-    agent_manager = request.app.state.agent_manager
-    return agent_manager.event_bus.get_event_history(limit=limit)
+async def list_events(
+    request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 100
+):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    return runtime.agent_manager.event_bus.get_event_history(limit=limit)
 
 
 @router.post("")
-async def publish_event(payload: PublishEventRequest, request: Request):
-    agent_manager = request.app.state.agent_manager
-    await agent_manager.process_event(payload.event_type, payload.data, source=payload.source)
+async def publish_event(
+    payload: PublishEventRequest, request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    await runtime.agent_manager.process_event(payload.event_type, payload.data, source=payload.source)
     return {"status": "published", "event_type": payload.event_type}

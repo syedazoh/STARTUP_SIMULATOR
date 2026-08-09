@@ -1,28 +1,36 @@
-"""Simulation control routes"""
+"""Simulation control routes (business-scoped)"""
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from ..deps import get_owned_business
+from ...database.utils import find_one
+from ...models.business_schemas import BusinessOut
 from ...models.schemas import SimulationStatusOut
+from ...services.persistence import record_decision, snapshot_agents
 from ...simulation import SimulationConfig, SimulationEngine
 
-router = APIRouter(prefix="/api/simulation", tags=["simulation"])
+router = APIRouter(prefix="/api/businesses/{business_id}/simulation", tags=["simulation"])
 
 
 @router.post("/start")
-async def start_simulation(payload: SimulationConfig, request: Request):
-    app_state = request.app.state
-    existing: Optional[SimulationEngine] = getattr(app_state, "simulation_engine", None)
-    if existing is not None and existing.is_running:
+async def start_simulation(
+    payload: SimulationConfig, request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    registry = request.app.state.agent_registry
+    runtime = registry.get_or_create(business)
+
+    if runtime.simulation_engine is not None and runtime.simulation_engine.is_running:
         raise HTTPException(status_code=409, detail="Simulation already running")
 
     run_id = str(uuid.uuid4())
-    db = app_state.db
+    db = request.app.state.db
     started_at = datetime.now(timezone.utc)
 
     await db["simulation_runs"].insert_one({
+        "business_id": business.id,
         "run_id": run_id,
         "started_at": started_at,
         "ended_at": None,
@@ -32,27 +40,24 @@ async def start_simulation(payload: SimulationConfig, request: Request):
     })
 
     async def on_decision(record):
-        await db["decision_logs"].insert_one({**record, "simulation_run_id": run_id})
-        await db["simulation_runs"].update_one(
-            {"run_id": run_id}, {"$set": {"tick_count": record["tick"]}}
+        await record_decision(
+            db,
+            business.id,
+            record["event_type"],
+            record["data"],
+            source="simulation",
+            run_id=run_id,
+            tick=record["tick"],
         )
-        statuses = await app_state.agent_manager.get_all_agents_status()
-        now = datetime.now(timezone.utc)
-        snapshots = [
-            {
-                "agent_id": status.get("agent_id", key),
-                "state": status,
-                "timestamp": now,
-                "simulation_run_id": run_id,
-            }
-            for key, status in statuses.items()
-        ]
-        if snapshots:
-            await db["agent_snapshots"].insert_many(snapshots)
+        await db["simulation_runs"].update_one(
+            {"business_id": business.id, "run_id": run_id}, {"$set": {"tick_count": record["tick"]}}
+        )
+        await snapshot_agents(db, business.id, runtime.agent_manager, run_id=run_id)
 
     async def on_complete(summary):
         now = datetime.now(timezone.utc)
         await db["run_summaries"].insert_one({
+            "business_id": business.id,
             "run_id": run_id,
             "headline": summary.headline,
             "key_decisions": summary.key_decisions,
@@ -65,38 +70,39 @@ async def start_simulation(payload: SimulationConfig, request: Request):
         # with "stopped" for the user-initiated case, so the final status still
         # distinguishes "ran to completion" from "stopped early".
         await db["simulation_runs"].update_one(
-            {"run_id": run_id}, {"$set": {"status": "completed", "ended_at": now}}
+            {"business_id": business.id, "run_id": run_id},
+            {"$set": {"status": "completed", "ended_at": now}},
         )
 
-    engine = SimulationEngine(app_state.agent_manager, on_decision=on_decision, on_complete=on_complete)
-    app_state.simulation_engine = engine
-    app_state.current_run_id = run_id
+    engine = SimulationEngine(runtime.agent_manager, on_decision=on_decision, on_complete=on_complete)
+    runtime.simulation_engine = engine
+    runtime.current_run_id = run_id
     engine.start(config=payload)
 
     return {"status": "started", "run_id": run_id}
 
 
 @router.post("/stop")
-async def stop_simulation(request: Request):
-    app_state = request.app.state
-    engine: Optional[SimulationEngine] = getattr(app_state, "simulation_engine", None)
+async def stop_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
 
     await engine.stop()
 
-    db = app_state.db
+    db = request.app.state.db
     await db["simulation_runs"].update_one(
-        {"run_id": app_state.current_run_id},
+        {"business_id": business.id, "run_id": runtime.current_run_id},
         {"$set": {"status": "stopped", "ended_at": datetime.now(timezone.utc)}},
     )
-    return {"status": "stopped", "run_id": app_state.current_run_id}
+    return {"status": "stopped", "run_id": runtime.current_run_id}
 
 
 @router.post("/pause")
-async def pause_simulation(request: Request):
-    app_state = request.app.state
-    engine: Optional[SimulationEngine] = getattr(app_state, "simulation_engine", None)
+async def pause_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
     engine.pause()
@@ -104,9 +110,9 @@ async def pause_simulation(request: Request):
 
 
 @router.post("/resume")
-async def resume_simulation(request: Request):
-    app_state = request.app.state
-    engine: Optional[SimulationEngine] = getattr(app_state, "simulation_engine", None)
+async def resume_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
     engine.resume()
@@ -114,20 +120,39 @@ async def resume_simulation(request: Request):
 
 
 @router.get("/status", response_model=SimulationStatusOut)
-async def simulation_status(request: Request):
-    app_state = request.app.state
-    engine: Optional[SimulationEngine] = getattr(app_state, "simulation_engine", None)
+async def simulation_status(request: Request, business: BusinessOut = Depends(get_owned_business)):
+    runtime = request.app.state.agent_registry.get_or_create(business)
+    engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None:
         return SimulationStatusOut(is_running=False, tick_count=0, decision_log_size=0, run_id=None)
     status = engine.status()
-    return SimulationStatusOut(**status, run_id=getattr(app_state, "current_run_id", None))
+    return SimulationStatusOut(**status, run_id=runtime.current_run_id)
 
 
 @router.get("/runs/{run_id}/log")
-async def get_run_log(run_id: str, request: Request, limit: int = 500):
+async def get_run_log(
+    run_id: str, request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 500
+):
     db = request.app.state.db
-    cursor = db["decision_logs"].find({"simulation_run_id": run_id}).sort("tick", 1).limit(limit)
+    cursor = (
+        db["decision_logs"]
+        .find({"business_id": business.id, "simulation_run_id": run_id})
+        .sort("tick", 1)
+        .limit(limit)
+    )
     docs = await cursor.to_list(length=limit)
     for doc in docs:
         doc["_id"] = str(doc["_id"])
     return docs
+
+
+@router.get("/runs/{run_id}/summary")
+async def get_run_summary(
+    run_id: str, request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    db = request.app.state.db
+    doc = await find_one(db["run_summaries"], {"business_id": business.id, "run_id": run_id})
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Summary not available yet")
+    doc["_id"] = str(doc["_id"])
+    return doc

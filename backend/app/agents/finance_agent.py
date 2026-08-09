@@ -23,13 +23,13 @@ class FinanceGraphState(TypedDict):
 class FinanceAgent(BaseAgent):
     """Finance Agent for budgeting and financial analysis"""
 
-    def __init__(self):
+    def __init__(self, budget_pool: float = 100000.0, agent_id: Optional[str] = None):
         super().__init__(
-            agent_id="finance_001",
+            agent_id=agent_id or "finance_001",
             agent_name="Finance Manager",
             description="Manages budgets, forecasts revenue, tracks expenses",
         )
-        self.budget_pool = 100000.0
+        self.budget_pool = budget_pool
         self.revenue = 0.0
         self.expenses = 0.0
         self._structured_llm = get_groq_llm().with_structured_output(FinanceDecision)
@@ -37,13 +37,23 @@ class FinanceAgent(BaseAgent):
 
     def _build_graph(self):
         graph = StateGraph(FinanceGraphState)
+        graph.add_node("check_policy", self._check_policy)
+        graph.add_node("policy_approve", self._policy_approve)
+        graph.add_node("policy_deny", self._policy_deny)
         graph.add_node("retrieve_memory", self._retrieve_memory)
         graph.add_node("call_llm", self._call_llm)
         graph.add_node("fallback_decision", self._fallback_decision)
         graph.add_node("apply_decision", self._apply_decision)
         graph.add_node("persist_memory", self._persist_memory)
 
-        graph.set_entry_point("retrieve_memory")
+        graph.set_entry_point("check_policy")
+        graph.add_conditional_edges(
+            "check_policy",
+            self._route_after_policy,
+            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "retrieve_memory"},
+        )
+        graph.add_edge("policy_approve", "apply_decision")
+        graph.add_edge("policy_deny", "apply_decision")
         graph.add_edge("retrieve_memory", "call_llm")
         graph.add_conditional_edges(
             "call_llm",
@@ -54,6 +64,38 @@ class FinanceAgent(BaseAgent):
         graph.add_edge("apply_decision", "persist_memory")
         graph.add_edge("persist_memory", END)
         return graph.compile()
+
+    async def _check_policy(self, state: FinanceGraphState) -> FinanceGraphState:
+        return state  # passthrough — _route_after_policy does the real work
+
+    def _route_after_policy(self, state: FinanceGraphState) -> str:
+        policy = self.policy
+        if policy is None or not policy.enabled:
+            return "llm"
+        amount = state["event"].get("amount", 0)
+        if policy.auto_deny_min is not None and amount >= policy.auto_deny_min:
+            return "policy_deny"
+        if policy.auto_approve_max is not None and amount <= policy.auto_approve_max:
+            return "policy_approve"
+        return "llm"
+
+    async def _policy_approve(self, state: FinanceGraphState) -> FinanceGraphState:
+        amount = state["event"].get("amount", 0)
+        decision = FinanceDecision(
+            approved=True,
+            reasoning=f"policy_auto_approved: amount ${amount:.2f} is within the auto-approve threshold",
+            amount_approved=amount,
+        )
+        return {**state, "decision": decision}
+
+    async def _policy_deny(self, state: FinanceGraphState) -> FinanceGraphState:
+        amount = state["event"].get("amount", 0)
+        decision = FinanceDecision(
+            approved=False,
+            reasoning=f"policy_auto_denied: amount ${amount:.2f} meets or exceeds the auto-deny threshold",
+            amount_approved=0.0,
+        )
+        return {**state, "decision": decision}
 
     def _route_after_llm(self, state: FinanceGraphState) -> str:
         if state.get("decision") is not None:

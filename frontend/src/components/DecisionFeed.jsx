@@ -25,15 +25,15 @@ function formatTime(isoString) {
   }
 }
 
-function DecisionFeed() {
+function DecisionFeed({ businessId }) {
   const dispatch = useDispatch()
   const events = useSelector((state) => state.events.items)
 
   useEffect(() => {
-    dispatch(fetchEvents())
-    const interval = setInterval(() => dispatch(fetchEvents()), POLL_INTERVAL_MS)
+    dispatch(fetchEvents(businessId))
+    const interval = setInterval(() => dispatch(fetchEvents(businessId)), POLL_INTERVAL_MS)
     return () => clearInterval(interval)
-  }, [dispatch])
+  }, [dispatch, businessId])
 
   const recent = [...events].reverse()
 

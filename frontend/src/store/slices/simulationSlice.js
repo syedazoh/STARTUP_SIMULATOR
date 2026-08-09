@@ -1,15 +1,15 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import apiClient from '../../api/client'
 
-export const fetchSimulationStatus = createAsyncThunk('simulation/fetchStatus', async () => {
-  const response = await apiClient.get('/api/simulation/status')
+export const fetchSimulationStatus = createAsyncThunk('simulation/fetchStatus', async (businessId) => {
+  const response = await apiClient.get(`/api/businesses/${businessId}/simulation/status`)
   return response.data
 })
 
 export const startSimulation = createAsyncThunk(
   'simulation/start',
-  async ({ ticks, durationSeconds, minInterval, maxInterval }) => {
-    const response = await apiClient.post('/api/simulation/start', {
+  async ({ businessId, ticks, durationSeconds, minInterval, maxInterval }) => {
+    const response = await apiClient.post(`/api/businesses/${businessId}/simulation/start`, {
       ticks: ticks ?? null,
       duration_seconds: durationSeconds ?? null,
       min_interval: minInterval ?? 0.5,
@@ -19,25 +19,30 @@ export const startSimulation = createAsyncThunk(
   },
 )
 
-export const stopSimulation = createAsyncThunk('simulation/stop', async () => {
-  const response = await apiClient.post('/api/simulation/stop')
+export const stopSimulation = createAsyncThunk('simulation/stop', async (businessId) => {
+  const response = await apiClient.post(`/api/businesses/${businessId}/simulation/stop`)
   return response.data
 })
 
-export const pauseSimulation = createAsyncThunk('simulation/pause', async () => {
-  const response = await apiClient.post('/api/simulation/pause')
+export const pauseSimulation = createAsyncThunk('simulation/pause', async (businessId) => {
+  const response = await apiClient.post(`/api/businesses/${businessId}/simulation/pause`)
   return response.data
 })
 
-export const resumeSimulation = createAsyncThunk('simulation/resume', async () => {
-  const response = await apiClient.post('/api/simulation/resume')
+export const resumeSimulation = createAsyncThunk('simulation/resume', async (businessId) => {
+  const response = await apiClient.post(`/api/businesses/${businessId}/simulation/resume`)
   return response.data
 })
 
-export const fetchRunSummary = createAsyncThunk('simulation/fetchSummary', async (runId) => {
-  const response = await apiClient.get(`/api/simulation/runs/${runId}/summary`)
-  return response.data
-})
+export const fetchRunSummary = createAsyncThunk(
+  'simulation/fetchSummary',
+  async ({ businessId, runId }) => {
+    const response = await apiClient.get(
+      `/api/businesses/${businessId}/simulation/runs/${runId}/summary`,
+    )
+    return response.data
+  },
+)
 
 const simulationSlice = createSlice({
   name: 'simulation',
@@ -53,6 +58,15 @@ const simulationSlice = createSlice({
   reducers: {
     clearSummary: (state) => {
       state.summary = null
+    },
+    resetSimulationState: (state) => {
+      state.isRunning = false
+      state.isPaused = false
+      state.tickCount = 0
+      state.decisionLogSize = 0
+      state.runId = null
+      state.summary = null
+      state.error = null
     },
   },
   extraReducers: (builder) => {
@@ -92,5 +106,5 @@ const simulationSlice = createSlice({
   },
 })
 
-export const { clearSummary } = simulationSlice.actions
+export const { clearSummary, resetSimulationState } = simulationSlice.actions
 export default simulationSlice.reducer

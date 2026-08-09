@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     groq_model: str = "llama-3.3-70b-versatile"
 
     secret_key: str = "your-secret-key-change-in-production"
+    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
 
 
 settings = Settings()

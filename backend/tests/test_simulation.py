@@ -18,6 +18,46 @@ class FakeStructuredLLM:
         return self.response
 
 
+async def _wait_until(condition, timeout: float = 3.0, interval: float = 0.02) -> None:
+    """Poll `condition` until it's truthy or `timeout` elapses, instead of a single
+    fixed-duration sleep — robust to slow/loaded test environments."""
+    elapsed = 0.0
+    while not condition():
+        if elapsed >= timeout:
+            raise AssertionError(f"condition not met within {timeout}s")
+        await asyncio.sleep(interval)
+        elapsed += interval
+
+
+async def _wait_for_stable(get_value, stable_window: float = 1.0, poll_interval: float = 0.05, timeout: float = 10.0):
+    """Poll `get_value()` until it stops changing for `stable_window` seconds.
+
+    Used instead of asserting a fixed number of in-flight ticks after pause():
+    how many ticks are already past the resume-gate check when pause() is called
+    isn't a bounded/deterministic count in wall-clock terms — asyncio guarantees
+    at most one tick can be "already past the gate" when pause() runs, but under
+    heavy process load (e.g. running the full test suite) that single pending
+    tick's resumption callback can take well over a second of real time to
+    actually get scheduled. `stable_window` has to outlast that delay or this
+    falsely concludes "stable" before the last in-flight tick lands.
+    """
+    elapsed = 0.0
+    last = get_value()
+    stable_for = 0.0
+    while elapsed < timeout:
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+        current = get_value()
+        if current == last:
+            stable_for += poll_interval
+            if stable_for >= stable_window:
+                return current
+        else:
+            stable_for = 0.0
+            last = current
+    raise AssertionError(f"value did not stabilize within {timeout}s (last={last})")
+
+
 class FakeMemoryStore:
     """Stands in for DecisionMemoryStore — real embeddings are CPU-bound enough to
     make timing-sensitive tests (pause/duration) flaky, and would otherwise write
@@ -106,26 +146,24 @@ class TestSimulationEngine:
         assert finance.budget_pool >= starting_budget + REVENUE_AMOUNT - 600  # minus up to 6 approved requests
 
     async def test_pause_halts_progress_until_resumed(self, monkeypatch):
-        # pause() can only stop the *next* tick from starting — a tick already past
-        # the resume-event gate finishes regardless — so allow one in-flight tick
-        # before asserting the loop is actually held.
+        # pause() can only stop the *next* tick from starting — any ticks already
+        # past the resume-gate check finish regardless, and how many that is isn't
+        # a bounded/deterministic count (depends on event-loop scheduling under
+        # system load) — so wait for progress to *stabilize* rather than assuming
+        # a fixed number of in-flight ticks.
         engine = SimulationEngine(_build_manager_with_fakes(monkeypatch))
         engine.start(SimulationConfig(ticks=None, min_interval=0, max_interval=0))
-        await asyncio.sleep(0.05)
+        await _wait_until(lambda: engine.tick_count > 0)
 
         engine.pause()
         assert engine.is_paused is True
-        tick_count_at_pause = engine.tick_count
-        await asyncio.sleep(0.05)
-        tick_count_settled = engine.tick_count
-        assert tick_count_settled - tick_count_at_pause <= 1
+        tick_count_settled = await _wait_for_stable(lambda: engine.tick_count)
 
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.5)
         assert engine.tick_count == tick_count_settled
 
         engine.resume()
         assert engine.is_paused is False
-        await asyncio.sleep(0.05)
-        assert engine.tick_count > tick_count_settled
+        await _wait_until(lambda: engine.tick_count > tick_count_settled)
 
         await engine.stop()

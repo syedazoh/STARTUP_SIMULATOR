@@ -1,8 +1,8 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import apiClient from '../../api/client'
 
-export const fetchAgents = createAsyncThunk('agents/fetchAgents', async () => {
-  const response = await apiClient.get('/api/agents')
+export const fetchAgents = createAsyncThunk('agents/fetchAgents', async (businessId) => {
+  const response = await apiClient.get(`/api/businesses/${businessId}/agents`)
   return response.data
 })
 

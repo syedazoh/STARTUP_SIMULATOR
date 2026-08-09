@@ -1,6 +1,6 @@
 """Event Bus for Agent Communication"""
 from datetime import datetime
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Tuple
 from uuid import uuid4
 
 class Event:
@@ -32,7 +32,7 @@ class EventBus:
             self.subscribers[event_type] = []
         self.subscribers[event_type].append(callback)
 
-    async def publish(self, event_type: str, data: Dict[str, Any], source: str = "system") -> Event:
+    async def publish(self, event_type: str, data: Dict[str, Any], source: str = "system") -> Tuple[Event, List[Any]]:
         event = Event(event_type, data, source)
         # Recorded before callbacks run: callbacks may recursively publish further
         # events (e.g. negotiation/arbitration chains), so appending only after they
@@ -40,14 +40,15 @@ class EventBus:
         self.event_history.append(event)
         if len(self.event_history) > self.max_history_size:
             self.event_history.pop(0)
+        results: List[Any] = []
         if event_type in self.subscribers:
             payload = {"type": event.event_type, **event.data}
             for callback in self.subscribers[event_type]:
                 try:
-                    await callback(payload)
+                    results.append(await callback(payload))
                 except Exception:
                     pass
-        return event
+        return event, results
 
     def get_event_history(self, limit: int = 100) -> List[Dict[str, Any]]:
         return [event.to_dict() for event in self.event_history[-limit:]]

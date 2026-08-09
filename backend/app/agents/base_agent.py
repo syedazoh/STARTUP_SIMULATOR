@@ -12,9 +12,15 @@ class BaseAgent(ABC):
         self.created_at = datetime.now()
         self.decision_count = 0
         self.event_bus: Optional[Any] = None
+        self.policy: Optional[Any] = None
 
     def set_event_bus(self, event_bus: Any) -> None:
         self.event_bus = event_bus
+
+    def set_policy(self, policy: Any) -> None:
+        """Reassigns the live policy read at node-execution time — never
+        rebuilds a compiled LangGraph. No-op for agents that don't check it."""
+        self.policy = policy
 
     @abstractmethod
     async def process_event(self, event: Dict[str, Any]) -> Dict[str, Any]:

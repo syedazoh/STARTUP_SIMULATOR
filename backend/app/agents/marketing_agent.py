@@ -19,24 +19,39 @@ class MarketingGraphState(TypedDict):
 class MarketingAgent(BaseAgent):
     """Marketing Agent for campaigns and market analysis"""
 
-    def __init__(self):
+    def __init__(
+        self,
+        customer_base: int = 1000,
+        brand_value: float = 100.0,
+        agent_id: Optional[str] = None,
+    ):
         super().__init__(
-            agent_id="marketing_001",
+            agent_id=agent_id or "marketing_001",
             agent_name="Marketing Manager",
             description="Plans campaigns, analyzes markets, engages customers",
         )
-        self.customer_base = 1000
-        self.brand_value = 100.0
+        self.customer_base = customer_base
+        self.brand_value = brand_value
         self._structured_llm = get_groq_llm().with_structured_output(MarketingDecision)
         self._graph = self._build_graph()
 
     def _build_graph(self):
         graph = StateGraph(MarketingGraphState)
+        graph.add_node("check_policy", self._check_policy)
+        graph.add_node("policy_approve", self._policy_approve)
+        graph.add_node("policy_deny", self._policy_deny)
         graph.add_node("call_llm", self._call_llm)
         graph.add_node("fallback_decision", self._fallback_decision)
         graph.add_node("finalize", self._finalize)
 
-        graph.set_entry_point("call_llm")
+        graph.set_entry_point("check_policy")
+        graph.add_conditional_edges(
+            "check_policy",
+            self._route_after_policy,
+            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "call_llm"},
+        )
+        graph.add_edge("policy_approve", "finalize")
+        graph.add_edge("policy_deny", "finalize")
         graph.add_conditional_edges(
             "call_llm",
             self._route_after_llm,
@@ -45,6 +60,42 @@ class MarketingAgent(BaseAgent):
         graph.add_edge("fallback_decision", "finalize")
         graph.add_edge("finalize", END)
         return graph.compile()
+
+    async def _check_policy(self, state: MarketingGraphState) -> MarketingGraphState:
+        return state  # passthrough — _route_after_policy does the real work
+
+    def _route_after_policy(self, state: MarketingGraphState) -> str:
+        policy = self.policy
+        if policy is None or not policy.enabled:
+            return "llm"
+        requested_budget = state["event"].get("requested_budget", 5000)
+        if policy.auto_deny_min is not None and requested_budget >= policy.auto_deny_min:
+            return "policy_deny"
+        if policy.auto_approve_max is not None and requested_budget <= policy.auto_approve_max:
+            return "policy_approve"
+        return "llm"
+
+    async def _policy_approve(self, state: MarketingGraphState) -> MarketingGraphState:
+        event = state["event"]
+        campaign_name = event.get("campaign_name", "Untitled Campaign")
+        requested_budget = event.get("requested_budget", 5000)
+        decision = MarketingDecision(
+            campaign_name=campaign_name,
+            desired_budget=requested_budget,
+            reasoning=f"policy_auto_approved: requested budget ${requested_budget:.2f} is within the auto-approve threshold",
+        )
+        return {**state, "decision": decision}
+
+    async def _policy_deny(self, state: MarketingGraphState) -> MarketingGraphState:
+        event = state["event"]
+        campaign_name = event.get("campaign_name", "Untitled Campaign")
+        requested_budget = event.get("requested_budget", 5000)
+        decision = MarketingDecision(
+            campaign_name=campaign_name,
+            desired_budget=0,
+            reasoning=f"policy_auto_denied: requested budget ${requested_budget:.2f} meets or exceeds the auto-deny threshold",
+        )
+        return {**state, "decision": decision}
 
     def _route_after_llm(self, state: MarketingGraphState) -> str:
         if state.get("decision") is not None:

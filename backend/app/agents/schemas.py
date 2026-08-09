@@ -37,6 +37,26 @@ class ArbitrationDecision(BaseModel):
     rationale: str = Field(description="Brief explanation referencing both departments' stated positions")
 
 
+class HRDecision(BaseModel):
+    """HR agent's structured decision on a recruitment request"""
+    approved: bool = Field(description="Whether the recruitment request is approved")
+    headcount_approved: int = Field(description="Headcount approved to hire (0 if denied)")
+    reasoning: str = Field(description="Brief explanation of the decision")
+    morale_impact: Optional[float] = Field(
+        default=None, description="Delta to apply to team morale as a result of this decision"
+    )
+
+
+class OperationsDecision(BaseModel):
+    """Operations agent's structured decision on a resource request"""
+    approved: bool = Field(description="Whether the resource request is approved")
+    quantity_approved: int = Field(description="Quantity approved to allocate (0 if denied)")
+    reasoning: str = Field(description="Brief explanation of the decision")
+    efficiency_impact: Optional[float] = Field(
+        default=None, description="Delta to apply to operational efficiency as a result of this decision"
+    )
+
+
 class RunSummary(BaseModel):
     """CEO agent's end-of-run strategic retrospective over a simulation's decision log"""
     headline: str = Field(description="One-sentence takeaway from this simulation run")

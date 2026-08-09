@@ -4,20 +4,28 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import agent_actions as agent_actions_routes
 from .api.routes import agents as agents_routes
+from .api.routes import auth as auth_routes
+from .api.routes import businesses as businesses_routes
 from .api.routes import events as events_routes
+from .api.routes import policies as policies_routes
 from .api.routes import simulation as simulation_routes
+from .core.llm import get_groq_llm
 from .database.mongodb import close_mongo_connection, connect_to_mongo, get_database, ping_mongo
-from .orchestration.agent_manager import AgentManager
+from .orchestration.registry import AgentRegistry
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await connect_to_mongo()
     app.state.db = get_database()
-    app.state.agent_manager = AgentManager()
-    app.state.simulation_engine = None
-    app.state.current_run_id = None
+    app.state.agent_registry = AgentRegistry()
+    # Pays ChatGroq's ~1-2s construction cost (httpx/cert-store setup) once at
+    # startup instead of on whichever business's request happens to trigger
+    # AgentRegistry's lazy first construction — get_groq_llm() caches by
+    # temperature, so every agent's later call reuses this instance.
+    get_groq_llm()
     yield
     await close_mongo_connection()
 
@@ -37,8 +45,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_routes.router)
+app.include_router(businesses_routes.router)
 app.include_router(agents_routes.router)
+app.include_router(agent_actions_routes.router)
 app.include_router(events_routes.router)
+app.include_router(policies_routes.router)
 app.include_router(simulation_routes.router)
 
 

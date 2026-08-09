@@ -6,9 +6,10 @@ import {
   startSimulation,
   stopSimulation,
 } from '../store/slices/simulationSlice'
+import ErrorBanner from './ErrorBanner'
 import { STATUS } from '../theme/palette'
 
-function SimulationControls() {
+function SimulationControls({ businessId }) {
   const dispatch = useDispatch()
   const { isRunning, isPaused, tickCount, decisionLogSize, runId, error } = useSelector(
     (state) => state.simulation,
@@ -21,6 +22,7 @@ function SimulationControls() {
   const handleStart = () => {
     dispatch(
       startSimulation({
+        businessId,
         ticks: ticks === '' ? null : Number(ticks),
         durationSeconds: durationSeconds === '' ? null : Number(durationSeconds),
         minInterval: Number(minInterval),
@@ -29,9 +31,9 @@ function SimulationControls() {
     )
   }
 
-  const handleStop = () => dispatch(stopSimulation())
-  const handlePause = () => dispatch(pauseSimulation())
-  const handleResume = () => dispatch(resumeSimulation())
+  const handleStop = () => dispatch(stopSimulation(businessId))
+  const handlePause = () => dispatch(pauseSimulation(businessId))
+  const handleResume = () => dispatch(resumeSimulation(businessId))
 
   const statusLabel = !isRunning ? 'Idle' : isPaused ? 'Paused' : 'Running'
   const statusColor = !isRunning ? undefined : isPaused ? STATUS.warning : STATUS.good
@@ -139,7 +141,7 @@ function SimulationControls() {
         <span className="mr-4">Decisions: {decisionLogSize}</span>
         {runId && <span className="text-xs text-gray-400">run: {runId.slice(0, 8)}</span>}
       </div>
-      {error && <p className="text-sm w-full" style={{ color: STATUS.critical }}>{error}</p>}
+      {error && <div className="w-full"><ErrorBanner message={error} /></div>}
     </div>
   )
 }

@@ -1,5 +1,5 @@
 """CEO Agent - arbitrates cross-department budget conflicts"""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ..core.llm import get_groq_llm
 from .base_agent import BaseAgent
@@ -9,9 +9,9 @@ from .schemas import ArbitrationDecision, RunSummary
 class CEOAgent(BaseAgent):
     """CEO Agent for arbitrating disputes between department agents"""
 
-    def __init__(self):
+    def __init__(self, agent_id: Optional[str] = None):
         super().__init__(
-            agent_id="ceo_001",
+            agent_id=agent_id or "ceo_001",
             agent_name="CEO",
             description="Arbitrates cross-department conflicts and sets strategic direction",
         )
