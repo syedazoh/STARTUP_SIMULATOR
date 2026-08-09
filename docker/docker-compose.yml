@@ -39,6 +39,23 @@ services:
     volumes:
       - ../frontend:/app
 
+  test:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: startup-simulator-test
+    profiles: ["test"]
+    environment:
+      MONGODB_URL: mongodb://mongo:27017
+      MONGODB_DB_NAME: startup_simulator_test
+      CHROMA_PERSIST_DIR: /app/chroma_data
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      DEBUG: "true"
+    volumes:
+      - ../backend:/app
+    command: python -m pytest -q
+
 volumes:
   mongo_data:
   chroma_data:

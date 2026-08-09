@@ -41,6 +41,10 @@ yarn-error.log
 .env.local
 .env.*.local
 
+# Local TLS-inspection root CA for Docker builds (machine-specific, e.g. Avast/Zscaler)
+backend/docker-ca/extra-ca.crt
+frontend/docker-ca/extra-ca.crt
+
 # IDE
 .vscode/
 .idea/
