@@ -9,6 +9,10 @@ ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     PIP_CERT=/etc/ssl/certs/ca-certificates.crt
 COPY requirements.txt .
+# sentence-transformers pulls in torch; the default PyPI Linux wheel bundles CUDA
+# runtime deps (~2GB+), which can time out on slow links. Install the much smaller
+# CPU-only build first so the requirements.txt install below reuses it.
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 COPY . .

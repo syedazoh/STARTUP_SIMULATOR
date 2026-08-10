@@ -38,6 +38,10 @@ services:
       - backend
     volumes:
       - ../frontend:/app
+      # Anonymous volume shadows the bind mount above for this one path, so the
+      # image's own Linux-built node_modules isn't overwritten by the host's
+      # (e.g. Windows/macOS) node_modules, which lacks the right native binaries.
+      - /app/node_modules
 
   test:
     build:

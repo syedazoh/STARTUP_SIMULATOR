@@ -1,7 +1,15 @@
-FROM node:18-alpine AS build
+FROM node:18-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# npm ci false-positives "Missing @esbuild/... from lock file" here: rollup (a
+# transitive vite dependency) ships its own internal `overrides` block pinning
+# esbuild for its own tooling, which trips npm ci's stricter lockfile
+# validation. npm install resolves the same, already-in-sync lockfile correctly.
+RUN npm install
+# npm intermittently skips installing rollup's own platform-specific native
+# binary even though it's in the lockfile (npm/cli#4828), crashing the vite
+# build with "Cannot find module @rollup/rollup-linux-x64-*". Force it.
+RUN npm install --no-save @rollup/rollup-linux-x64-gnu
 COPY . .
 # Vite bakes VITE_API_URL into the bundle at build time, not at container runtime,
 # so it must be supplied as a build arg (see docker-compose.prod.yml).
