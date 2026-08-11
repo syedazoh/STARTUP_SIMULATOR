@@ -1,5 +1,15 @@
 # Tasks & Change Log
 
+> **Operational note:** the `frontend` service's `node_modules` lives in an
+> anonymous Docker volume (see the 2026-08-10 "Full docker compose up stack"
+> entry below) so the host's `node_modules` doesn't shadow it. That volume
+> **persists across normal recreates**, so after changing
+> `frontend/package.json` or `package-lock.json`, a plain
+> `docker compose up -d --build` will rebuild the image correctly but the
+> *running* container may keep serving the old, stale `node_modules`. Force a
+> fresh one with:
+> `docker compose up -d --build --force-recreate --renew-anon-volumes frontend`
+
 Running log of updates, planning decisions, and changes made to this project,
 with the reasoning behind each one. Newest entries at the top.
 
