@@ -6,7 +6,7 @@ routes/admin.py's docstring for why that's a property of what this module
 touches, not a permissions check.
 """
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel
 
@@ -42,3 +42,12 @@ class AdminSystemHealthOut(BaseModel):
     business_count: int
     user_count: int
     running_simulation_count: int
+
+
+class AuditLogOut(BaseModel):
+    user_id: str
+    business_id: str
+    action: str
+    target_id: Optional[str] = None
+    details: Dict[str, Any] = {}
+    timestamp: datetime

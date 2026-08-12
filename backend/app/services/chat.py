@@ -102,7 +102,7 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
     thread = await get_thread(db, business.id, agent)
     profile = await find_one(db["business_profiles"], {"business_id": business.id})
 
-    runtime = agent_registry.get_or_create(business)
+    runtime = await agent_registry.get_or_create(business)
     live_agent = runtime.agent_manager.agents.get(agent)
     live_status = await live_agent.get_status() if live_agent is not None else None
 

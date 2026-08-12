@@ -9,14 +9,19 @@ not a permissions check a future route could accidentally bypass. See
 tests/test_admin.py for the explicit check that a connected credential's
 secret never appears in any admin response.
 """
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..deps import require_admin
 from ...database.mongodb import ping_mongo
 from ...database.utils import find_one
-from ...models.admin_schemas import AdminBusinessDetailOut, AdminBusinessSummaryOut, AdminSystemHealthOut
+from ...models.admin_schemas import (
+    AdminBusinessDetailOut,
+    AdminBusinessSummaryOut,
+    AdminSystemHealthOut,
+    AuditLogOut,
+)
 from ...models.auth_schemas import UserOut
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -99,3 +104,17 @@ async def get_system_health(request: Request, admin: UserOut = Depends(require_a
         user_count=len(users),
         running_simulation_count=len(runs),
     )
+
+
+@router.get("/audit-logs", response_model=List[AuditLogOut])
+async def list_audit_logs(
+    request: Request,
+    admin: UserOut = Depends(require_admin),
+    business_id: Optional[str] = None,
+    limit: int = 100,
+):
+    db = request.app.state.db
+    query = {"business_id": business_id} if business_id else {}
+    cursor = db["audit_logs"].find(query).sort("timestamp", -1).limit(limit)
+    docs = await cursor.to_list(length=limit)
+    return [AuditLogOut(**d) for d in docs]

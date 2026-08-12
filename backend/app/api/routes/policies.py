@@ -69,7 +69,7 @@ async def update_policy(
         )
 
     # Apply immediately to the live in-memory agent — no restart needed.
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     agent = runtime.agent_manager.agents.get(agent_key)
     if agent is not None:
         agent.set_policy(_to_policy_out(doc))

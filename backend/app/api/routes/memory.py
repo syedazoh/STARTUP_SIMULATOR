@@ -26,7 +26,7 @@ async def get_agent_memory(
     query: Optional[str] = None,
     k: int = 10,
 ):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     agent = runtime.agent_manager.agents.get(agent_key)
     if agent is None:
         raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_key}")

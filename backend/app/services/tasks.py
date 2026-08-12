@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from ..database.utils import find_one
 from ..models.business_schemas import BusinessOut
+from .audit import record_audit
 from .persistence import record_decision, snapshot_agents
 from .social import post_to_instagram
 
@@ -62,6 +63,7 @@ async def create_task(
     action_type: str,
     payload: Dict[str, Any],
     requires_asset: bool = False,
+    user_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     mode_doc = await _get_mode(db, business.id, agent)
     created_at = datetime.now(timezone.utc)
@@ -89,6 +91,14 @@ async def create_task(
         "executed_at": None,
     }
     await db["tasks"].insert_one(task)
+    await record_audit(
+        db,
+        user_id or business.owner_user_id,
+        business.id,
+        "task_created",
+        target_id=task["task_id"],
+        details={"agent": agent, "action_type": action_type, "status": status},
+    )
 
     if status == "auto_approved":
         task = await execute_task(db, agent_registry, business, task)
@@ -107,7 +117,7 @@ async def execute_task(
     vault credential; for everything else, it's still the simulated agent
     decision via AgentManager.trigger_action, unchanged from Phase 2.
     """
-    runtime = agent_registry.get_or_create(business)
+    runtime = await agent_registry.get_or_create(business)
     now = datetime.now(timezone.utc)
     handler = EXTERNAL_ACTION_HANDLERS.get(task["action_type"])
     try:

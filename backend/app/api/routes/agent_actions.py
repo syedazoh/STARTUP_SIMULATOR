@@ -15,12 +15,20 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from ..deps import get_owned_business
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.task_schemas import TaskOut, to_task_out
 from ...services.persistence import record_decision, snapshot_agents
 from ...services.tasks import create_task
 
 router = APIRouter(prefix="/api/businesses/{business_id}/agents", tags=["agent-actions"])
+
+# Applied to every action endpoint below (task-creating or not) — a manual
+# action is still a user-initiated write with real effects, so all of them
+# share one budget rather than only the ones that happen to go through
+# create_task today.
+_action_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_action_rate_limiter))
 
 
 class BudgetRequestAction(BaseModel):
@@ -55,7 +63,7 @@ class ResourceRequestAction(BaseModel):
 async def _trigger_and_record(
     request: Request, business: BusinessOut, agent_key: str, event_type: str, data: dict
 ):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     result = await runtime.agent_manager.trigger_action(agent_key, event_type, data)
 
     db = request.app.state.db
@@ -65,7 +73,7 @@ async def _trigger_and_record(
     return result
 
 
-@router.post("/finance/actions/budget-request", response_model=TaskOut)
+@router.post("/finance/actions/budget-request", response_model=TaskOut, dependencies=[_rate_limited])
 async def finance_budget_request(
     payload: BudgetRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -80,7 +88,7 @@ async def finance_budget_request(
     return to_task_out(task)
 
 
-@router.post("/marketing/actions/campaign-launch")
+@router.post("/marketing/actions/campaign-launch", dependencies=[_rate_limited])
 async def marketing_campaign_launch(
     payload: CampaignLaunchAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -89,7 +97,7 @@ async def marketing_campaign_launch(
     )
 
 
-@router.post("/marketing/actions/instagram-post", response_model=TaskOut)
+@router.post("/marketing/actions/instagram-post", response_model=TaskOut, dependencies=[_rate_limited])
 async def marketing_instagram_post(
     payload: InstagramPostAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -104,7 +112,7 @@ async def marketing_instagram_post(
     return to_task_out(task)
 
 
-@router.post("/marketing/actions/reel-request", response_model=TaskOut)
+@router.post("/marketing/actions/reel-request", response_model=TaskOut, dependencies=[_rate_limited])
 async def marketing_reel_request(
     payload: ReelRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -120,7 +128,7 @@ async def marketing_reel_request(
     return to_task_out(task)
 
 
-@router.post("/hr/actions/recruitment-request")
+@router.post("/hr/actions/recruitment-request", dependencies=[_rate_limited])
 async def hr_recruitment_request(
     payload: RecruitmentRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -129,7 +137,7 @@ async def hr_recruitment_request(
     )
 
 
-@router.post("/operations/actions/resource-request")
+@router.post("/operations/actions/resource-request", dependencies=[_rate_limited])
 async def operations_resource_request(
     payload: ResourceRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):

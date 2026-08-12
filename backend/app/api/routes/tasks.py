@@ -14,6 +14,7 @@ from ..deps import get_owned_business, get_owned_task
 from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
 from ...models.task_schemas import TaskDecisionIn, TaskOut, to_task_out
+from ...services.audit import record_audit
 from ...services.media_assets import upload_asset
 from ...services.tasks import execute_task
 
@@ -50,6 +51,7 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     decided_at = datetime.now(timezone.utc)
     await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": {"status": "approved", "decided_at": decided_at}})
     task = {**task, "status": "approved", "decided_at": decided_at}
+    await record_audit(db, business.owner_user_id, business.id, "task_approved", target_id=task["task_id"])
 
     executed = await execute_task(db, request.app.state.agent_registry, business, task)
     return to_task_out(executed)
@@ -67,6 +69,10 @@ async def reject_task(payload: TaskDecisionIn, request: Request, owned: dict = D
     decided_at = datetime.now(timezone.utc)
     update = {"status": "rejected", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
     await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": update})
+    await record_audit(
+        db, business.owner_user_id, business.id, "task_rejected", target_id=task["task_id"],
+        details={"owner_feedback": payload.owner_feedback},
+    )
     return to_task_out({**task, **update})
 
 
@@ -82,6 +88,10 @@ async def request_changes(payload: TaskDecisionIn, request: Request, owned: dict
     decided_at = datetime.now(timezone.utc)
     update = {"status": "needs_changes", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
     await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": update})
+    await record_audit(
+        db, business.owner_user_id, business.id, "task_needs_changes", target_id=task["task_id"],
+        details={"owner_feedback": payload.owner_feedback},
+    )
     return to_task_out({**task, **update})
 
 

@@ -20,7 +20,7 @@ async def start_simulation(
     payload: SimulationConfig, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
     registry = request.app.state.agent_registry
-    runtime = registry.get_or_create(business)
+    runtime = await registry.get_or_create(business)
 
     if runtime.simulation_engine is not None and runtime.simulation_engine.is_running:
         raise HTTPException(status_code=409, detail="Simulation already running")
@@ -84,7 +84,7 @@ async def start_simulation(
 
 @router.post("/stop")
 async def stop_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
@@ -101,7 +101,7 @@ async def stop_simulation(request: Request, business: BusinessOut = Depends(get_
 
 @router.post("/pause")
 async def pause_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
@@ -111,7 +111,7 @@ async def pause_simulation(request: Request, business: BusinessOut = Depends(get
 
 @router.post("/resume")
 async def resume_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
         raise HTTPException(status_code=409, detail="No simulation is running")
@@ -121,7 +121,7 @@ async def resume_simulation(request: Request, business: BusinessOut = Depends(ge
 
 @router.get("/status", response_model=SimulationStatusOut)
 async def simulation_status(request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None:
         return SimulationStatusOut(is_running=False, tick_count=0, decision_log_size=0, run_id=None)

@@ -25,6 +25,77 @@ Format for each entry:
 
 ---
 
+## 2026-08-13 — Phase 8: hardening (audit trail, rate limiting, restart safety)
+
+**What changed:**
+- New `audit_logs` collection (distinct from `decision_logs`, which has no
+  `user_id` and serves the dashboard's decision feed/replay, not
+  accountability): `{user_id, business_id, action, target_id, details,
+  timestamp}`. Wired into every task transition
+  (`task_created`/`task_auto_approved` in `create_task`,
+  `task_approved`/`task_rejected`/`task_needs_changes` in the three
+  decision routes) and both credential events
+  (`credential_connected`/`credential_revoked` in `services/credentials.py`).
+  A new admin-only `GET /api/admin/audit-logs` (optional `business_id`
+  filter) makes the trail actually reviewable — an audit log nobody can
+  read doesn't serve its purpose.
+- New `core/rate_limit.py`: a simple in-memory fixed-window limiter (no new
+  dependency — single-process deployment doesn't need a shared store like
+  Redis yet). Applied per authenticated user to the chat endpoint (15
+  req/min — the most expensive call in the app, a real LLM round-trip) and
+  every manual agent-action endpoint (30 req/min — task-creating or not,
+  since a manual action is a user-initiated write with real effects
+  regardless of which pipeline it goes through).
+- `registry.py` restart-safety, per the user's explicit choice between the
+  spec's two options (restore-from-snapshot vs. defer entirely): on first
+  touch after a restart, each agent's live numeric state is now seeded from
+  its most recent `agent_snapshots` document instead of always resetting to
+  the business's onboarding baseline. Deliberately not full replay (still
+  documented as out of scope — replaying a non-deterministic LLM-driven
+  decision log isn't reproducible anyway); this trusts the latest snapshot
+  as ground truth, which is a bounded, real fix rather than the previous
+  "always resets to day one."
+- Required making `AgentRegistry.get_or_create` `async` (it now awaits a
+  Mongo query) and giving `AgentRegistry` a `db` reference at construction
+  (`main.py` now does `AgentRegistry(db=app.state.db)`) — a mechanical but
+  wide change across all 16 call sites in 9 files, since every route that
+  touches a live agent goes through this method.
+
+**Why:** Part of the phased build plan (Phase 8 — Hardening), the final
+phase. Before starting, confirmed with the user which of the spec's two
+framings for restart-safety to build (Part 5's open decision #3): restore
+from snapshot, not full replay and not deferral.
+
+**Verified:** 164/164 backend tests passing (6 new in `test_hardening.py`
+covering the audit trail and both rate limiters — including that a
+credential's secret never appears in its own audit-log entry — and 6 new
+in `test_registry.py` covering rehydration: falls back to onboarding
+baseline with no db/no snapshot, restores from the latest of multiple
+snapshots, doesn't leak another business's snapshot, and caches the
+runtime after first creation). Restart-safety additionally verified
+end-to-end through the real HTTP API: registered a user, approved a
+$37,000 Finance budget request (pool 100,000 → 63,000), simulated a
+restart by discarding the in-memory `AgentRegistry`'s runtimes while
+keeping the same (mocked) Mongo — exactly what a real restart looks like
+against a real database — and confirmed the budget pool read back as
+63,000, not reset to 100,000. Phase 8 has no frontend surface (audit logs
+are admin-API-only per the spec; no UI called for), so no browser
+verification was needed this phase.
+
+**Files touched:** `backend/app/services/audit.py` (new),
+`backend/app/core/rate_limit.py` (new), `backend/app/orchestration/registry.py`,
+`backend/app/models/documents.py`, `backend/app/models/admin_schemas.py`,
+`backend/app/api/routes/admin.py`, `backend/app/api/routes/tasks.py`,
+`backend/app/api/routes/credentials.py`, `backend/app/api/routes/chat.py`,
+`backend/app/api/routes/agent_actions.py`, `backend/app/api/routes/agents.py`,
+`backend/app/api/routes/policies.py`, `backend/app/api/routes/memory.py`,
+`backend/app/api/routes/events.py`, `backend/app/api/routes/simulation.py`,
+`backend/app/services/chat.py`, `backend/app/services/tasks.py`,
+`backend/app/services/credentials.py`, `backend/app/main.py`,
+`backend/tests/test_hardening.py` (new), `backend/tests/test_registry.py` (new)
+
+---
+
 ## 2026-08-13 — Phase 7: RAG expansion to all five agents + Memory Inspector
 
 **What changed:**

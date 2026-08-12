@@ -55,7 +55,12 @@ async def connect(
 
 
 @router.delete("/{provider}", status_code=status.HTTP_204_NO_CONTENT)
-async def disconnect(provider: str, request: Request, business: BusinessOut = Depends(get_owned_business)):
-    revoked = await revoke_credential(request.app.state.db, business.id, provider)
+async def disconnect(
+    provider: str,
+    request: Request,
+    business: BusinessOut = Depends(get_owned_business),
+    user: UserOut = Depends(get_current_user),
+):
+    revoked = await revoke_credential(request.app.state.db, business.id, provider, user.id)
     if not revoked:
         raise HTTPException(status_code=404, detail="No credential connected for this provider")

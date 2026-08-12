@@ -124,6 +124,15 @@ class AgentModeDocument(BaseModel):
     updated_at: datetime
 
 
+class AuditLogDocument(BaseModel):
+    user_id: str
+    business_id: str
+    action: str  # e.g. "task_created" | "task_approved" | "credential_connected"
+    target_id: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
+    timestamp: datetime
+
+
 class TaskDocument(BaseModel):
     task_id: str
     business_id: str

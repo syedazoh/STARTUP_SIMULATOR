@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from ..core.crypto import decrypt_data_key, decrypt_with_data_key, encrypt_with_data_key
 from ..database.utils import find_one
+from .audit import record_audit
 
 
 async def connect_credential(
@@ -43,6 +44,10 @@ async def connect_credential(
         await db["credentials"].insert_one(doc)
     else:
         await db["credentials"].update_one({"business_id": business_id, "provider": provider}, {"$set": doc})
+
+    await record_audit(
+        db, connected_by_user_id, business_id, "credential_connected", target_id=provider
+    )
     return doc
 
 
@@ -51,11 +56,12 @@ async def list_credentials(db, business_id: str) -> List[Dict[str, Any]]:
     return await cursor.to_list(length=50)
 
 
-async def revoke_credential(db, business_id: str, provider: str) -> bool:
+async def revoke_credential(db, business_id: str, provider: str, user_id: str) -> bool:
     existing = await find_one(db["credentials"], {"business_id": business_id, "provider": provider})
     if existing is None:
         return False
     await db["credentials"].delete_one({"business_id": business_id, "provider": provider})
+    await record_audit(db, user_id, business_id, "credential_revoked", target_id=provider)
     return True
 
 

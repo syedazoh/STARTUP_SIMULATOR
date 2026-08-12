@@ -27,7 +27,7 @@ from .orchestration.registry import AgentRegistry
 async def lifespan(app: FastAPI):
     await connect_to_mongo()
     app.state.db = get_database()
-    app.state.agent_registry = AgentRegistry()
+    app.state.agent_registry = AgentRegistry(db=app.state.db)
     # Pays ChatGroq's ~1-2s construction cost (httpx/cert-store setup) once at
     # startup instead of on whichever business's request happens to trigger
     # AgentRegistry's lazy first construction — get_groq_llm() caches by

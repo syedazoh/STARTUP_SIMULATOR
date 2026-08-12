@@ -9,13 +9,13 @@ router = APIRouter(prefix="/api/businesses/{business_id}/agents", tags=["agents"
 
 @router.get("")
 async def list_agents(request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     return await runtime.agent_manager.get_all_agents_status()
 
 
 @router.get("/{agent_key}")
 async def get_agent(agent_key: str, request: Request, business: BusinessOut = Depends(get_owned_business)):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     agent = runtime.agent_manager.agents.get(agent_key)
     if agent is None:
         raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_key}")
@@ -29,7 +29,7 @@ async def get_agent_history(
     business: BusinessOut = Depends(get_owned_business),
     limit: int = 50,
 ):
-    runtime = request.app.state.agent_registry.get_or_create(business)
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     agent = runtime.agent_manager.agents.get(agent_key)
     if agent is None:
         raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_key}")
