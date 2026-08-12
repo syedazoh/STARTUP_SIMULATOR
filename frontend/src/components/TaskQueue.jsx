@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { approveTask, fetchPendingTasks, rejectTask, requestTaskChanges } from '../store/slices/tasksSlice'
+import AssetUploadCard from './AssetUploadCard'
 import { STATUS } from '../theme/palette'
 
 const POLL_INTERVAL_MS = 3000
@@ -11,7 +12,7 @@ function formatPayload(payload) {
     .join(' · ')
 }
 
-function TaskCard({ task }) {
+function TaskCard({ businessId, task }) {
   const dispatch = useDispatch()
   const [feedback, setFeedback] = useState('')
   const [busy, setBusy] = useState(false)
@@ -34,48 +35,59 @@ function TaskCard({ task }) {
             changes requested
           </span>
         )}
+        {task.status === 'awaiting_asset' && (
+          <span className="text-xs font-medium" style={{ color: STATUS.warning }}>
+            needs an asset
+          </span>
+        )}
       </div>
       <p className="text-xs text-gray-500">{formatPayload(task.payload)}</p>
       {task.owner_feedback && (
         <p className="text-xs text-gray-400 italic">Your feedback: "{task.owner_feedback}"</p>
       )}
 
-      <input
-        value={feedback}
-        onChange={(e) => setFeedback(e.target.value)}
-        placeholder="Feedback (for reject / request changes)"
-        className="w-full border rounded px-2 py-1 text-xs"
-      />
+      {task.status === 'awaiting_asset' ? (
+        <AssetUploadCard businessId={businessId} task={task} />
+      ) : (
+        <>
+          <input
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Feedback (for reject / request changes)"
+            className="w-full border rounded px-2 py-1 text-xs"
+          />
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => run(approveTask(task.id))}
-          className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
-          style={{ backgroundColor: STATUS.good }}
-        >
-          Approve
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => run(requestTaskChanges({ taskId: task.id, ownerFeedback: feedback }))}
-          className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
-          style={{ backgroundColor: STATUS.warning }}
-        >
-          Request changes
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => run(rejectTask({ taskId: task.id, ownerFeedback: feedback }))}
-          className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
-          style={{ backgroundColor: STATUS.critical }}
-        >
-          Reject
-        </button>
-      </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run(approveTask(task.id))}
+              className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
+              style={{ backgroundColor: STATUS.good }}
+            >
+              Approve
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run(requestTaskChanges({ taskId: task.id, ownerFeedback: feedback }))}
+              className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
+              style={{ backgroundColor: STATUS.warning }}
+            >
+              Request changes
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => run(rejectTask({ taskId: task.id, ownerFeedback: feedback }))}
+              className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
+              style={{ backgroundColor: STATUS.critical }}
+            >
+              Reject
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -105,7 +117,7 @@ function TaskQueue({ businessId }) {
       ) : (
         <div className="space-y-3">
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} businessId={businessId} task={task} />
           ))}
         </div>
       )}

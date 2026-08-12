@@ -16,7 +16,11 @@ async def post_to_instagram(db, business: BusinessOut, payload: Dict[str, Any]) 
     if token is None:
         return {"status": "failed", "reason": "no_instagram_credential_connected"}
 
-    content = payload.get("content", "")
+    # instagram_post's payload has `content` directly; reel_request (Phase 4's
+    # requires_asset path) has `campaign_name`/`brief` instead — both action
+    # types end up posting to the same place, so one handler covers both
+    # rather than duplicating the credential-check + result shape per type.
+    content = payload.get("content") or payload.get("campaign_name", "")
     # No real Meta Graph API call yet — Phase 3 ships the vault and the
     # execute_task wiring; swap this block for an httpx call to
     # graph.instagram.com (passing `token`) once a Meta app is registered

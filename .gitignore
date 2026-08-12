@@ -64,6 +64,9 @@ logs/
 backend/chroma_data/
 chroma_data/
 
+# User-uploaded media assets (local disk, dev-only — see services/media_assets.py)
+backend/uploads/
+
 # Simulation output
 simulation_log*.json
 

@@ -37,6 +37,11 @@ class InstagramPostAction(BaseModel):
     content: str
 
 
+class ReelRequestAction(BaseModel):
+    campaign_name: str
+    brief: str = ""
+
+
 class RecruitmentRequestAction(BaseModel):
     role: str
     headcount: int = 1
@@ -95,6 +100,22 @@ async def marketing_instagram_post(
         "marketing",
         "instagram_post",
         payload.model_dump(),
+    )
+    return to_task_out(task)
+
+
+@router.post("/marketing/actions/reel-request", response_model=TaskOut)
+async def marketing_reel_request(
+    payload: ReelRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "marketing",
+        "reel_request",
+        payload.model_dump(),
+        requires_asset=True,
     )
     return to_task_out(task)
 

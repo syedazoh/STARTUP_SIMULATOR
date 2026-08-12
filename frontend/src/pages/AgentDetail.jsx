@@ -8,6 +8,7 @@ import AgentModeForm from '../components/AgentModeForm'
 import AgentPolicyForm from '../components/AgentPolicyForm'
 import ConnectedAccounts from '../components/ConnectedAccounts'
 import InstagramPostForm from '../components/InstagramPostForm'
+import ReelRequestForm from '../components/ReelRequestForm'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 
@@ -83,6 +84,7 @@ function AgentDetail() {
               <>
                 <ConnectedAccounts businessId={businessId} />
                 <InstagramPostForm businessId={businessId} onActionComplete={poll} />
+                <ReelRequestForm businessId={businessId} onActionComplete={poll} />
               </>
             )}
           </div>

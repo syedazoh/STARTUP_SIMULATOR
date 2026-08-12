@@ -87,6 +87,17 @@ class AgentPolicyDocument(BaseModel):
     updated_at: datetime
 
 
+class MediaAssetDocument(BaseModel):
+    asset_id: str
+    business_id: str
+    task_id: str
+    uploaded_by: str = "owner"
+    file_ref: str
+    media_type: str  # "video" | "image"
+    agent_review: Dict[str, Any] = Field(default_factory=dict)
+    uploaded_at: datetime
+
+
 class CredentialDocument(BaseModel):
     business_id: str
     provider: str

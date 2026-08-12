@@ -32,6 +32,7 @@ DOMINANT_SCALAR_FIELD = {
 # (see services/credentials.py's get_decrypted_token).
 EXTERNAL_ACTION_HANDLERS = {
     "instagram_post": post_to_instagram,
+    "reel_request": post_to_instagram,
 }
 
 

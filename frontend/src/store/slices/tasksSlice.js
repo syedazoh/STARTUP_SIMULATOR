@@ -1,12 +1,11 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import apiClient from '../../api/client'
 
-// pending_approval and needs_changes are both still actionable by the owner
-// (Phase 2 doesn't yet loop needs_changes back to the agent for revision —
-// approving one just executes the original payload), so both belong in the
-// queue. Fetched unfiltered and narrowed here since the API only takes one
-// status value per call.
-const ACTIONABLE_STATUSES = new Set(['pending_approval', 'needs_changes'])
+// pending_approval, needs_changes, and awaiting_asset are all still
+// actionable by the owner — the first two via approve/reject/request
+// changes, the last via uploading a file (Phase 4). Fetched unfiltered and
+// narrowed here since the API only takes one status value per call.
+const ACTIONABLE_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset'])
 
 export const fetchPendingTasks = createAsyncThunk('tasks/fetchPending', async (businessId) => {
   const response = await apiClient.get(`/api/businesses/${businessId}/tasks`)
@@ -28,6 +27,23 @@ export const requestTaskChanges = createAsyncThunk(
   async ({ taskId, ownerFeedback }) => {
     const response = await apiClient.post(`/api/tasks/${taskId}/request-changes`, {
       owner_feedback: ownerFeedback,
+    })
+    return response.data
+  },
+)
+
+// Upload doesn't always clear the task out of the queue — a rejected/reshoot
+// verdict leaves it awaiting_asset again — so this doesn't touch `items`
+// itself; the caller re-dispatches fetchPendingTasks to pick up whatever
+// status the task landed on.
+export const uploadTaskAsset = createAsyncThunk(
+  'tasks/uploadAsset',
+  async ({ taskId, mediaType, file }) => {
+    const formData = new FormData()
+    formData.append('media_type', mediaType)
+    formData.append('file', file)
+    const response = await apiClient.post(`/api/tasks/${taskId}/assets`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
     return response.data
   },
