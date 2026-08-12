@@ -22,5 +22,13 @@ class Settings(BaseSettings):
     secret_key: str = "your-secret-key-change-in-production"
     access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
 
+    # Master key for the credential vault's envelope encryption (see
+    # core/crypto.py). Must be a Fernet key — generate one with
+    # `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`.
+    # Never commit a real value; local dev falls back to a fixed key so the
+    # app still runs out of the box, but anything storing real credentials
+    # must override this via the environment.
+    credential_master_key: str = "iJ7xpFNwPD8CwdnW0NN6viQNZ0OF-87hwCWMbswRUWQ="
+
 
 settings = Settings()

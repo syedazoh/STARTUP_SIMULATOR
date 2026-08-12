@@ -13,6 +13,7 @@ class UserDocument(BaseModel):
     email: str
     hashed_password: str
     role: str = "owner"  # "owner" | "admin"
+    encrypted_data_key: str  # see core/crypto.py — decrypts to this user's Fernet data key
     created_at: datetime
 
 
@@ -84,6 +85,17 @@ class AgentPolicyDocument(BaseModel):
     auto_approve_max: Optional[float] = None
     auto_deny_min: Optional[float] = None
     updated_at: datetime
+
+
+class CredentialDocument(BaseModel):
+    business_id: str
+    provider: str
+    encrypted_payload: str
+    encryption_key_id: str  # user_id whose data key encrypted this payload
+    connected_by_user_id: str
+    connected_at: datetime
+    last_used_at: Optional[datetime] = None
+    scopes: list = Field(default_factory=list)
 
 
 class AgentModeDocument(BaseModel):

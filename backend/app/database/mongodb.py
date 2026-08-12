@@ -11,6 +11,7 @@ implements the small subset of the Motor/pymongo API the routes use:
 
 - ``db[collection].insert_one(doc)`` / ``insert_many(docs)``
 - ``db[collection].update_one(filter, update)`` (``$set``)
+- ``db[collection].delete_one(filter)``
 - ``db[collection].find(query).sort(field, -1).limit(n).to_list(n)``
 
 This keeps all existing route code unchanged while allowing the platform to run
@@ -78,6 +79,11 @@ class InMemoryCollection:
             doc.update(deepcopy(update["$set"]))
         else:
             doc.update(deepcopy(update))
+
+    async def delete_one(self, query: Dict[str, Any]) -> None:
+        matched = self._find(query)
+        if matched:
+            self._docs.remove(matched[0])
 
     def _find(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
         results = []

@@ -14,13 +14,24 @@ from uuid import uuid4
 from ..database.utils import find_one
 from ..models.business_schemas import BusinessOut
 from .persistence import record_decision, snapshot_agents
+from .social import post_to_instagram
 
 # Maps an action_type to the one payload field the auto-approval threshold is
 # checked against. Mirrors the "one dominant scalar per request" shape
 # AgentPolicyIn already relies on (see policy_schemas.py) — unknown
-# action_types simply never qualify for auto-approval.
+# action_types simply never qualify for auto-approval. instagram_post has no
+# entry on purpose: a social post has no numeric scalar to threshold against,
+# so it always lands in pending_approval regardless of the agent's mode.
 DOMINANT_SCALAR_FIELD = {
     "budget_request": "amount",
+}
+
+# action_types with a real external side effect route through a dedicated
+# handler instead of AgentManager.trigger_action's simulated-decision path.
+# Each handler is the only code allowed to use a decrypted vault credential
+# (see services/credentials.py's get_decrypted_token).
+EXTERNAL_ACTION_HANDLERS = {
+    "instagram_post": post_to_instagram,
 }
 
 
@@ -87,16 +98,22 @@ async def create_task(
 async def execute_task(
     db, agent_registry, business: BusinessOut, task: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Runs the task's action through the live agent, then records the outcome.
+    """Runs the task's action, then records the outcome.
 
-    This is the only code path that actually applies a task's effects — the
-    same guarantee that will let Phase 3 make it the only path allowed to
-    touch decrypted third-party credentials.
+    This is the only code path that actually applies a task's effects: for
+    action_types with a real external side effect (EXTERNAL_ACTION_HANDLERS),
+    that means calling out to a third-party API via a just-in-time-decrypted
+    vault credential; for everything else, it's still the simulated agent
+    decision via AgentManager.trigger_action, unchanged from Phase 2.
     """
     runtime = agent_registry.get_or_create(business)
     now = datetime.now(timezone.utc)
+    handler = EXTERNAL_ACTION_HANDLERS.get(task["action_type"])
     try:
-        result = await runtime.agent_manager.trigger_action(task["agent"], task["action_type"], task["payload"])
+        if handler is not None:
+            result = await handler(db, business, task["payload"])
+        else:
+            result = await runtime.agent_manager.trigger_action(task["agent"], task["action_type"], task["payload"])
         update = {"status": "executed", "executed_at": now, "result": result}
     except Exception as exc:
         update = {"status": "failed", "executed_at": now, "result": {"error": str(exc)}}

@@ -5,6 +5,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from ..deps import get_current_user
+from ...core.crypto import encrypt_data_key, generate_data_key
 from ...core.security import create_access_token, hash_password, verify_password
 from ...database.utils import ensure_unique_index, find_one
 from ...models.auth_schemas import TokenOut, UserCreate, UserLogin, UserOut
@@ -30,6 +31,7 @@ async def register(payload: UserCreate, request: Request):
         "email": email,
         "hashed_password": hash_password(payload.password),
         "role": "owner",
+        "encrypted_data_key": encrypt_data_key(generate_data_key()),
         "created_at": created_at,
     })
     return UserOut(id=user_id, email=email, role="owner", created_at=created_at)

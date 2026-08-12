@@ -6,6 +6,8 @@ import AgentStatusCard from '../components/AgentStatusCard'
 import AgentActionForm from '../components/AgentActionForm'
 import AgentModeForm from '../components/AgentModeForm'
 import AgentPolicyForm from '../components/AgentPolicyForm'
+import ConnectedAccounts from '../components/ConnectedAccounts'
+import InstagramPostForm from '../components/InstagramPostForm'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 
@@ -77,6 +79,12 @@ function AgentDetail() {
             <AgentActionForm businessId={businessId} config={config} onActionComplete={poll} />
             <AgentModeForm businessId={businessId} agentKey={agentKey} />
             <AgentPolicyForm businessId={businessId} agentKey={agentKey} config={config} />
+            {agentKey === 'marketing' && (
+              <>
+                <ConnectedAccounts businessId={businessId} />
+                <InstagramPostForm businessId={businessId} onActionComplete={poll} />
+              </>
+            )}
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow p-4">

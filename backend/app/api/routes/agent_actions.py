@@ -33,6 +33,10 @@ class CampaignLaunchAction(BaseModel):
     requested_budget: float = 5000
 
 
+class InstagramPostAction(BaseModel):
+    content: str
+
+
 class RecruitmentRequestAction(BaseModel):
     role: str
     headcount: int = 1
@@ -78,6 +82,21 @@ async def marketing_campaign_launch(
     return await _trigger_and_record(
         request, business, "marketing", "campaign_launch", payload.model_dump()
     )
+
+
+@router.post("/marketing/actions/instagram-post", response_model=TaskOut)
+async def marketing_instagram_post(
+    payload: InstagramPostAction, request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "marketing",
+        "instagram_post",
+        payload.model_dump(),
+    )
+    return to_task_out(task)
 
 
 @router.post("/hr/actions/recruitment-request")
