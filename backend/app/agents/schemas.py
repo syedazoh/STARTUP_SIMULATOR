@@ -57,6 +57,30 @@ class OperationsDecision(BaseModel):
     )
 
 
+class ChatReply(BaseModel):
+    """An agent's structured reply to an owner chat message (services/chat.py).
+
+    Separate from the API request/response shapes in models/chat_schemas.py
+    — this is the literal shape asked of the LLM via with_structured_output.
+    The LLM only ever *requests* an action here; services/chat.py is what
+    actually calls create_task(), so a chat-originated action goes through
+    the exact same manual/auto/threshold pipeline as every other entry
+    point instead of a separate "the chatbot did it" code path.
+    """
+    reply: str = Field(description="A conversational reply to the owner, written in this agent's voice")
+    action_requested: bool = Field(
+        default=False,
+        description="True only if the owner's message asked you to actually take an action, not just answer a question",
+    )
+    action_type: Optional[str] = Field(
+        default=None, description="Which action type is being requested, if action_requested is true"
+    )
+    action_payload_json: Optional[str] = Field(
+        default=None,
+        description="A JSON object, encoded as a string, with that action's required fields, if action_requested is true",
+    )
+
+
 class RunSummary(BaseModel):
     """CEO agent's end-of-run strategic retrospective over a simulation's decision log"""
     headline: str = Field(description="One-sentence takeaway from this simulation run")

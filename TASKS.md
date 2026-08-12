@@ -25,6 +25,67 @@ Format for each entry:
 
 ---
 
+## 2026-08-13 — Phase 5: per-agent chatbot, wired through the same task pipeline
+
+**What changed:**
+- New `chat_threads` collection (one thread per business+agent) and
+  `GET`/`POST /api/businesses/{id}/agents/{agent}/chat` routes.
+- `services/chat.py` builds a prompt from the agent's persona, the
+  business's `business_profiles` document, the agent's **live status**
+  (`budget_pool`, `customer_base`, etc. — see the grounding fix below), and
+  recent conversation history, then asks the LLM for a `ChatReply`
+  (`agents/schemas.py`): a conversational `reply`, plus optionally
+  `action_requested`/`action_type`/`action_payload_json` if the owner's
+  message asked for something concrete.
+- The LLM only ever *requests* an action — `send_message()` is the only
+  code that turns an approved-looking request into a real `create_task()`
+  call, gated against a per-agent whitelist (`AGENT_ACTIONS`) mirroring the
+  manual action endpoints, so chat can't invent an action_type nothing
+  actually knows how to execute or reach across agents (HR asking for a
+  Finance action is silently ignored, not executed). This keeps
+  chat-originated actions on the exact same manual/auto/threshold pipeline
+  as every other entry point — no bypass, as called for in the spec.
+- CEO gets a chat panel too but no action whitelist entry — arbitration is
+  system-triggered, consistent with it having no manual action endpoint or
+  policy either.
+- Frontend: a `ChatPanel` (message bubbles, send box) added to every agent
+  detail page, including CEO's.
+
+**Bug caught and fixed during verification:** the first live-browser pass
+showed Finance confidently answering "$250,000" to "how much budget do we
+have?" — a hallucination, since the prompt only included the (often empty)
+`business_profiles` document, never the agent's actual `budget_pool`.
+Fixed by fetching the live agent's `get_status()` via the existing
+`agent_registry` and including it in the prompt; re-verified live and
+Finance now correctly reports the real figure. Added a regression test
+(`test_prompt_is_grounded_in_the_agents_live_status`) asserting the live
+status appears in the prompt sent to the LLM.
+
+**Why:** Part of the phased build plan (Phase 5 — Chatbot). The point of
+routing chat actions through `create_task` rather than executing directly
+was to avoid a second, ungated "the chatbot did it" code path alongside
+the task queue built in Phase 2.
+
+**Verified:** 133/133 backend tests passing (11 new in `tests/test_chat.py`,
+mocking the LLM the same way `test_negotiation.py`/`test_policies.py`
+already do for other agents' direct LLM calls), frontend build clean, and
+the full flow driven live in a browser against the real Groq API: asked
+Finance a factual question (correctly grounded answer), asked it to submit
+a budget request (created a `pending_approval` task, visible in the
+dashboard queue and in chat history after a page reload), and exercised
+CEO's chat panel — zero console errors throughout.
+
+**Files touched:** `backend/app/services/chat.py` (new),
+`backend/app/models/chat_schemas.py` (new),
+`backend/app/api/routes/chat.py` (new), `backend/app/agents/schemas.py`
+(added `ChatReply`), `backend/app/models/documents.py` (added
+`ChatThreadDocument`), `backend/app/main.py`,
+`backend/tests/test_chat.py` (new),
+`frontend/src/components/ChatPanel.jsx` (new),
+`frontend/src/pages/AgentDetail.jsx`
+
+---
+
 ## 2026-08-13 — Phase 4: media asset upload + agent review flow
 
 **What changed:**

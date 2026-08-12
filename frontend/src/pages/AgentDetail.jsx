@@ -9,6 +9,7 @@ import AgentPolicyForm from '../components/AgentPolicyForm'
 import ConnectedAccounts from '../components/ConnectedAccounts'
 import InstagramPostForm from '../components/InstagramPostForm'
 import ReelRequestForm from '../components/ReelRequestForm'
+import ChatPanel from '../components/ChatPanel'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 
@@ -115,6 +116,8 @@ function AgentDetail() {
             )}
           </div>
         )}
+
+        <ChatPanel businessId={businessId} agentKey={agentKey} agentLabel={config ? config.label : 'CEO'} />
       </main>
     </div>
   )

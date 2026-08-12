@@ -98,6 +98,13 @@ class MediaAssetDocument(BaseModel):
     uploaded_at: datetime
 
 
+class ChatThreadDocument(BaseModel):
+    business_id: str
+    agent: str
+    messages: list = Field(default_factory=list)  # [{role, content, created_at}, ...]
+    updated_at: datetime
+
+
 class CredentialDocument(BaseModel):
     business_id: str
     provider: str
