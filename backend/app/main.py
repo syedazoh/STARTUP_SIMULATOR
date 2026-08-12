@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.routes import agent_actions as agent_actions_routes
+from .api.routes import agent_modes as agent_modes_routes
 from .api.routes import agents as agents_routes
 from .api.routes import auth as auth_routes
 from .api.routes import business_profiles as business_profiles_routes
@@ -12,6 +13,7 @@ from .api.routes import businesses as businesses_routes
 from .api.routes import events as events_routes
 from .api.routes import policies as policies_routes
 from .api.routes import simulation as simulation_routes
+from .api.routes import tasks as tasks_routes
 from .core.llm import get_groq_llm
 from .database.mongodb import close_mongo_connection, connect_to_mongo, get_database, ping_mongo
 from .orchestration.registry import AgentRegistry
@@ -53,6 +55,9 @@ app.include_router(agents_routes.router)
 app.include_router(agent_actions_routes.router)
 app.include_router(events_routes.router)
 app.include_router(policies_routes.router)
+app.include_router(agent_modes_routes.router)
+app.include_router(tasks_routes.router)
+app.include_router(tasks_routes.task_actions_router)
 app.include_router(simulation_routes.router)
 
 

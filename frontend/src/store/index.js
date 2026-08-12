@@ -5,6 +5,7 @@ import businessReducer from './slices/businessSlice'
 import businessProfileReducer from './slices/businessProfileSlice'
 import eventsReducer from './slices/eventsSlice'
 import simulationReducer from './slices/simulationSlice'
+import tasksReducer from './slices/tasksSlice'
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     agents: agentsReducer,
     events: eventsReducer,
     simulation: simulationReducer,
+    tasks: tasksReducer,
   },
 })
 

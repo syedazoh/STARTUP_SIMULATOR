@@ -35,31 +35,45 @@ def _enable_policy(client, headers, business_id, agent_key, **policy):
 
 
 class TestFinanceAction:
+    """Finance's budget-request endpoint is the task-pipeline reference
+    implementation (see services/tasks.py) — by default (manual mode) it
+    lands as pending_approval rather than executing immediately, so these
+    tests approve the resulting task before asserting on the agent's actual
+    decision. Marketing/HR/Operations below are unaffected: they still call
+    the agent directly."""
+
     def test_manual_budget_request_returns_real_decision(self, client):
         headers = _auth_headers(client, "action1@example.com")
         business_id = _create_business(client, headers)
         _enable_policy(client, headers, business_id, "finance", auto_approve_max=5000)
 
-        response = client.post(
+        create_response = client.post(
             f"/api/businesses/{business_id}/agents/finance/actions/budget-request",
             json={"amount": 1000, "department": "Operations"},
             headers=headers,
         )
+        assert create_response.status_code == 200
+        assert create_response.json()["status"] == "pending_approval"
+        task_id = create_response.json()["id"]
+
+        response = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
         assert response.status_code == 200
         body = response.json()
-        assert body["status"] == "approved"
-        assert "policy_auto_approved" in body["reasoning"]
+        assert body["status"] == "executed"
+        assert body["result"]["status"] == "approved"
+        assert "policy_auto_approved" in body["result"]["reasoning"]
 
     def test_manual_action_appears_in_history(self, client):
         headers = _auth_headers(client, "action2@example.com")
         business_id = _create_business(client, headers)
         _enable_policy(client, headers, business_id, "finance", auto_approve_max=5000)
 
-        client.post(
+        create_response = client.post(
             f"/api/businesses/{business_id}/agents/finance/actions/budget-request",
             json={"amount": 1000, "department": "Operations"},
             headers=headers,
         )
+        client.post(f"/api/tasks/{create_response.json()['id']}/approve", headers=headers)
 
         history = client.get(
             f"/api/businesses/{business_id}/agents/finance/history", headers=headers
@@ -72,11 +86,12 @@ class TestFinanceAction:
         business_id = _create_business(client, headers)
         _enable_policy(client, headers, business_id, "finance", auto_approve_max=5000)
 
-        client.post(
+        create_response = client.post(
             f"/api/businesses/{business_id}/agents/finance/actions/budget-request",
             json={"amount": 1000, "department": "Operations"},
             headers=headers,
         )
+        client.post(f"/api/tasks/{create_response.json()['id']}/approve", headers=headers)
 
         events = client.get(f"/api/businesses/{business_id}/events", headers=headers).json()
         assert len(events) == 1

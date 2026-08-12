@@ -13,6 +13,7 @@ import AgentStatusCard from '../components/AgentStatusCard'
 import DecisionFeed from '../components/DecisionFeed'
 import SimulationControls from '../components/SimulationControls'
 import EndOfRunSummary from '../components/EndOfRunSummary'
+import TaskQueue from '../components/TaskQueue'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 
@@ -115,7 +116,10 @@ function Dashboard() {
           </div>
         </div>
 
-        <DecisionFeed businessId={businessId} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TaskQueue businessId={businessId} />
+          <DecisionFeed businessId={businessId} />
+        </div>
       </main>
     </div>
   )

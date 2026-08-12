@@ -3,6 +3,15 @@ import apiClient from '../api/client'
 import ErrorBanner from './ErrorBanner'
 import { STATUS } from '../theme/palette'
 
+// Finance's action endpoint returns a Task ({status: "pending_approval" |
+// "auto_approved" | "executed" | "failed", result: {...} | null}); the other
+// three agents still return the agent's raw decision ({status: "approved" |
+// "denied", reasoning}) directly. Handling both shapes here means this form
+// doesn't need to know which agent it's talking to.
+const GOOD_STATUSES = new Set(['approved', 'executed', 'auto_approved'])
+const BAD_STATUSES = new Set(['denied', 'rejected', 'failed'])
+const WAITING_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset'])
+
 function AgentActionForm({ businessId, config, onActionComplete }) {
   const [values, setValues] = useState(
     Object.fromEntries(config.actionFields.map((f) => [f.name, f.default])),
@@ -67,12 +76,25 @@ function AgentActionForm({ businessId, config, onActionComplete }) {
             <span className="font-medium text-gray-500">Result:</span>
             <span
               className="font-medium"
-              style={{ color: result.status === 'approved' ? STATUS.good : STATUS.critical }}
+              style={{
+                color: GOOD_STATUSES.has(result.status)
+                  ? STATUS.good
+                  : BAD_STATUSES.has(result.status)
+                    ? STATUS.critical
+                    : STATUS.warning,
+              }}
             >
-              {result.status}
+              {result.status.replace(/_/g, ' ')}
             </span>
           </div>
-          {result.reasoning && <p className="text-gray-600">{result.reasoning}</p>}
+          {(result.reasoning || result.result?.reasoning) && (
+            <p className="text-gray-600">{result.reasoning || result.result.reasoning}</p>
+          )}
+          {WAITING_STATUSES.has(result.status) && (
+            <p className="text-xs text-gray-400 mt-1">
+              Queued for your review — see the Task Queue on the dashboard.
+            </p>
+          )}
         </div>
       )}
     </div>

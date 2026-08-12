@@ -84,3 +84,29 @@ class AgentPolicyDocument(BaseModel):
     auto_approve_max: Optional[float] = None
     auto_deny_min: Optional[float] = None
     updated_at: datetime
+
+
+class AgentModeDocument(BaseModel):
+    business_id: str
+    agent: str
+    mode: str = "manual"  # "manual" | "auto"
+    auto_thresholds: Dict[str, Any] = Field(default_factory=dict)
+    updated_at: datetime
+
+
+class TaskDocument(BaseModel):
+    task_id: str
+    business_id: str
+    agent: str
+    action_type: str
+    payload: Dict[str, Any]
+    requires_asset: bool = False
+    asset_id: Optional[str] = None
+    # "pending_approval" | "auto_approved" | "approved" | "rejected" |
+    # "needs_changes" | "executed" | "failed" (see task_schemas.py)
+    status: str
+    owner_feedback: Optional[str] = None
+    result: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    decided_at: Optional[datetime] = None
+    executed_at: Optional[datetime] = None

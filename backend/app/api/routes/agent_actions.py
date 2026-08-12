@@ -3,13 +3,22 @@
 Each endpoint fires the same event contract each agent already handles when
 reacting to a simulation tick — no new event types, just a user-initiated
 entry point instead of the synthetic event generator.
+
+Finance's budget-request endpoint is the Phase 2 reference implementation of
+the task/approval pipeline: it goes through create_task() instead of firing
+straight into the agent, so it can land as pending_approval instead of
+executing immediately when Finance is in manual mode. The other three
+endpoints still call the agent directly — they're next in line to be wired
+through the same pipeline, not intentionally left out.
 """
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from ..deps import get_owned_business
 from ...models.business_schemas import BusinessOut
+from ...models.task_schemas import TaskOut, to_task_out
 from ...services.persistence import record_decision, snapshot_agents
+from ...services.tasks import create_task
 
 router = APIRouter(prefix="/api/businesses/{business_id}/agents", tags=["agent-actions"])
 
@@ -47,13 +56,19 @@ async def _trigger_and_record(
     return result
 
 
-@router.post("/finance/actions/budget-request")
+@router.post("/finance/actions/budget-request", response_model=TaskOut)
 async def finance_budget_request(
     payload: BudgetRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
-    return await _trigger_and_record(
-        request, business, "finance", "budget_request", payload.model_dump()
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "finance",
+        "budget_request",
+        payload.model_dump(),
     )
+    return to_task_out(task)
 
 
 @router.post("/marketing/actions/campaign-launch")

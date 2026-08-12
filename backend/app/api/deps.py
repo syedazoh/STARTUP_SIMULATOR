@@ -1,5 +1,5 @@
 """Shared FastAPI dependencies"""
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -65,3 +65,34 @@ async def get_owned_business(
         starting_resources=doc["starting_resources"],
         created_at=doc["created_at"],
     )
+
+
+async def get_owned_task(
+    task_id: str,
+    request: Request,
+    user: UserOut = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Task routes are top-level (/api/tasks/{id}), not business-scoped in the
+    URL, so ownership has to be resolved via the task's business_id instead of
+    get_owned_business's path-param lookup."""
+    db = request.app.state.db
+    task_doc = await find_one(db["tasks"], {"task_id": task_id})
+    if task_doc is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+
+    business_doc = await find_one(db["businesses"], {"business_id": task_doc["business_id"]})
+    if business_doc is None or business_doc["owner_user_id"] != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your task")
+
+    business = BusinessOut(
+        id=business_doc["business_id"],
+        owner_user_id=business_doc["owner_user_id"],
+        company_name=business_doc["company_name"],
+        industry=business_doc["industry"],
+        starting_budget=business_doc["starting_budget"],
+        starting_customer_base=business_doc["starting_customer_base"],
+        starting_headcount=business_doc["starting_headcount"],
+        starting_resources=business_doc["starting_resources"],
+        created_at=business_doc["created_at"],
+    )
+    return {"task": task_doc, "business": business}

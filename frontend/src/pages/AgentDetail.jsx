@@ -4,6 +4,7 @@ import apiClient from '../api/client'
 import AGENT_CONFIG from '../config/agentConfig'
 import AgentStatusCard from '../components/AgentStatusCard'
 import AgentActionForm from '../components/AgentActionForm'
+import AgentModeForm from '../components/AgentModeForm'
 import AgentPolicyForm from '../components/AgentPolicyForm'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
@@ -74,6 +75,7 @@ function AgentDetail() {
         {config ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AgentActionForm businessId={businessId} config={config} onActionComplete={poll} />
+            <AgentModeForm businessId={businessId} agentKey={agentKey} />
             <AgentPolicyForm businessId={businessId} agentKey={agentKey} config={config} />
           </div>
         ) : (
