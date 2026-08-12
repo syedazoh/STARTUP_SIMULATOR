@@ -1,4 +1,4 @@
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { logout } from '../store/slices/authSlice'
 import { clearBusinesses } from '../store/slices/businessSlice'
@@ -17,6 +17,7 @@ function Layout() {
   const { businessId } = useParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const isAdmin = useSelector((state) => state.auth.user?.role === 'admin')
 
   const handleLogout = () => {
     dispatch(logout())
@@ -54,7 +55,15 @@ function Layout() {
           ))}
         </nav>
 
-        <div className="px-4 py-4 border-t border-gray-100">
+        <div className="px-4 py-4 border-t border-gray-100 space-y-2">
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="block text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
+              Admin →
+            </Link>
+          )}
           <button
             type="button"
             onClick={handleLogout}

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import admin as admin_routes
 from .api.routes import agent_actions as agent_actions_routes
 from .api.routes import agent_modes as agent_modes_routes
 from .api.routes import agents as agents_routes
@@ -51,6 +52,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router)
+app.include_router(admin_routes.router)
 app.include_router(businesses_routes.router)
 app.include_router(business_profiles_routes.router)
 app.include_router(credentials_routes.router)

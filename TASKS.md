@@ -25,6 +25,71 @@ Format for each entry:
 
 ---
 
+## 2026-08-13 — Phase 6: admin interface (read-only aggregate views, no credential access)
+
+**What changed:**
+- New `GET /api/admin/businesses`, `GET /api/admin/businesses/{id}`,
+  `GET /api/admin/system-health` — all gated by the `require_admin`
+  dependency built in Phase 1. Data is aggregate operational metadata only
+  (owner email, task status counts, decision counts, latest simulation
+  status pulled from the existing `simulation_runs` collection, Mongo
+  connectivity) — nothing invented that isn't backed by a real collection.
+- No admin route imports `services/credentials.py`'s `get_decrypted_token`
+  or queries the `credentials` collection — that's a property of what
+  `routes/admin.py` was written to touch, not a permissions check a future
+  route could bypass. Directly tested: connected a real credential with a
+  distinctive secret token, then asserted it never appears in any admin
+  response body, and that the admin module never imported the decrypt
+  function at all (checked via the module's actual namespace, not a
+  source-text grep, which would have false-positived on this very
+  explanation in the module's own docstring).
+- `scripts/promote_admin.py`: a CLI, not an API endpoint, promotes a user
+  to admin by email. Deliberately no self-serve "become admin" route — that
+  would be a real privilege-escalation hole. Mirrors the existing
+  `scripts/run_simulation.py` convention.
+- Frontend: `/admin` (overview: total businesses, active simulations,
+  registered users, recently created businesses), `/admin/businesses`
+  (table), `/admin/businesses/:id` (detail — with an explicit on-page note
+  that no credential data is ever shown), `/admin/system-health`, all
+  behind a new `AdminRoute` guard (role-gated, redirects non-admins home)
+  and `AdminLayout`. A conditional "Admin →" link appears in the regular
+  sidebar only for `role === "admin"` users.
+- Also fixed a pre-existing gap while wiring this up: `fetchMe` (which
+  populates `role` client-side) was defined in `authSlice.js` but never
+  actually dispatched anywhere, so `state.auth.user` was always `null`.
+  Now dispatched from `ProtectedRoute` so role is known as soon as the
+  user is authenticated.
+
+**Why:** Part of the phased build plan (Phase 6 — Admin interface). The
+explicit test target called out in the spec — confirm no admin-reachable
+code path can read `credentials` — was treated as a first-class
+requirement, not an afterthought.
+
+**Verified:** 141/141 backend tests passing (8 new in `tests/test_admin.py`),
+frontend build clean, and the full flow driven live in a browser: a plain
+owner confirmed to have no "Admin" link and to be bounced back to their own
+dashboard on a direct `/admin` visit; a seeded admin (via the same
+in-process-DB technique the test suite uses, since the in-memory Mongo
+fallback doesn't share state across separate processes — `promote_admin.py`
+needs a real shared MongoDB to work against a running server) walked
+through overview → businesses table → business detail → system health,
+confirming the owner's connected Instagram credential secret never
+appeared anywhere on the admin pages. Zero console errors.
+
+**Files touched:** `backend/app/models/admin_schemas.py` (new),
+`backend/app/api/routes/admin.py` (new), `backend/scripts/promote_admin.py`
+(new), `backend/app/main.py`, `backend/tests/test_admin.py` (new),
+`frontend/src/components/AdminRoute.jsx` (new),
+`frontend/src/components/AdminLayout.jsx` (new),
+`frontend/src/pages/AdminOverview.jsx` (new),
+`frontend/src/pages/AdminBusinesses.jsx` (new),
+`frontend/src/pages/AdminBusinessDetail.jsx` (new),
+`frontend/src/pages/AdminSystemHealth.jsx` (new),
+`frontend/src/components/ProtectedRoute.jsx`, `frontend/src/components/Layout.jsx`,
+`frontend/src/App.jsx`
+
+---
+
 ## 2026-08-13 — Phase 5: per-agent chatbot, wired through the same task pipeline
 
 **What changed:**
