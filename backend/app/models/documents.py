@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 class UserDocument(BaseModel):
     email: str
     hashed_password: str
+    role: str = "owner"  # "owner" | "admin"
     created_at: datetime
 
 
@@ -25,6 +26,17 @@ class BusinessDocument(BaseModel):
     starting_headcount: int
     starting_resources: int
     created_at: datetime
+
+
+class BusinessProfileDocument(BaseModel):
+    business_id: str
+    brand: Dict[str, Any] = Field(default_factory=dict)
+    product: Dict[str, Any] = Field(default_factory=dict)
+    marketing: Dict[str, Any] = Field(default_factory=dict)
+    finance: Dict[str, Any] = Field(default_factory=dict)
+    operations: Dict[str, Any] = Field(default_factory=dict)
+    custom_context: list = Field(default_factory=list)
+    updated_at: datetime
 
 
 class DecisionLogDocument(BaseModel):

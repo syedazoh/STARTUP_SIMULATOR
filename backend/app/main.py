@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .api.routes import agent_actions as agent_actions_routes
 from .api.routes import agents as agents_routes
 from .api.routes import auth as auth_routes
+from .api.routes import business_profiles as business_profiles_routes
 from .api.routes import businesses as businesses_routes
 from .api.routes import events as events_routes
 from .api.routes import policies as policies_routes
@@ -47,6 +48,7 @@ app.add_middleware(
 
 app.include_router(auth_routes.router)
 app.include_router(businesses_routes.router)
+app.include_router(business_profiles_routes.router)
 app.include_router(agents_routes.router)
 app.include_router(agent_actions_routes.router)
 app.include_router(events_routes.router)

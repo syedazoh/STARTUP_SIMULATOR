@@ -29,9 +29,10 @@ async def register(payload: UserCreate, request: Request):
         "user_id": user_id,
         "email": email,
         "hashed_password": hash_password(payload.password),
+        "role": "owner",
         "created_at": created_at,
     })
-    return UserOut(id=user_id, email=email, created_at=created_at)
+    return UserOut(id=user_id, email=email, role="owner", created_at=created_at)
 
 
 @router.post("/login", response_model=TokenOut)

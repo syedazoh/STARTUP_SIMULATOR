@@ -25,6 +25,12 @@ class TestRegister:
         assert "id" in body
         assert "password" not in body and "hashed_password" not in body
 
+    def test_register_defaults_role_to_owner(self, client):
+        response = client.post(
+            "/api/auth/register", json={"email": "roledefault@example.com", "password": "supersecret123"}
+        )
+        assert response.json()["role"] == "owner"
+
     def test_register_duplicate_email_conflicts(self, client):
         client.post("/api/auth/register", json={"email": "dup@example.com", "password": "supersecret123"})
         response = client.post(
@@ -90,3 +96,38 @@ class TestMe:
     def test_me_with_garbage_token_unauthorized(self, client):
         response = client.get("/api/auth/me", headers={"Authorization": "Bearer not-a-real-token"})
         assert response.status_code == 401
+
+    def test_me_reports_owner_role(self, client):
+        client.post("/api/auth/register", json={"email": "role@example.com", "password": "supersecret123"})
+        login_response = client.post(
+            "/api/auth/login", json={"email": "role@example.com", "password": "supersecret123"}
+        )
+        token = login_response.json()["access_token"]
+
+        response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert response.json()["role"] == "owner"
+
+
+class TestRequireAdmin:
+    @pytest.mark.asyncio
+    async def test_owner_is_rejected(self):
+        from fastapi import HTTPException
+
+        from app.api.deps import require_admin
+        from app.models.auth_schemas import UserOut
+        from datetime import datetime, timezone
+
+        owner = UserOut(id="u1", email="owner@example.com", role="owner", created_at=datetime.now(timezone.utc))
+        with pytest.raises(HTTPException) as exc_info:
+            await require_admin(user=owner)
+        assert exc_info.value.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_admin_is_allowed(self):
+        from app.api.deps import require_admin
+        from app.models.auth_schemas import UserOut
+        from datetime import datetime, timezone
+
+        admin = UserOut(id="u2", email="admin@example.com", role="admin", created_at=datetime.now(timezone.utc))
+        result = await require_admin(user=admin)
+        assert result is admin

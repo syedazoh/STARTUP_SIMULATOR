@@ -17,6 +17,7 @@ class UserLogin(BaseModel):
 class UserOut(BaseModel):
     id: str
     email: str
+    role: str = "owner"
     created_at: datetime
 
 

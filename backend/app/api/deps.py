@@ -27,7 +27,20 @@ async def get_current_user(
     if user_doc is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
 
-    return UserOut(id=user_doc["user_id"], email=user_doc["email"], created_at=user_doc["created_at"])
+    return UserOut(
+        id=user_doc["user_id"],
+        email=user_doc["email"],
+        role=user_doc.get("role", "owner"),
+        created_at=user_doc["created_at"],
+    )
+
+
+async def require_admin(user: UserOut = Depends(get_current_user)) -> UserOut:
+    # Role is read from the DB-backed UserOut above, never from a client-supplied
+    # value, so this can't be bypassed by anything the frontend sends.
+    if user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    return user
 
 
 async def get_owned_business(
