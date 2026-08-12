@@ -2,6 +2,7 @@
 from typing import Any, Dict, List, Optional
 
 from ..core.llm import get_groq_llm
+from ..rag import get_decision_memory_store
 from .base_agent import BaseAgent
 from .schemas import ArbitrationDecision, RunSummary
 
@@ -27,12 +28,20 @@ class CEOAgent(BaseAgent):
         finance_position = event.get("finance_position", {})
         marketing_position = event.get("marketing_position", {})
         depth = event.get("depth", 0)
+        campaign_name = marketing_position.get("campaign_name", "unknown")
+
+        query_text = f"Arbitration for campaign '{campaign_name}' requesting ${marketing_position.get('requested_amount', 0):.2f}"
+        try:
+            memory_results = get_decision_memory_store().query_similar(self.agent_id, query_text, k=1)
+        except Exception:
+            memory_results = []
+        precedent_context = memory_results[0]["document"] if memory_results else None
 
         prompt = (
             "You are the CEO of a startup, arbitrating a budget disagreement between "
             "the Finance and Marketing departments.\n"
             f"Marketing's position: requested ${marketing_position.get('requested_amount', 0):.2f} "
-            f"for campaign '{marketing_position.get('campaign_name', 'unknown')}'. "
+            f"for campaign '{campaign_name}'. "
             f"Marketing's reasoning: {marketing_position.get('reasoning', 'n/a')}\n"
             f"Finance's position: approved={finance_position.get('approved')}, "
             f"counter_proposal=${(finance_position.get('counter_proposal') or 0):.2f}, "
@@ -42,6 +51,12 @@ class CEOAgent(BaseAgent):
             "between Finance's counter-proposal and Marketing's request). "
             "Reference both positions in your rationale."
         )
+        if precedent_context:
+            prompt += (
+                "\n\nA similar past arbitration is in memory:\n"
+                f"{precedent_context}\n"
+                "If it is relevant, factor it into your ruling and name it in precedent_cited."
+            )
 
         try:
             decision = await self._structured_llm.ainvoke(prompt)
@@ -55,6 +70,24 @@ class CEOAgent(BaseAgent):
             )
 
         self.decision_count += 1
+
+        summary_text = (
+            f"Arbitration for campaign '{campaign_name}': winner={decision.winner}, "
+            f"final_amount=${decision.final_amount:.2f}. Rationale: {decision.rationale}"
+        )
+        try:
+            get_decision_memory_store().add_decision(
+                agent_id=self.agent_id,
+                event_type="arbitration_request",
+                summary_text=summary_text,
+                metadata={
+                    "campaign_name": campaign_name,
+                    "winner": decision.winner,
+                    "final_amount": decision.final_amount,
+                },
+            )
+        except Exception:
+            pass
 
         if self.event_bus is not None:
             await self.event_bus.publish(
@@ -75,6 +108,7 @@ class CEOAgent(BaseAgent):
             "winner": decision.winner,
             "final_amount": decision.final_amount,
             "rationale": decision.rationale,
+            "precedent_cited": decision.precedent_cited,
         }
 
     async def summarize_run(self, decision_log: List[Dict[str, Any]]) -> RunSummary:

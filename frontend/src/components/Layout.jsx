@@ -53,6 +53,12 @@ function Layout() {
               {agent.label}
             </Link>
           ))}
+          <Link
+            to={`/b/${businessId}/memory-inspector`}
+            className="block px-3 py-2 mt-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 border-t border-gray-100 pt-3"
+          >
+            Memory Inspector
+          </Link>
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-100 space-y-2">

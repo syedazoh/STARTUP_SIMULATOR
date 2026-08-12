@@ -14,6 +14,7 @@ import Register from './pages/Register'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import AgentDetail from './pages/AgentDetail'
+import MemoryInspector from './pages/MemoryInspector'
 import AdminOverview from './pages/AdminOverview'
 import AdminBusinesses from './pages/AdminBusinesses'
 import AdminBusinessDetail from './pages/AdminBusinessDetail'
@@ -49,6 +50,7 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/b/:businessId/dashboard" element={<Dashboard />} />
               <Route path="/b/:businessId/agents/:agentKey" element={<AgentDetail />} />
+              <Route path="/b/:businessId/memory-inspector" element={<MemoryInspector />} />
             </Route>
           </Route>
 

@@ -19,6 +19,23 @@ class FakeStructuredLLM:
         return response
 
 
+class FakeMemoryStore:
+    """Every agent writes to the shared DecisionMemoryStore now (Phase 7's RAG
+    generalization) — faked out here so these agent-level tests don't write
+    synthetic data into the real chroma_data directory."""
+    def query_similar(self, agent_id, query_text, k=3):
+        return []
+
+    def add_decision(self, **kwargs):
+        pass
+
+
+@pytest.fixture(autouse=True)
+def _fake_memory_store(monkeypatch):
+    for module in ("app.agents.hr_agent", "app.agents.operations_agent"):
+        monkeypatch.setattr(f"{module}.get_decision_memory_store", lambda: FakeMemoryStore())
+
+
 @pytest.mark.asyncio
 class TestFinanceAgent:
     @pytest_asyncio.fixture

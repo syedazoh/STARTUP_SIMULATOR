@@ -26,6 +26,10 @@ class MarketingDecision(BaseModel):
     desired_budget: float = Field(description="Budget Marketing wants to request for this campaign")
     reasoning: str = Field(description="Brief explanation of why this budget is needed")
     expected_impact: Optional[str] = Field(default=None, description="Expected effect on customers/brand")
+    precedent_cited: Optional[str] = Field(
+        default=None,
+        description="If a similar past decision was provided as context, name/summarize which one influenced this decision",
+    )
 
 
 class ArbitrationDecision(BaseModel):
@@ -35,6 +39,10 @@ class ArbitrationDecision(BaseModel):
     )
     final_amount: float = Field(description="The final amount to be released to the requesting department")
     rationale: str = Field(description="Brief explanation referencing both departments' stated positions")
+    precedent_cited: Optional[str] = Field(
+        default=None,
+        description="If a similar past arbitration was provided as context, name/summarize which one influenced this ruling",
+    )
 
 
 class HRDecision(BaseModel):
@@ -45,6 +53,10 @@ class HRDecision(BaseModel):
     morale_impact: Optional[float] = Field(
         default=None, description="Delta to apply to team morale as a result of this decision"
     )
+    precedent_cited: Optional[str] = Field(
+        default=None,
+        description="If a similar past decision was provided as context, name/summarize which one influenced this decision",
+    )
 
 
 class OperationsDecision(BaseModel):
@@ -54,6 +66,10 @@ class OperationsDecision(BaseModel):
     reasoning: str = Field(description="Brief explanation of the decision")
     efficiency_impact: Optional[float] = Field(
         default=None, description="Delta to apply to operational efficiency as a result of this decision"
+    )
+    precedent_cited: Optional[str] = Field(
+        default=None,
+        description="If a similar past decision was provided as context, name/summarize which one influenced this decision",
     )
 
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, TypedDict
 from langgraph.graph import END, StateGraph
 
 from ..core.llm import get_groq_llm
+from ..rag import get_decision_memory_store
 from .base_agent import BaseAgent
 from .schemas import MarketingDecision
 
@@ -14,6 +15,7 @@ class MarketingGraphState(TypedDict):
     event: Dict[str, Any]
     attempt: int
     decision: Optional[MarketingDecision]
+    precedent_context: Optional[str]
 
 
 class MarketingAgent(BaseAgent):
@@ -40,25 +42,29 @@ class MarketingAgent(BaseAgent):
         graph.add_node("check_policy", self._check_policy)
         graph.add_node("policy_approve", self._policy_approve)
         graph.add_node("policy_deny", self._policy_deny)
+        graph.add_node("retrieve_memory", self._retrieve_memory)
         graph.add_node("call_llm", self._call_llm)
         graph.add_node("fallback_decision", self._fallback_decision)
         graph.add_node("finalize", self._finalize)
+        graph.add_node("persist_memory", self._persist_memory)
 
         graph.set_entry_point("check_policy")
         graph.add_conditional_edges(
             "check_policy",
             self._route_after_policy,
-            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "call_llm"},
+            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "retrieve_memory"},
         )
         graph.add_edge("policy_approve", "finalize")
         graph.add_edge("policy_deny", "finalize")
+        graph.add_edge("retrieve_memory", "call_llm")
         graph.add_conditional_edges(
             "call_llm",
             self._route_after_llm,
             {"retry": "call_llm", "fallback": "fallback_decision", "apply": "finalize"},
         )
         graph.add_edge("fallback_decision", "finalize")
-        graph.add_edge("finalize", END)
+        graph.add_edge("finalize", "persist_memory")
+        graph.add_edge("persist_memory", END)
         return graph.compile()
 
     async def _check_policy(self, state: MarketingGraphState) -> MarketingGraphState:
@@ -104,6 +110,18 @@ class MarketingAgent(BaseAgent):
             return "retry"
         return "fallback"
 
+    async def _retrieve_memory(self, state: MarketingGraphState) -> MarketingGraphState:
+        event = state["event"]
+        campaign_name = event.get("campaign_name", "Untitled Campaign")
+        budget = event.get("requested_budget", 5000)
+        query_text = f"Campaign launch: {campaign_name} with suggested budget ${budget:.2f}"
+        try:
+            results = get_decision_memory_store().query_similar(self.agent_id, query_text, k=1)
+        except Exception:
+            results = []
+        precedent_context = results[0]["document"] if results else None
+        return {**state, "precedent_context": precedent_context}
+
     async def _call_llm(self, state: MarketingGraphState) -> MarketingGraphState:
         event = state["event"]
         campaign_name = event.get("campaign_name", "Untitled Campaign")
@@ -119,6 +137,13 @@ class MarketingAgent(BaseAgent):
             "Decide the budget you want to request from Finance for this campaign, and "
             "explain the expected impact on customers/brand."
         )
+        if state.get("precedent_context"):
+            prompt += (
+                "\n\nA similar past decision is in memory:\n"
+                f"{state['precedent_context']}\n"
+                "If it is relevant, factor it into your reasoning and name it in precedent_cited."
+            )
+
         try:
             decision = await self._structured_llm.ainvoke(prompt)
         except Exception:
@@ -140,6 +165,28 @@ class MarketingAgent(BaseAgent):
     async def _finalize(self, state: MarketingGraphState) -> MarketingGraphState:
         return state
 
+    async def _persist_memory(self, state: MarketingGraphState) -> MarketingGraphState:
+        event = state["event"]
+        decision: MarketingDecision = state["decision"]
+        campaign_name = event.get("campaign_name", "Untitled Campaign")
+        summary_text = (
+            f"Campaign launch '{campaign_name}': requested budget ${decision.desired_budget:.2f}. "
+            f"Reasoning: {decision.reasoning}"
+        )
+        try:
+            get_decision_memory_store().add_decision(
+                agent_id=self.agent_id,
+                event_type="campaign_launch",
+                summary_text=summary_text,
+                metadata={
+                    "campaign_name": campaign_name,
+                    "desired_budget": decision.desired_budget,
+                },
+            )
+        except Exception:
+            pass
+        return state
+
     async def process_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         event_type = event.get("type")
         if event_type == "campaign_launch":
@@ -151,7 +198,12 @@ class MarketingAgent(BaseAgent):
         return {"status": "unknown_event"}
 
     async def handle_campaign_launch(self, event: Dict[str, Any]) -> Dict[str, Any]:
-        initial_state: MarketingGraphState = {"event": event, "attempt": 0, "decision": None}
+        initial_state: MarketingGraphState = {
+            "event": event,
+            "attempt": 0,
+            "decision": None,
+            "precedent_context": None,
+        }
         final_state = await self._graph.ainvoke(initial_state)
         decision: MarketingDecision = final_state["decision"]
         self.decision_count += 1
@@ -176,6 +228,7 @@ class MarketingAgent(BaseAgent):
             "campaign_name": decision.campaign_name,
             "desired_budget": decision.desired_budget,
             "reasoning": decision.reasoning,
+            "precedent_cited": decision.precedent_cited,
         }
 
     def _apply_campaign_effects(self, amount: float) -> None:

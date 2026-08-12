@@ -70,9 +70,18 @@ class FakeMemoryStore:
 
 
 def _build_manager_with_fakes(monkeypatch) -> AgentManager:
-    monkeypatch.setattr(
-        "app.agents.finance_agent.get_decision_memory_store", lambda: FakeMemoryStore()
-    )
+    # Every agent now writes to the shared DecisionMemoryStore (Phase 7's RAG
+    # generalization), not just Finance — fake it out per-module for all five
+    # so simulation tests stay fast and don't write synthetic data into the
+    # real chroma_data directory.
+    for module in (
+        "app.agents.finance_agent",
+        "app.agents.marketing_agent",
+        "app.agents.hr_agent",
+        "app.agents.operations_agent",
+        "app.agents.ceo_agent",
+    ):
+        monkeypatch.setattr(f"{module}.get_decision_memory_store", lambda: FakeMemoryStore())
     mgr = AgentManager()
     # Finance always approves so campaigns never escalate to a real (unmocked) CEO LLM call.
     mgr.agents["finance"]._structured_llm = FakeStructuredLLM(

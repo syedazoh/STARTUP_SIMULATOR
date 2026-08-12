@@ -25,6 +25,79 @@ Format for each entry:
 
 ---
 
+## 2026-08-13 — Phase 7: RAG expansion to all five agents + Memory Inspector
+
+**What changed:**
+- Generalized `retrieve_memory`/`persist_memory` (previously Finance-only,
+  see the 2026-08-09 Chroma entry further down) to Marketing, HR,
+  Operations, and CEO. Each now retrieves a similar past decision before
+  its LLM call and cites it via a new `precedent_cited` field (added to
+  `MarketingDecision`, `HRDecision`, `OperationsDecision`,
+  `ArbitrationDecision` — Finance already had it), then persists its own
+  decision afterward — mirroring Finance's existing LangGraph shape
+  (`check_policy` → policy-shortcut or `retrieve_memory` → `call_llm` → …
+  → `persist_memory`). No new Chroma architecture needed: all five agents
+  already shared one `DecisionMemoryStore` collection, filtered by
+  `agent_id` (which already encodes `business_id`, e.g.
+  `"finance_<business_id>"`), so this was purely wiring more callers into
+  what existed.
+- `DecisionMemoryStore.get_recent()` (new) — browses an agent's memories
+  without a search query, for the inspector's default view; `query_similar`
+  (existing) handles the free-text search case.
+- New `GET /api/businesses/{id}/agents/{agent}/memory?query=&k=` — the read
+  side, resolving the agent's real `agent_id` from the live registry rather
+  than re-deriving the `"{agent}_{business_id}"` string convention in a
+  second place.
+- New `/memory-inspector` page (the spec's Part 1 described this as already
+  existing in the frontend; the Phase 1 audit found it didn't — built fresh
+  here): agent tabs, free-text search with distance scores, browse-recent
+  when the search box is empty.
+
+**Bug caught and fixed during implementation:** extending memory writes to
+all five agents meant every test that directly instantiates
+Marketing/HR/Operations/CEO and exercises a decision path — including the
+*policy-shortcut* path, which (like Finance) still reaches `persist_memory`
+even though it skips `retrieve_memory` — started hitting the real
+`DecisionMemoryStore` unless mocked. Caught by noticing `chroma_data/chroma.sqlite3`'s
+mtime changing after running `test_simulation.py`/`test_policies.py`/etc.
+Fixed by extending each affected test file's existing
+fake-memory-store-via-monkeypatch pattern (already established in
+`test_simulation.py` for Finance) to cover the newly-wired agent modules
+too, in `test_simulation.py`, `test_policies.py`, `test_agents.py`, and
+`test_negotiation.py`.
+
+**Why:** Part of the phased build plan (Phase 7 — RAG expansion). The spec
+frames this as "a generalization of existing code, not new architecture,"
+which held up in practice — the only real design decision was how the
+inspector resolves an agent's `agent_id` (via the live registry, not by
+re-implementing the naming convention).
+
+**Verified:** 152/152 backend tests passing (14 new: `get_recent` coverage
+plus one precedent-citation round-trip test per newly-wired agent in
+`test_rag.py`, and 5 in `test_memory_routes.py` covering browse/search/
+ownership/unknown-agent), frontend build clean, and the full flow driven
+live in a browser: memory inspector empty on a fresh business → triggered
+and approved a real Finance budget request (actual Groq decision) → memory
+inspector showed the new entry under Finance → confirmed the Marketing tab
+stayed empty (no cross-agent leakage) → free-text search returned the
+entry with a real vector distance score. Zero console errors. (One
+Playwright-only flake during verification — rapid-fire `page.goto()` calls
+interrupted in-flight requests, not an app bug — resolved by adding small
+settling waits between navigations in the test script.)
+
+**Files touched:** `backend/app/rag/store.py`, `backend/app/agents/schemas.py`,
+`backend/app/agents/marketing_agent.py`, `backend/app/agents/hr_agent.py`,
+`backend/app/agents/operations_agent.py`, `backend/app/agents/ceo_agent.py`,
+`backend/app/models/memory_schemas.py` (new),
+`backend/app/api/routes/memory.py` (new), `backend/app/main.py`,
+`backend/tests/test_rag.py`, `backend/tests/test_memory_routes.py` (new),
+`backend/tests/test_simulation.py`, `backend/tests/test_policies.py`,
+`backend/tests/test_agents.py`, `backend/tests/test_negotiation.py`,
+`frontend/src/pages/MemoryInspector.jsx` (new), `frontend/src/App.jsx`,
+`frontend/src/components/Layout.jsx`
+
+---
+
 ## 2026-08-13 — Phase 6: admin interface (read-only aggregate views, no credential access)
 
 **What changed:**

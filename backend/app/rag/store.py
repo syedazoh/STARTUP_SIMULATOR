@@ -50,6 +50,16 @@ class DecisionMemoryStore:
             for doc, meta, dist in zip(documents[0], metadatas[0], distances[0])
         ]
 
+    def get_recent(self, agent_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Browse an agent's memories without a search query — for the memory
+        inspector's default view. Chroma's .get() has no relevance ranking or
+        recency ordering of its own, so this returns whatever order the
+        collection yields and lets the caller decide whether to reverse it."""
+        results = self._collection.get(where={"agent_id": agent_id}, limit=limit)
+        documents = results.get("documents") or []
+        metadatas = results.get("metadatas") or []
+        return [{"document": doc, "metadata": meta, "distance": None} for doc, meta in zip(documents, metadatas)]
+
 
 _store_instance: Optional[DecisionMemoryStore] = None
 

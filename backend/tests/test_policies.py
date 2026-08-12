@@ -19,6 +19,24 @@ def _policy(**overrides) -> AgentPolicyOut:
     return AgentPolicyOut(**defaults)
 
 
+class FakeMemoryStore:
+    """Every agent writes to the shared DecisionMemoryStore now (Phase 7's RAG
+    generalization) — even the policy-shortcut path reaches persist_memory, so
+    this file's Marketing/HR/Operations tests need it faked out too, or every
+    run would write synthetic data into the real chroma_data directory."""
+    def query_similar(self, agent_id, query_text, k=3):
+        return []
+
+    def add_decision(self, **kwargs):
+        pass
+
+
+@pytest.fixture(autouse=True)
+def _fake_memory_store(monkeypatch):
+    for module in ("app.agents.marketing_agent", "app.agents.hr_agent", "app.agents.operations_agent"):
+        monkeypatch.setattr(f"{module}.get_decision_memory_store", lambda: FakeMemoryStore())
+
+
 class ExplodingLLM:
     """Raises if ever invoked — proves the policy path never reaches the LLM."""
     async def ainvoke(self, prompt):

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, TypedDict
 from langgraph.graph import END, StateGraph
 
 from ..core.llm import get_groq_llm
+from ..rag import get_decision_memory_store
 from .base_agent import BaseAgent
 from .schemas import OperationsDecision
 
@@ -16,6 +17,7 @@ class OperationsGraphState(TypedDict):
     operational_efficiency: float
     attempt: int
     decision: Optional[OperationsDecision]
+    precedent_context: Optional[str]
 
 
 class OperationsAgent(BaseAgent):
@@ -42,25 +44,29 @@ class OperationsAgent(BaseAgent):
         graph.add_node("check_policy", self._check_policy)
         graph.add_node("policy_approve", self._policy_approve)
         graph.add_node("policy_deny", self._policy_deny)
+        graph.add_node("retrieve_memory", self._retrieve_memory)
         graph.add_node("call_llm", self._call_llm)
         graph.add_node("fallback_decision", self._fallback_decision)
         graph.add_node("apply_decision", self._apply_decision)
+        graph.add_node("persist_memory", self._persist_memory)
 
         graph.set_entry_point("check_policy")
         graph.add_conditional_edges(
             "check_policy",
             self._route_after_policy,
-            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "call_llm"},
+            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "retrieve_memory"},
         )
         graph.add_edge("policy_approve", "apply_decision")
         graph.add_edge("policy_deny", "apply_decision")
+        graph.add_edge("retrieve_memory", "call_llm")
         graph.add_conditional_edges(
             "call_llm",
             self._route_after_llm,
             {"retry": "call_llm", "fallback": "fallback_decision", "apply": "apply_decision"},
         )
         graph.add_edge("fallback_decision", "apply_decision")
-        graph.add_edge("apply_decision", END)
+        graph.add_edge("apply_decision", "persist_memory")
+        graph.add_edge("persist_memory", END)
         return graph.compile()
 
     async def _check_policy(self, state: OperationsGraphState) -> OperationsGraphState:
@@ -102,6 +108,18 @@ class OperationsAgent(BaseAgent):
             return "retry"
         return "fallback"
 
+    async def _retrieve_memory(self, state: OperationsGraphState) -> OperationsGraphState:
+        event = state["event"]
+        resource_type = event.get("resource_type", "Unspecified Resource")
+        quantity = event.get("quantity", 1)
+        query_text = f"Resource request for {quantity} of {resource_type}"
+        try:
+            results = get_decision_memory_store().query_similar(self.agent_id, query_text, k=1)
+        except Exception:
+            results = []
+        precedent_context = results[0]["document"] if results else None
+        return {**state, "precedent_context": precedent_context}
+
     async def _call_llm(self, state: OperationsGraphState) -> OperationsGraphState:
         event = state["event"]
         resource_type = event.get("resource_type", "Unspecified Resource")
@@ -119,6 +137,13 @@ class OperationsAgent(BaseAgent):
             "Give a brief, concrete reasoning, and estimate the impact on operational "
             "efficiency (positive if it relieves a bottleneck, negative if it strains capacity)."
         )
+        if state.get("precedent_context"):
+            prompt += (
+                "\n\nA similar past decision is in memory:\n"
+                f"{state['precedent_context']}\n"
+                "If it is relevant, factor it into your reasoning and name it in precedent_cited."
+            )
+
         try:
             decision = await self._structured_llm.ainvoke(prompt)
         except Exception:
@@ -150,6 +175,32 @@ class OperationsAgent(BaseAgent):
         self.decision_count += 1
         return state
 
+    async def _persist_memory(self, state: OperationsGraphState) -> OperationsGraphState:
+        event = state["event"]
+        decision: OperationsDecision = state["decision"]
+        resource_type = event.get("resource_type", "Unspecified Resource")
+        quantity = event.get("quantity", 1)
+        summary_text = (
+            f"Resource request for {quantity} of {resource_type}: "
+            f"{'approved' if decision.approved else 'denied'} "
+            f"(quantity_approved={decision.quantity_approved}). Reasoning: {decision.reasoning}"
+        )
+        try:
+            get_decision_memory_store().add_decision(
+                agent_id=self.agent_id,
+                event_type="resource_request",
+                summary_text=summary_text,
+                metadata={
+                    "resource_type": resource_type,
+                    "quantity": quantity,
+                    "approved": decision.approved,
+                    "quantity_approved": decision.quantity_approved,
+                },
+            )
+        except Exception:
+            pass
+        return state
+
     async def process_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         event_type = event.get("type")
         if event_type == "resource_request":
@@ -163,6 +214,7 @@ class OperationsAgent(BaseAgent):
             "operational_efficiency": self.operational_efficiency,
             "attempt": 0,
             "decision": None,
+            "precedent_context": None,
         }
         final_state = await self._graph.ainvoke(initial_state)
         decision: OperationsDecision = final_state["decision"]
@@ -174,6 +226,7 @@ class OperationsAgent(BaseAgent):
             "quantity_approved": decision.quantity_approved,
             "reasoning": decision.reasoning,
             "efficiency_impact": decision.efficiency_impact,
+            "precedent_cited": decision.precedent_cited,
         }
 
     async def get_status(self) -> Dict[str, Any]:

@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional, TypedDict
 from langgraph.graph import END, StateGraph
 
 from ..core.llm import get_groq_llm
+from ..rag import get_decision_memory_store
 from .base_agent import BaseAgent
 from .schemas import HRDecision
 
@@ -16,6 +17,7 @@ class HRGraphState(TypedDict):
     team_morale: float
     attempt: int
     decision: Optional[HRDecision]
+    precedent_context: Optional[str]
 
 
 class HRAgent(BaseAgent):
@@ -42,25 +44,29 @@ class HRAgent(BaseAgent):
         graph.add_node("check_policy", self._check_policy)
         graph.add_node("policy_approve", self._policy_approve)
         graph.add_node("policy_deny", self._policy_deny)
+        graph.add_node("retrieve_memory", self._retrieve_memory)
         graph.add_node("call_llm", self._call_llm)
         graph.add_node("fallback_decision", self._fallback_decision)
         graph.add_node("apply_decision", self._apply_decision)
+        graph.add_node("persist_memory", self._persist_memory)
 
         graph.set_entry_point("check_policy")
         graph.add_conditional_edges(
             "check_policy",
             self._route_after_policy,
-            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "call_llm"},
+            {"policy_approve": "policy_approve", "policy_deny": "policy_deny", "llm": "retrieve_memory"},
         )
         graph.add_edge("policy_approve", "apply_decision")
         graph.add_edge("policy_deny", "apply_decision")
+        graph.add_edge("retrieve_memory", "call_llm")
         graph.add_conditional_edges(
             "call_llm",
             self._route_after_llm,
             {"retry": "call_llm", "fallback": "fallback_decision", "apply": "apply_decision"},
         )
         graph.add_edge("fallback_decision", "apply_decision")
-        graph.add_edge("apply_decision", END)
+        graph.add_edge("apply_decision", "persist_memory")
+        graph.add_edge("persist_memory", END)
         return graph.compile()
 
     async def _check_policy(self, state: HRGraphState) -> HRGraphState:
@@ -102,6 +108,18 @@ class HRAgent(BaseAgent):
             return "retry"
         return "fallback"
 
+    async def _retrieve_memory(self, state: HRGraphState) -> HRGraphState:
+        event = state["event"]
+        role = event.get("role", "Unspecified Role")
+        headcount = event.get("headcount", 1)
+        query_text = f"Recruitment request for {headcount} {role}"
+        try:
+            results = get_decision_memory_store().query_similar(self.agent_id, query_text, k=1)
+        except Exception:
+            results = []
+        precedent_context = results[0]["document"] if results else None
+        return {**state, "precedent_context": precedent_context}
+
     async def _call_llm(self, state: HRGraphState) -> HRGraphState:
         event = state["event"]
         role = event.get("role", "Unspecified Role")
@@ -120,6 +138,13 @@ class HRAgent(BaseAgent):
             "the impact on team morale (positive if it relieves overload, negative if budget "
             "concerns loom, small if neutral)."
         )
+        if state.get("precedent_context"):
+            prompt += (
+                "\n\nA similar past decision is in memory:\n"
+                f"{state['precedent_context']}\n"
+                "If it is relevant, factor it into your reasoning and name it in precedent_cited."
+            )
+
         try:
             decision = await self._structured_llm.ainvoke(prompt)
         except Exception:
@@ -148,6 +173,32 @@ class HRAgent(BaseAgent):
         self.decision_count += 1
         return state
 
+    async def _persist_memory(self, state: HRGraphState) -> HRGraphState:
+        event = state["event"]
+        decision: HRDecision = state["decision"]
+        role = event.get("role", "Unspecified Role")
+        headcount = event.get("headcount", 1)
+        summary_text = (
+            f"Recruitment request for {headcount} {role}: "
+            f"{'approved' if decision.approved else 'denied'} "
+            f"(headcount_approved={decision.headcount_approved}). Reasoning: {decision.reasoning}"
+        )
+        try:
+            get_decision_memory_store().add_decision(
+                agent_id=self.agent_id,
+                event_type="recruitment_request",
+                summary_text=summary_text,
+                metadata={
+                    "role": role,
+                    "headcount": headcount,
+                    "approved": decision.approved,
+                    "headcount_approved": decision.headcount_approved,
+                },
+            )
+        except Exception:
+            pass
+        return state
+
     async def process_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         event_type = event.get("type")
         if event_type == "recruitment_request":
@@ -161,6 +212,7 @@ class HRAgent(BaseAgent):
             "team_morale": self.team_morale,
             "attempt": 0,
             "decision": None,
+            "precedent_context": None,
         }
         final_state = await self._graph.ainvoke(initial_state)
         decision: HRDecision = final_state["decision"]
@@ -172,6 +224,7 @@ class HRAgent(BaseAgent):
             "headcount_approved": decision.headcount_approved,
             "reasoning": decision.reasoning,
             "morale_impact": decision.morale_impact,
+            "precedent_cited": decision.precedent_cited,
         }
 
     async def get_status(self) -> Dict[str, Any]:
