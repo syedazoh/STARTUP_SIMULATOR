@@ -7,11 +7,13 @@ import ProtectedRoute from './components/ProtectedRoute'
 import RequireBusiness from './components/RequireBusiness'
 import HomeRedirect from './components/HomeRedirect'
 import Layout from './components/Layout'
+import PublicLayout from './components/PublicLayout'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/AdminLayout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Onboarding from './pages/Onboarding'
+import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import AgentDetail from './pages/AgentDetail'
 import MemoryInspector from './pages/MemoryInspector'
@@ -39,8 +41,11 @@ function App() {
     <BrowserRouter>
       <UnauthorizedHandler />
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
 
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding" element={<Onboarding />} />

@@ -45,7 +45,7 @@ const authSlice = createSlice({
         state.status = 'succeeded'
         state.error = null
       })
-      .addCase(login.rejected, (state, action) => {
+      .addCase(login.rejected, (state, _action) => {
         state.status = 'failed'
         state.error = 'Invalid email or password'
       })
