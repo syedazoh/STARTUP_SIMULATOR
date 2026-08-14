@@ -11,6 +11,8 @@ from ...models.business_schemas import BusinessCreate, BusinessOut
 
 router = APIRouter(prefix="/api/businesses", tags=["businesses"])
 
+DEFAULT_ENABLED_AGENTS = ["finance", "marketing", "hr", "operations", "ceo"]
+
 
 def _to_business_out(doc: dict) -> BusinessOut:
     return BusinessOut(
@@ -22,6 +24,7 @@ def _to_business_out(doc: dict) -> BusinessOut:
         starting_customer_base=doc["starting_customer_base"],
         starting_headcount=doc["starting_headcount"],
         starting_resources=doc["starting_resources"],
+        enabled_agents=doc.get("enabled_agents", DEFAULT_ENABLED_AGENTS),
         created_at=doc["created_at"],
     )
 
@@ -32,6 +35,7 @@ async def create_business(
 ):
     business_id = str(uuid4())
     created_at = datetime.now(timezone.utc)
+    enabled_agents = payload.enabled_agents or DEFAULT_ENABLED_AGENTS
     doc = {
         "business_id": business_id,
         "owner_user_id": user.id,
@@ -41,6 +45,7 @@ async def create_business(
         "starting_customer_base": payload.starting_customer_base,
         "starting_headcount": payload.starting_headcount,
         "starting_resources": payload.starting_resources,
+        "enabled_agents": enabled_agents,
         "created_at": created_at,
     }
     await request.app.state.db["businesses"].insert_one(doc)

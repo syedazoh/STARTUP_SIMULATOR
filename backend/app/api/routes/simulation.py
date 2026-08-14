@@ -156,3 +156,33 @@ async def get_run_summary(
         raise HTTPException(status_code=404, detail="Summary not available yet")
     doc["_id"] = str(doc["_id"])
     return doc
+
+
+@router.get("/decision-log")
+async def get_decision_log(
+    request: Request,
+    business: BusinessOut = Depends(get_owned_business),
+    limit: int = 500,
+    run_id: Optional[str] = None,
+):
+    """Get decision log entries for a business, optionally filtered by run_id."""
+    db = request.app.state.db
+    query = {"business_id": business.id}
+    if run_id:
+        query["simulation_run_id"] = run_id
+    cursor = db["decision_logs"].find(query).sort("tick", 1).limit(limit)
+    docs = await cursor.to_list(length=limit)
+    for doc in docs:
+        doc["_id"] = str(doc["_id"])
+    return docs
+
+
+@router.get("/simulation-runs")
+async def get_simulation_runs(request: Request, business: BusinessOut = Depends(get_owned_business)):
+    """Get all simulation runs for a business."""
+    db = request.app.state.db
+    cursor = db["simulation_runs"].find({"business_id": business.id}).sort("started_at", -1)
+    docs = await cursor.to_list(length=100)
+    for doc in docs:
+        doc["_id"] = str(doc["_id"])
+    return docs

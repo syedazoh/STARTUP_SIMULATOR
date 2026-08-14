@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional
 
 from ..models.business_schemas import BusinessOut
 from ..simulation.simulation_engine import SimulationEngine
-from .agent_manager import AgentManager
+from .agent_manager import AgentManager, DEFAULT_ENABLED_AGENTS
 
 # Fields every agent's get_status() always includes but that aren't live
 # numeric state to restore — restoring "agent_id" from a stale snapshot
@@ -55,7 +55,12 @@ class AgentRegistry:
                 "starting_headcount": business.starting_headcount,
                 "starting_resources": business.starting_resources,
             }
-            agent_manager = AgentManager(business_id=business.id, starting_state=starting_state)
+            enabled_agents = getattr(business, "enabled_agents", None) or DEFAULT_ENABLED_AGENTS
+            agent_manager = AgentManager(
+                business_id=business.id,
+                starting_state=starting_state,
+                enabled_agents=enabled_agents,
+            )
             await self._rehydrate_from_snapshots(business.id, agent_manager)
             self._runtimes[business.id] = BusinessRuntime(agent_manager=agent_manager)
         return self._runtimes[business.id]

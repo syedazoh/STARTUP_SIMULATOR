@@ -59,6 +59,12 @@ function Layout() {
           >
             Memory Inspector
           </Link>
+          <Link
+            to={`/b/${businessId}/decision-log`}
+            className="block px-3 py-2 mt-1 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
+          >
+            Decision Log
+          </Link>
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-100 space-y-2">

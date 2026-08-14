@@ -1,5 +1,6 @@
 """API-facing business request/response schemas"""
 from datetime import datetime
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +12,7 @@ class BusinessCreate(BaseModel):
     starting_customer_base: int = 1000
     starting_headcount: int = 50
     starting_resources: int = 10000
+    enabled_agents: Optional[List[str]] = None
 
 
 class BusinessOut(BaseModel):
@@ -22,4 +24,5 @@ class BusinessOut(BaseModel):
     starting_customer_base: int
     starting_headcount: int
     starting_resources: int
+    enabled_agents: List[str] = []
     created_at: datetime
