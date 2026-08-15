@@ -12,7 +12,7 @@ import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/AdminLayout'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import Onboarding from './pages/Onboarding'
+import Setup from './pages/Setup'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import AgentDetail from './pages/AgentDetail'
@@ -49,7 +49,7 @@ function App() {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/onboarding" element={<Setup />} />
 
           <Route element={<RequireBusiness />}>
             <Route path="/" element={<HomeRedirect />} />
