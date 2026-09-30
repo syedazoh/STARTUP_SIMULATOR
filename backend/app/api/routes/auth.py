@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from ..deps import get_current_user
 from ...core.crypto import encrypt_data_key, generate_data_key
+from ...core.login_throttle import check_login_attempt
 from ...core.security import create_access_token, hash_password, verify_password
 from ...database.utils import ensure_unique_index, find_one
 from ...models.auth_schemas import TokenOut, UserCreate, UserLogin, UserOut
@@ -40,7 +41,9 @@ async def register(payload: UserCreate, request: Request):
 @router.post("/login", response_model=TokenOut)
 async def login(payload: UserLogin, request: Request):
     db = request.app.state.db
-    user_doc = await find_one(db["users"], {"email": payload.email.lower()})
+    email = payload.email.lower()
+    await check_login_attempt(db, email)
+    user_doc = await find_one(db["users"], {"email": email})
     if user_doc is None or not verify_password(payload.password, user_doc["hashed_password"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
