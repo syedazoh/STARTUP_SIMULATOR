@@ -3,11 +3,7 @@ import apiClient from '../api/client'
 import ErrorBanner from './ErrorBanner'
 import { STATUS } from '../theme/palette'
 
-// Finance's action endpoint returns a Task ({status: "pending_approval" |
-// "auto_approved" | "executed" | "failed", result: {...} | null}); the other
-// three agents still return the agent's raw decision ({status: "approved" |
-// "denied", reasoning}) directly. Handling both shapes here means this form
-// doesn't need to know which agent it's talking to.
+// Action endpoints return a Task with an approval status and a nested result.
 const GOOD_STATUSES = new Set(['approved', 'executed', 'auto_approved'])
 const BAD_STATUSES = new Set(['denied', 'rejected', 'failed'])
 const WAITING_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset'])

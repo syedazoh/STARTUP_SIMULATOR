@@ -1,15 +1,7 @@
 """Manual per-agent action routes (business-scoped).
 
-Each endpoint fires the same event contract each agent already handles when
-reacting to a simulation tick — no new event types, just a user-initiated
-entry point instead of the synthetic event generator.
-
-Finance's budget-request endpoint is the Phase 2 reference implementation of
-the task/approval pipeline: it goes through create_task() instead of firing
-straight into the agent, so it can land as pending_approval instead of
-executing immediately when Finance is in manual mode. The other three
-endpoints still call the agent directly — they're next in line to be wired
-through the same pipeline, not intentionally left out.
+Each endpoint creates a task through the shared approval pipeline. Agent
+effects run only after owner approval or an allowed automatic-mode decision.
 """
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
@@ -18,15 +10,11 @@ from ..deps import get_owned_business
 from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.task_schemas import TaskOut, to_task_out
-from ...services.persistence import record_decision, snapshot_agents
 from ...services.tasks import create_task
 
 router = APIRouter(prefix="/api/businesses/{business_id}/agents", tags=["agent-actions"])
 
-# Applied to every action endpoint below (task-creating or not) — a manual
-# action is still a user-initiated write with real effects, so all of them
-# share one budget rather than only the ones that happen to go through
-# create_task today.
+# All user-initiated actions share one task-creation rate limit.
 _action_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
 _rate_limited = Depends(rate_limit_dependency(_action_rate_limiter))
 
@@ -60,19 +48,6 @@ class ResourceRequestAction(BaseModel):
     quantity: int = 1
 
 
-async def _trigger_and_record(
-    request: Request, business: BusinessOut, agent_key: str, event_type: str, data: dict
-):
-    runtime = await request.app.state.agent_registry.get_or_create(business)
-    result = await runtime.agent_manager.trigger_action(agent_key, event_type, data)
-
-    db = request.app.state.db
-    await record_decision(db, business.id, event_type, data, source="manual")
-    await snapshot_agents(db, business.id, runtime.agent_manager)
-
-    return result
-
-
 @router.post("/finance/actions/budget-request", response_model=TaskOut, dependencies=[_rate_limited])
 async def finance_budget_request(
     payload: BudgetRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
@@ -88,13 +63,19 @@ async def finance_budget_request(
     return to_task_out(task)
 
 
-@router.post("/marketing/actions/campaign-launch", dependencies=[_rate_limited])
+@router.post("/marketing/actions/campaign-launch", response_model=TaskOut, dependencies=[_rate_limited])
 async def marketing_campaign_launch(
     payload: CampaignLaunchAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
-    return await _trigger_and_record(
-        request, business, "marketing", "campaign_launch", payload.model_dump()
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "marketing",
+        "campaign_launch",
+        payload.model_dump(),
     )
+    return to_task_out(task)
 
 
 @router.post("/marketing/actions/instagram-post", response_model=TaskOut, dependencies=[_rate_limited])
@@ -128,19 +109,31 @@ async def marketing_reel_request(
     return to_task_out(task)
 
 
-@router.post("/hr/actions/recruitment-request", dependencies=[_rate_limited])
+@router.post("/hr/actions/recruitment-request", response_model=TaskOut, dependencies=[_rate_limited])
 async def hr_recruitment_request(
     payload: RecruitmentRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
-    return await _trigger_and_record(
-        request, business, "hr", "recruitment_request", payload.model_dump()
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "hr",
+        "recruitment_request",
+        payload.model_dump(),
     )
+    return to_task_out(task)
 
 
-@router.post("/operations/actions/resource-request", dependencies=[_rate_limited])
+@router.post("/operations/actions/resource-request", response_model=TaskOut, dependencies=[_rate_limited])
 async def operations_resource_request(
     payload: ResourceRequestAction, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
-    return await _trigger_and_record(
-        request, business, "operations", "resource_request", payload.model_dump()
+    task = await create_task(
+        request.app.state.db,
+        request.app.state.agent_registry,
+        business,
+        "operations",
+        "resource_request",
+        payload.model_dump(),
     )
+    return to_task_out(task)

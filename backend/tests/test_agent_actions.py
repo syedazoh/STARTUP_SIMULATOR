@@ -39,8 +39,7 @@ class TestFinanceAction:
     implementation (see services/tasks.py) — by default (manual mode) it
     lands as pending_approval rather than executing immediately, so these
     tests approve the resulting task before asserting on the agent's actual
-    decision. Marketing/HR/Operations below are unaffected: they still call
-    the agent directly."""
+    decision. The other department actions follow the same pipeline."""
 
     def test_manual_budget_request_returns_real_decision(self, client):
         headers = _auth_headers(client, "action1@example.com")
@@ -128,7 +127,12 @@ class TestMarketingAction:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["desired_budget"] == 3000
+        assert response.json()["status"] == "pending_approval"
+        task_id = response.json()["id"]
+        response = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert response.status_code == 200
+        assert response.json()["status"] == "executed"
+        assert response.json()["result"]["desired_budget"] == 3000
 
         events = client.get(f"/api/businesses/{business_id}/events", headers=headers).json()
         event_types = [e["event_type"] for e in events]
@@ -153,7 +157,12 @@ class TestHRAndOperationsActions:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["status"] == "approved"
+        assert response.json()["status"] == "pending_approval"
+        task_id = response.json()["id"]
+        response = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert response.status_code == 200
+        assert response.json()["status"] == "executed"
+        assert response.json()["result"]["status"] == "approved"
 
         hr = client.get(f"/api/businesses/{business_id}/agents/hr", headers=headers).json()
         assert hr["employee_count"] == 52
@@ -169,7 +178,67 @@ class TestHRAndOperationsActions:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["status"] == "approved"
+        assert response.json()["status"] == "pending_approval"
+        task_id = response.json()["id"]
+        response = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert response.status_code == 200
+        assert response.json()["status"] == "executed"
+        assert response.json()["result"]["status"] == "approved"
 
         operations = client.get(f"/api/businesses/{business_id}/agents/operations", headers=headers).json()
         assert operations["resource_pool"] == 9800
+
+
+@pytest.mark.parametrize("agent,action,payload", [
+    ("marketing", "campaign-launch", {"campaign_name": "Spring Sale", "requested_budget": 3000}),
+    ("hr", "recruitment-request", {"role": "Engineer", "headcount": 2}),
+    ("operations", "resource-request", {"resource_type": "Cloud Compute", "quantity": 200}),
+])
+@pytest.mark.parametrize("mode", [None, "manual", "auto"])
+def test_actions_require_approval_before_effects(client, agent, action, payload, mode):
+    headers = _auth_headers(client, "approval-owner@example.com")
+    business_id = _create_business(client, headers)
+    base = f"/api/businesses/{business_id}"
+    # Agent decision policies must not substitute for the owner's execution approval.
+    for key in (agent, "finance"):
+        _enable_policy(client, headers, business_id, key, auto_approve_max=100000)
+    if mode is not None:
+        response = client.put(
+            f"{base}/agents/{agent}/mode",
+            json={"mode": mode, "auto_thresholds": {"auto_approve_max": 100000}},
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+    before = client.get(f"{base}/agents", headers=headers).json()
+    response = client.post(f"{base}/agents/{agent}/actions/{action}", json=payload, headers=headers)
+    assert response.status_code == 200
+    task = response.json()
+    # These action types have no automatic approval rule in the task pipeline.
+    assert task["status"] == "pending_approval"
+    assert task["result"] is None
+    assert task["executed_at"] is None
+    assert task["business_id"] == business_id
+    assert task["agent"] == agent
+    assert task["action_type"] == action.replace("-", "_")
+    assert task["payload"] == payload
+    assert client.get(f"{base}/agents", headers=headers).json() == before
+    assert client.get(f"{base}/events", headers=headers).json() == []
+    queue = client.get(f"{base}/tasks", params={"task_status": "pending_approval"}, headers=headers)
+    assert [entry["id"] for entry in queue.json()] == [task["id"]]
+    for key in before:
+        assert client.get(f"{base}/agents/{key}/history", headers=headers).json() == []
+
+    # Both task creation and approval remain restricted to the business owner.
+    outsider = _auth_headers(client, "approval-outsider@example.com")
+    assert client.post(f"{base}/agents/{agent}/actions/{action}", json=payload).status_code == 401
+    assert client.post(
+        f"{base}/agents/{agent}/actions/{action}", json=payload, headers=outsider
+    ).status_code == 403
+    assert client.post(f"/api/tasks/{task['id']}/approve", headers=outsider).status_code == 403
+    response = client.post(f"/api/tasks/{task['id']}/reject", json={}, headers=headers)
+    assert response.status_code == 200
+    assert response.json()["status"] == "rejected"
+    assert client.post(f"/api/tasks/{task['id']}/approve", headers=headers).status_code == 409
+    assert client.get(f"{base}/agents", headers=headers).json() == before
+    assert client.get(f"{base}/events", headers=headers).json() == []
