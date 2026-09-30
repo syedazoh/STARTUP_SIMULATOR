@@ -71,6 +71,14 @@ uvicorn app.main:app --reload
 ```
 API will be available at `http://localhost:8000`
 
+Login requires MongoDB, including permission to create the `login_attempts`
+TTL index. Each email address (case insensitive) gets five login attempts per
+fixed five-minute window, shared across backend workers. All attempts count,
+including successful logins. Excess attempts return HTTP 429 with `Retry-After`;
+throttled attempts emit a warning without logging passwords or email addresses.
+Login returns HTTP 503 if the throttle store is unavailable, including when the
+simulator uses its in-memory database fallback.
+
 **Frontend**
 ```bash
 cd frontend
