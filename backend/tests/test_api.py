@@ -142,3 +142,62 @@ class TestSimulationRoutes:
             f"/api/businesses/{business_id}/simulation/runs/does-not-exist/summary", headers=headers
         )
         assert response.status_code == 404
+
+
+class TestSimulationResourceLimits:
+    @pytest.mark.parametrize("payload", [
+        {"ticks": 1001}, {"ticks": -1},
+        {"min_interval": 0, "max_interval": 0},
+        {"min_interval": 0.05}, {"max_interval": 0.05},
+        {"min_interval": 2, "max_interval": 1},
+        {"duration_seconds": "Infinity"}, {"min_interval": "NaN"},
+    ])
+    def test_invalid_limits_do_not_schedule_work(self, client, monkeypatch, payload):
+        from unittest.mock import Mock
+        from app.simulation import SimulationEngine
+
+        start = Mock()
+        monkeypatch.setattr(SimulationEngine, "start", start)
+        headers = _auth_headers(client, "limits@example.com")
+        business_id = _create_business(client, headers)
+        base = f"/api/businesses/{business_id}/simulation"
+
+        response = client.post(f"{base}/start", json=payload, headers=headers)
+
+        assert response.status_code == 422
+        start.assert_not_called()
+        assert client.get(f"{base}/simulation-runs", headers=headers).json() == []
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("payload", [{}, {"ticks": None, "duration_seconds": None}])
+    async def test_unspecified_limits_bound_persisted_work(self, monkeypatch, payload):
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        from app.api.routes.simulation import start_simulation
+        from app.agents.schemas import RunSummary
+        from app.simulation import SimulationConfig
+        from app.simulation.config import MAX_SIMULATION_TICKS
+
+        summary = RunSummary(headline="Done", key_decisions=[], risks=[], recommendation="Stop")
+        manager = SimpleNamespace(
+            agents={"ceo": SimpleNamespace(summarize_run=AsyncMock(return_value=summary))},
+            get_all_agents_status=AsyncMock(return_value={"ceo": {"agent_id": "ceo_test"}}),
+            process_event=AsyncMock(),
+        )
+        runtime = SimpleNamespace(simulation_engine=None, agent_manager=manager)
+        db = AsyncMongoMockClient()["simulation_limits"]
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(
+            db=db, agent_registry=SimpleNamespace(get_or_create=AsyncMock(return_value=runtime)),
+        )))
+        monkeypatch.setattr("app.simulation.simulation_engine.asyncio.sleep", AsyncMock())
+
+        result = await start_simulation(SimulationConfig(**payload), request, SimpleNamespace(id="test"))
+        await runtime.simulation_engine._task
+
+        run = await db["simulation_runs"].find_one({"run_id": result["run_id"]})
+        assert run["status"] == "completed"
+        assert run["ended_at"] is not None
+        assert run["tick_count"] == MAX_SIMULATION_TICKS
+        assert await db["decision_logs"].count_documents({}) == MAX_SIMULATION_TICKS
+        assert await db["agent_snapshots"].count_documents({}) == MAX_SIMULATION_TICKS
+        assert await db["run_summaries"].count_documents({}) == 1

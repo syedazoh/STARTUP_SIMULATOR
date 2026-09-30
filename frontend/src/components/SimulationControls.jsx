@@ -46,10 +46,11 @@ function SimulationControls({ businessId }) {
           id="ticks"
           type="number"
           min="1"
+          max="1000"
           value={ticks}
           onChange={(e) => setTicks(e.target.value)}
           disabled={isRunning}
-          placeholder="unlimited"
+          placeholder="1000 max"
           className="border rounded px-2 py-1 w-24 text-sm disabled:bg-gray-100"
         />
       </div>
@@ -58,7 +59,8 @@ function SimulationControls({ businessId }) {
         <input
           id="duration"
           type="number"
-          min="0"
+          min="0.1"
+          step="0.1"
           value={durationSeconds}
           onChange={(e) => setDurationSeconds(e.target.value)}
           disabled={isRunning}
@@ -71,7 +73,7 @@ function SimulationControls({ businessId }) {
         <input
           id="min-interval"
           type="number"
-          min="0"
+          min="0.1"
           step="0.1"
           value={minInterval}
           onChange={(e) => setMinInterval(e.target.value)}
@@ -84,7 +86,7 @@ function SimulationControls({ businessId }) {
         <input
           id="max-interval"
           type="number"
-          min="0"
+          min="0.1"
           step="0.1"
           value={maxInterval}
           onChange={(e) => setMaxInterval(e.target.value)}

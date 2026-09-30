@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
 from ..orchestration.agent_manager import AgentManager
-from .config import SimulationConfig
+from .config import MAX_SIMULATION_TICKS, SimulationConfig
 from .event_generator import generate_event
 
 # Every Nth tick, Finance gets a synthetic revenue injection so a long-running
@@ -77,19 +77,24 @@ class SimulationEngine:
 
     async def run(self, config: Optional[SimulationConfig] = None) -> None:
         config = config or SimulationConfig()
+        # A duration-only or unspecified limit must still bound model calls,
+        # persistence callbacks, and the retained decision log.
+        tick_limit = min(config.ticks or MAX_SIMULATION_TICKS, MAX_SIMULATION_TICKS)
         deadline = time.monotonic() + config.duration_seconds if config.duration_seconds else None
         weights = config.resolved_weights()
 
         self.is_running = True
         try:
             while self.is_running:
-                if config.ticks is not None and self.tick_count >= config.ticks:
+                if self.tick_count >= tick_limit:
                     break
                 if deadline is not None and time.monotonic() >= deadline:
                     break
 
                 await self._resume_event.wait()
                 if not self.is_running:
+                    break
+                if deadline is not None and time.monotonic() >= deadline:
                     break
 
                 await self._tick(weights)
