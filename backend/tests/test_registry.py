@@ -2,6 +2,7 @@
 agent's live numeric state is seeded from its latest agent_snapshots
 document instead of always resetting to the business's onboarding baseline
 (Phase 8 addendum)."""
+import asyncio
 from datetime import datetime, timezone
 
 import pytest
@@ -118,3 +119,54 @@ class TestRehydratesFromLatestSnapshot:
         second = await registry.get_or_create(business)
         assert second is first
         assert second.agent_manager.agents["finance"].budget_pool == 1234.0
+
+
+@pytest.mark.asyncio
+class TestConcurrentFirstTouch:
+    async def test_concurrent_get_or_create_returns_the_same_runtime_instance(self, db):
+        """Without the creation lock, two concurrent first-touch calls could
+        each miss the empty cache, build their own AgentManager, and the
+        second to finish would silently clobber the first in self._runtimes —
+        so callers holding the discarded one would drift from what's
+        actually stored."""
+        business = _business(id="biz-concurrent")
+        registry = AgentRegistry(db=db)
+
+        runtimes = await asyncio.gather(*(registry.get_or_create(business) for _ in range(10)))
+
+        first = runtimes[0]
+        assert all(runtime is first for runtime in runtimes)
+
+
+@pytest.mark.asyncio
+class TestPolicyRehydration:
+    async def test_rehydrates_saved_agent_policies_on_reconstruction(self, db):
+        business = _business(id="biz-policy-rehydrate")
+        # Simulate persisted owner policy requiring auto-denial for amounts >= $2,000
+        await db["agent_policies"].insert_one({
+            "business_id": business.id,
+            "agent_key": "finance",
+            "enabled": True,
+            "auto_approve_max": 500.0,
+            "auto_deny_min": 2000.0,
+            "updated_at": datetime.now(timezone.utc),
+        })
+
+        # Reconstructed runtime after restart
+        registry = AgentRegistry(db=db)
+        runtime = await registry.get_or_create(business)
+        finance_agent = runtime.agent_manager.agents["finance"]
+
+        assert finance_agent.policy is not None
+        assert finance_agent.policy.enabled is True
+        assert finance_agent.policy.auto_deny_min == 2000.0
+
+        # Budget request of 3000 must automatically deny without touching LLM
+        result = await finance_agent.process_event({
+            "type": "budget_request",
+            "amount": 3000.0,
+            "department": "Marketing",
+        })
+        assert result["status"] == "denied"
+        assert "policy_auto_denied" in result["reasoning"]
+        assert result["amount_approved"] == 0.0

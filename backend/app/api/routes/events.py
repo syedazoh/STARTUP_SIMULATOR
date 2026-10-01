@@ -1,13 +1,29 @@
 """Event routes (business-scoped)"""
 from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
 from ..deps import get_owned_business
 from ...models.business_schemas import BusinessOut
 
 router = APIRouter(prefix="/api/businesses/{business_id}/events", tags=["events"])
+
+# Event types a client is allowed to trigger directly — mirrors the
+# user-initiated actions agent_actions.py and the simulation event generator
+# already fire. Excludes agent-to-agent negotiation/arbitration events
+# (budget_negotiation, arbitration_request, arbitration_result): those are
+# only ever meant to be published by an agent reacting to another agent, so
+# letting an external caller inject one directly would let it forge a step
+# in that internal chain.
+PUBLISHABLE_EVENT_TYPES = {
+    "budget_request",
+    "campaign_launch",
+    "instagram_post",
+    "reel_request",
+    "recruitment_request",
+    "resource_request",
+}
 
 
 class PublishEventRequest(BaseModel):
@@ -28,6 +44,12 @@ async def list_events(
 async def publish_event(
     payload: PublishEventRequest, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
+    if payload.event_type not in PUBLISHABLE_EVENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Event type is not publishable: {payload.event_type}",
+        )
+
     runtime = await request.app.state.agent_registry.get_or_create(business)
     await runtime.agent_manager.process_event(payload.event_type, payload.data, source=payload.source)
     return {"status": "published", "event_type": payload.event_type}

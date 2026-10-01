@@ -16,6 +16,7 @@ import Setup from './pages/Setup'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import AgentDetail from './pages/AgentDetail'
+import BusinessProfile from './pages/BusinessProfile'
 import MemoryInspector from './pages/MemoryInspector'
 import DecisionLog from './pages/DecisionLog'
 import AdminOverview from './pages/AdminOverview'
@@ -56,6 +57,7 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/b/:businessId/dashboard" element={<Dashboard />} />
               <Route path="/b/:businessId/agents/:agentKey" element={<AgentDetail />} />
+              <Route path="/b/:businessId/profile" element={<BusinessProfile />} />
               <Route path="/b/:businessId/memory-inspector" element={<MemoryInspector />} />
               <Route path="/b/:businessId/decision-log" element={<DecisionLog />} />
             </Route>

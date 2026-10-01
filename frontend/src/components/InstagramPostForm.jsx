@@ -36,8 +36,11 @@ function InstagramPostForm({ businessId, onActionComplete }) {
       <h3 className="text-sm font-semibold text-gray-900 mb-3">Post to Instagram</h3>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Post content</label>
+          <label className="block text-xs text-gray-500 mb-1" htmlFor="instagram-post-content">
+            Post content
+          </label>
           <textarea
+            id="instagram-post-content"
             required
             value={content}
             onChange={(e) => setContent(e.target.value)}

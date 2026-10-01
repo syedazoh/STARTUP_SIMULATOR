@@ -11,6 +11,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from ..deps import get_current_user, get_owned_business
+from ...config import _DEFAULT_CREDENTIAL_MASTER_KEY, settings
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.auth_schemas import UserOut
 from ...models.business_schemas import BusinessOut
 from ...models.credential_schemas import CredentialConnectIn, CredentialOut
@@ -19,6 +21,9 @@ from ...services.credentials import connect_credential, list_credentials, revoke
 router = APIRouter(prefix="/api/businesses/{business_id}/credentials", tags=["credentials"])
 
 SUPPORTED_PROVIDERS = {"instagram"}
+
+_credentials_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_credentials_rate_limiter))
 
 
 def _to_credential_out(doc: dict) -> CredentialOut:
@@ -37,7 +42,7 @@ async def get_credentials(request: Request, business: BusinessOut = Depends(get_
     return [_to_credential_out(d) for d in docs]
 
 
-@router.post("/{provider}/connect", response_model=CredentialOut)
+@router.post("/{provider}/connect", response_model=CredentialOut, dependencies=[_rate_limited])
 async def connect(
     provider: str,
     payload: CredentialConnectIn,
@@ -48,13 +53,19 @@ async def connect(
     if provider not in SUPPORTED_PROVIDERS:
         raise HTTPException(status_code=404, detail=f"Unsupported provider: {provider}")
 
+    if settings.credential_master_key == _DEFAULT_CREDENTIAL_MASTER_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot store credentials: a deployment-specific CREDENTIAL_MASTER_KEY must be configured.",
+        )
+
     doc = await connect_credential(
         request.app.state.db, business.id, provider, payload.access_token, payload.scopes, user.id
     )
     return _to_credential_out(doc)
 
 
-@router.delete("/{provider}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{provider}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[_rate_limited])
 async def disconnect(
     provider: str,
     request: Request,

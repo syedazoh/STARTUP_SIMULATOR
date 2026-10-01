@@ -1,4 +1,5 @@
 """Finance Agent Implementation"""
+import math
 from typing import Any, Dict, Optional, TypedDict
 
 from langgraph.graph import END, StateGraph
@@ -164,8 +165,48 @@ class FinanceAgent(BaseAgent):
 
     async def _apply_decision(self, state: FinanceGraphState) -> FinanceGraphState:
         decision: FinanceDecision = state["decision"]
-        if decision.approved:
-            self.budget_pool -= decision.amount_approved
+        if decision is not None and decision.approved:
+            event = state.get("event", {})
+            requested_amount = float(event.get("amount", 0.0))
+            amount_approved = decision.amount_approved
+
+            # Validate amount is finite and non-negative
+            if not isinstance(amount_approved, (int, float)) or not math.isfinite(amount_approved) or amount_approved < 0:
+                decision.approved = False
+                decision.amount_approved = 0.0
+                decision.reasoning += " [REJECTED: approved amount must be a finite, non-negative number]"
+            # Cannot approve more than was requested
+            elif amount_approved > requested_amount:
+                decision.approved = False
+                decision.amount_approved = 0.0
+                decision.reasoning += (
+                    f" [REJECTED: approved amount (${amount_approved:.2f}) "
+                    f"exceeded requested amount (${requested_amount:.2f})]"
+                )
+            # Cannot approve more than available budget pool
+            elif amount_approved > self.budget_pool:
+                decision.approved = False
+                decision.amount_approved = 0.0
+                decision.reasoning += (
+                    f" [REJECTED: approved amount (${amount_approved:.2f}) "
+                    f"exceeded available budget pool (${self.budget_pool:.2f})]"
+                )
+            # Cannot exceed policy denial ceiling if enabled
+            elif (
+                self.policy is not None
+                and self.policy.enabled
+                and self.policy.auto_deny_min is not None
+                and amount_approved >= self.policy.auto_deny_min
+            ):
+                decision.approved = False
+                decision.amount_approved = 0.0
+                decision.reasoning += (
+                    f" [REJECTED: approved amount (${amount_approved:.2f}) "
+                    f"violates policy auto_deny_min (${self.policy.auto_deny_min:.2f})]"
+                )
+            else:
+                self.budget_pool -= amount_approved
+
         self.decision_count += 1
         return state
 
@@ -261,6 +302,18 @@ class FinanceAgent(BaseAgent):
     async def handle_arbitration_result(self, event: Dict[str, Any]) -> Dict[str, Any]:
         winner = event.get("winner")
         final_amount = event.get("final_amount", 0) or 0
+        # Defence in depth: CEOAgent already clamps final_amount before
+        # publishing, but this is the point that actually moves money, so it
+        # re-validates rather than trusting an event payload to be well-formed.
+        try:
+            final_amount = float(final_amount)
+        except (TypeError, ValueError):
+            final_amount = 0.0
+        if not math.isfinite(final_amount) or final_amount <= 0:
+            final_amount = 0.0
+        elif final_amount > self.budget_pool:
+            final_amount = max(self.budget_pool, 0.0)
+
         if winner != "finance" and final_amount > 0:
             self.budget_pool -= final_amount
         self.decision_count += 1

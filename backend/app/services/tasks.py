@@ -25,6 +25,9 @@ from .social import post_to_instagram
 # so it always lands in pending_approval regardless of the agent's mode.
 DOMINANT_SCALAR_FIELD = {
     "budget_request": "amount",
+    "campaign_launch": "requested_budget",
+    "recruitment_request": "headcount",
+    "resource_request": "quantity",
 }
 
 # action_types with a real external side effect route through a dedicated

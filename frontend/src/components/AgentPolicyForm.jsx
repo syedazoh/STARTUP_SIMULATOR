@@ -41,8 +41,11 @@ function AgentPolicyForm({ businessId, agentKey, config }) {
           Enable automation
         </label>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{config.policyLabels.auto_approve_max}</label>
+          <label className="block text-xs text-gray-500 mb-1" htmlFor={`policy-approve-max-${agentKey}`}>
+            {config.policyLabels.auto_approve_max}
+          </label>
           <input
+            id={`policy-approve-max-${agentKey}`}
             type="number"
             value={policy.auto_approve_max}
             onChange={(e) => setPolicy((p) => ({ ...p, auto_approve_max: e.target.value }))}
@@ -51,8 +54,11 @@ function AgentPolicyForm({ businessId, agentKey, config }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">{config.policyLabels.auto_deny_min}</label>
+          <label className="block text-xs text-gray-500 mb-1" htmlFor={`policy-deny-min-${agentKey}`}>
+            {config.policyLabels.auto_deny_min}
+          </label>
           <input
+            id={`policy-deny-min-${agentKey}`}
             type="number"
             value={policy.auto_deny_min}
             onChange={(e) => setPolicy((p) => ({ ...p, auto_deny_min: e.target.value }))}

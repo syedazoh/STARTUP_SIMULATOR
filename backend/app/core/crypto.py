@@ -40,3 +40,26 @@ def encrypt_with_data_key(data_key: bytes, plaintext: str) -> str:
 
 def decrypt_with_data_key(data_key: bytes, ciphertext: str) -> str:
     return Fernet(data_key).decrypt(ciphertext.encode()).decode()
+
+
+async def rewrap_user_keys(db, old_master_key: str, new_master_key: str) -> int:
+    """Rewraps all users' data keys with a new master key.
+
+    When replacing the fallback master key with a deployment-specific
+    master key, this re-encrypts stored user data keys without exposing or
+    modifying the credentials encrypted under each user's data key.
+    """
+    old_f = Fernet(old_master_key.encode() if isinstance(old_master_key, str) else old_master_key)
+    new_f = Fernet(new_master_key.encode() if isinstance(new_master_key, str) else new_master_key)
+
+    count = 0
+    cursor = db["users"].find({"encrypted_data_key": {"$exists": True}})
+    async for user in cursor:
+        raw_key = old_f.decrypt(user["encrypted_data_key"].encode())
+        re_encrypted = new_f.encrypt(raw_key).decode()
+        await db["users"].update_one(
+            {"_id": user["_id"]},
+            {"$set": {"encrypted_data_key": re_encrypted}},
+        )
+        count += 1
+    return count

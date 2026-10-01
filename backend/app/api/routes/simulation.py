@@ -14,19 +14,51 @@ from ...simulation import SimulationConfig, SimulationEngine
 
 router = APIRouter(prefix="/api/businesses/{business_id}/simulation", tags=["simulation"])
 
+MIN_SIMULATION_INTERVAL = 0.1
+MAX_SIMULATION_TICKS = 1000
+DEFAULT_SIMULATION_TICKS = 500
+MAX_SIMULATION_DURATION = 3600.0
+MAX_CONCURRENT_SIMULATIONS = 10
+
 
 @router.post("/start")
 async def start_simulation(
     payload: SimulationConfig, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
+    if payload.min_interval < MIN_SIMULATION_INTERVAL:
+        raise HTTPException(
+            status_code=400,
+            detail=f"min_interval must be at least {MIN_SIMULATION_INTERVAL} seconds.",
+        )
+    if payload.max_interval < payload.min_interval:
+        raise HTTPException(
+            status_code=400,
+            detail="max_interval cannot be less than min_interval.",
+        )
+
+    # Enforce finite work budget even for unbounded requests
+    if payload.ticks is None and payload.duration_seconds is None:
+        payload.ticks = DEFAULT_SIMULATION_TICKS
+    elif payload.ticks is not None and payload.ticks > MAX_SIMULATION_TICKS:
+        payload.ticks = MAX_SIMULATION_TICKS
+    if payload.duration_seconds is not None and payload.duration_seconds > MAX_SIMULATION_DURATION:
+        payload.duration_seconds = MAX_SIMULATION_DURATION
+
     registry = request.app.state.agent_registry
     runtime = await registry.get_or_create(business)
 
     if runtime.simulation_engine is not None and runtime.simulation_engine.is_running:
         raise HTTPException(status_code=409, detail="Simulation already running")
 
-    run_id = str(uuid.uuid4())
     db = request.app.state.db
+    running_count = await db["simulation_runs"].count_documents({"status": "running"})
+    if running_count >= MAX_CONCURRENT_SIMULATIONS:
+        raise HTTPException(
+            status_code=429,
+            detail="Maximum concurrent simulations limit reached.",
+        )
+
+    run_id = str(uuid.uuid4())
     started_at = datetime.now(timezone.utc)
 
     await db["simulation_runs"].insert_one({

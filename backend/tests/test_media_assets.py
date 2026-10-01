@@ -177,3 +177,30 @@ class TestUploadGuards:
             headers=intruder_headers,
         )
         assert response.status_code == 403
+
+
+class TestUploadPathTraversal:
+    """A filename with ../ segments must not let the upload escape
+    UPLOAD_DIR/{business_id} (see services/media_assets.py's _safe_filename)."""
+
+    def test_traversal_filename_stays_inside_business_upload_dir(self, client):
+        headers = _auth_headers(client, "asset-traversal@example.com")
+        business_id = _create_business(client, headers)
+        task_id = _request_reel(client, headers, business_id)
+
+        response = client.post(
+            f"/api/tasks/{task_id}/assets",
+            data={"media_type": "image"},
+            files={"file": ("../../etc/passthrough.png", b"fake-image-bytes", "image/png")},
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+        business_dir = (UPLOAD_DIR / business_id).resolve()
+        written_files = list(business_dir.iterdir())
+        assert len(written_files) == 1
+        assert written_files[0].resolve().parent == business_dir
+        assert written_files[0].name.endswith("_passthrough.png")
+
+        # Nothing escaped: UPLOAD_DIR itself gained no "etc" sibling directory.
+        assert not (UPLOAD_DIR / "etc").exists()

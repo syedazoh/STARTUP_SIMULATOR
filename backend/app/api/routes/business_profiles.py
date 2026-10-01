@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, Request
 
 from ..deps import get_owned_business
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...database.utils import find_one
 from ...models.business_profile_schemas import (
     BusinessProfileIn,
@@ -19,6 +20,14 @@ from ...models.business_profile_schemas import (
 from ...models.business_schemas import BusinessOut
 
 router = APIRouter(prefix="/api/businesses/{business_id}/profile", tags=["business_profiles"])
+
+_profile_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_profile_rate_limiter))
+
+# custom_context round-trips in full on every profile read/write and gets
+# copied into every chat prompt (services/chat.py) — capped so an
+# unbounded note history can't blow out the LLM's context window.
+MAX_CUSTOM_CONTEXT_NOTES = 50
 
 
 def _to_profile_out(doc: dict) -> BusinessProfileOut:
@@ -46,7 +55,7 @@ async def get_profile(request: Request, business: BusinessOut = Depends(get_owne
     return _to_profile_out(doc)
 
 
-@router.post("", response_model=BusinessProfileOut)
+@router.post("", response_model=BusinessProfileOut, dependencies=[_rate_limited])
 async def upsert_profile(
     payload: BusinessProfileIn, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -74,7 +83,7 @@ async def upsert_profile(
     return _to_profile_out(doc)
 
 
-@router.post("/context", response_model=BusinessProfileOut)
+@router.post("/context", response_model=BusinessProfileOut, dependencies=[_rate_limited])
 async def add_context_note(
     payload: CustomContextIn, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -89,7 +98,7 @@ async def add_context_note(
         doc["updated_at"] = updated_at
         await db["business_profiles"].insert_one(doc)
     else:
-        custom_context = existing.get("custom_context", []) + [note.model_dump()]
+        custom_context = (existing.get("custom_context", []) + [note.model_dump()])[-MAX_CUSTOM_CONTEXT_NOTES:]
         await db["business_profiles"].update_one(
             {"business_id": business.id},
             {"$set": {"custom_context": custom_context, "updated_at": updated_at}},

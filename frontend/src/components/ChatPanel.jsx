@@ -17,7 +17,7 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}/chat`)
       .then((res) => setMessages(res.data.messages))
-      .catch(() => {})
+      .catch((err) => console.warn('Failed to load chat thread', err))
   }, [businessId, agentKey])
 
   useEffect(() => {
@@ -52,8 +52,11 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
         {messages.length === 0 && (
           <p className="text-sm text-gray-400">No messages yet — ask {agentLabel} something.</p>
         )}
-        {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'owner' ? 'justify-end' : 'justify-start'}`}>
+        {messages.map((msg) => (
+          <div
+            key={`${msg.created_at}-${msg.role}`}
+            className={`flex ${msg.role === 'owner' ? 'justify-end' : 'justify-start'}`}
+          >
             <div
               className="max-w-[80%] rounded px-3 py-2 text-sm"
               style={

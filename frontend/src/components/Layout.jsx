@@ -54,8 +54,14 @@ function Layout() {
             </Link>
           ))}
           <Link
-            to={`/b/${businessId}/memory-inspector`}
+            to={`/b/${businessId}/profile`}
             className="block px-3 py-2 mt-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 border-t border-gray-100 pt-3"
+          >
+            Business Profile
+          </Link>
+          <Link
+            to={`/b/${businessId}/memory-inspector`}
+            className="block px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
           >
             Memory Inspector
           </Link>
@@ -71,6 +77,7 @@ function Layout() {
           {isAdmin && (
             <Link
               to="/admin"
+              title="Admin access is granted by the platform operator directly in the database — it isn't self-service."
               className="block text-sm font-medium text-gray-500 hover:text-gray-700"
             >
               Admin →

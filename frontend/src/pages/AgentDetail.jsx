@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import AGENT_CONFIG from '../config/agentConfig'
@@ -12,16 +12,11 @@ import ReelRequestForm from '../components/ReelRequestForm'
 import ChatPanel from '../components/ChatPanel'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
+import { toChartData } from '../utils/chartData'
+import useVisiblePolling from '../hooks/useVisiblePolling'
 
 const POLL_INTERVAL_MS = 1500
 const CHART_COLORS = [CATEGORICAL.blue, CATEGORICAL.orange, CATEGORICAL.aqua]
-
-function toChartData(snapshots, metricKey) {
-  return [...snapshots].reverse().map((snap, i) => ({
-    tick: i + 1,
-    [metricKey]: snap.state?.[metricKey],
-  }))
-}
 
 function AgentDetail() {
   const { businessId, agentKey } = useParams()
@@ -34,25 +29,20 @@ function AgentDetail() {
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}`)
       .then((res) => setStatus(res.data))
-      .catch(() => {})
+      .catch((err) => console.warn('Failed to load agent status', err))
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}/history`, { params: { limit: 50 } })
       .then((res) => setHistory(res.data))
-      .catch(() => {})
+      .catch((err) => console.warn('Failed to load agent history', err))
     if (agentKey === 'ceo') {
       apiClient
         .get(`/api/businesses/${businessId}/events`, { params: { limit: 100 } })
         .then((res) => setArbitrationEvents(res.data.filter((e) => e.event_type.startsWith('arbitration'))))
-        .catch(() => {})
+        .catch((err) => console.warn('Failed to load arbitration events', err))
     }
   }
 
-  useEffect(() => {
-    poll()
-    const interval = setInterval(poll, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId, agentKey])
+  useVisiblePolling(poll, POLL_INTERVAL_MS, [businessId, agentKey])
 
   return (
     <div className="min-h-screen bg-gray-50">

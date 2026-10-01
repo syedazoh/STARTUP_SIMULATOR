@@ -10,6 +10,7 @@ review model: Phase 4 ships the upload -> review -> task-transition wiring;
 the review itself is a deterministic stub so the demo doesn't depend on an
 external vision API.
 """
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
@@ -17,6 +18,19 @@ from uuid import uuid4
 
 UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
 VALID_MEDIA_TYPES = {"image", "video"}
+
+
+def _safe_filename(filename: str) -> str:
+    """Strips any directory component from a client-supplied filename.
+
+    filename comes straight from the multipart upload and is otherwise used
+    to build a disk path (see upload_asset below) — without this, a filename
+    like "../../etc/passthrough.png" would let the upload escape UPLOAD_DIR.
+    """
+    name = os.path.basename((filename or "").replace("\\", "/"))
+    if not name or name in {".", ".."}:
+        return "upload"
+    return name
 
 
 def _review_asset(filename: str, media_type: str) -> Dict[str, str]:
@@ -33,7 +47,7 @@ async def upload_asset(
     asset_id = str(uuid4())
     business_dir = UPLOAD_DIR / business_id
     business_dir.mkdir(parents=True, exist_ok=True)
-    file_ref = str(business_dir / f"{asset_id}_{filename}")
+    file_ref = str(business_dir / f"{asset_id}_{_safe_filename(filename)}")
     with open(file_ref, "wb") as f:
         f.write(content)
 

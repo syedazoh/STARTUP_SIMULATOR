@@ -1,3 +1,11 @@
+# Production stack. Everything is reachable through the `caddy` service on 443
+# only; no other service publishes a host port, so there is no plain-HTTP path to
+# the API or the frontend bundle (see docker/caddy/Caddyfile).
+#
+# Every variable below without a default is required — Compose substitutes an
+# empty string and the backend refuses to start, rather than silently running on
+# a published default key (backend/app/config.py fails startup when DEBUG=false
+# and SECRET_KEY / CREDENTIAL_MASTER_KEY are still their in-repo defaults).
 services:
   mongo:
     image: mongo:7
@@ -6,6 +14,9 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    # No ports: reachable only on the internal network from the backend.
+    expose:
+      - "27017"
     volumes:
       - mongo_data:/data/db
 
@@ -20,8 +31,22 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       DEBUG: "false"
-    ports:
-      - "8000:8000"
+      # Deployment-specific signing key for JWTs. Anyone holding this value plus
+      # a user id can mint a token the API accepts as that user, so it must be
+      # unique to this deployment and never a committed value. Required.
+      SECRET_KEY: "${SECRET_KEY:?set SECRET_KEY to a deployment-specific value, e.g. openssl rand -hex 32}"
+      # Envelope-encryption key for the credential vault (core/crypto.py).
+      # Anyone holding this plus a user's wrapped data key can recover that
+      # user's stored provider tokens. Required.
+      CREDENTIAL_MASTER_KEY: "${CREDENTIAL_MASTER_KEY:?set CREDENTIAL_MASTER_KEY to a Fernet key, e.g. python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'}"
+      # The browser reaches the API through the caddy service on the same origin
+      # (see the Caddyfile's /api/* handler), so the only origin that needs CORS
+      # access is the deployed frontend's own HTTPS origin.
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:?set ALLOWED_ORIGINS to the deployed frontend origin, e.g. https://app.example.com}"
+    # No ports: reachable only from caddy. Publishing 8000 would put the
+    # credential-accepting API back on a cleartext HTTP path.
+    expose:
+      - "8000"
     depends_on:
       - mongo
     volumes:
@@ -31,11 +56,33 @@ services:
     image: ${FRONTEND_IMAGE:-startup-simulator-frontend:latest}
     container_name: startup-simulator-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
+    # No ports: the bundle is only ever served through caddy, so it can't be
+    # fetched or modified over cleartext HTTP.
+    expose:
+      - "80"
     depends_on:
       - backend
+
+  caddy:
+    image: ${CADDY_IMAGE:-startup-simulator-caddy:latest}
+    container_name: startup-simulator-caddy
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: "${APP_DOMAIN:?set APP_DOMAIN to the DNS name this stack is served on}"
+      ACME_EMAIL: "${ACME_EMAIL:?set ACME_EMAIL to an address for Let's Encrypt expiry notices}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
 
 volumes:
   mongo_data:
   chroma_data:
+  caddy_data:
+  caddy_config:

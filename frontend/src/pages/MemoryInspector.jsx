@@ -71,7 +71,11 @@ function MemoryInspector() {
           </div>
 
           <form onSubmit={handleSubmit} className="flex gap-2">
+            <label className="sr-only" htmlFor="memory-search">
+              Search this agent's memory
+            </label>
             <input
+              id="memory-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search this agent's memory (leave blank to browse recent entries)…"

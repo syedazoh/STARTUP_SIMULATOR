@@ -9,12 +9,16 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..deps import get_owned_business
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...database.utils import find_one
 from ...models.agent_mode_schemas import AgentModeIn, AgentModeOut
 from ...models.business_schemas import BusinessOut
 from .policies import DEPARTMENT_AGENT_KEYS
 
 router = APIRouter(prefix="/api/businesses/{business_id}/agents/{agent_key}/mode", tags=["agent_modes"])
+
+_mode_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_mode_rate_limiter))
 
 
 def _to_mode_out(doc: dict) -> AgentModeOut:
@@ -36,7 +40,7 @@ async def get_mode(agent_key: str, request: Request, business: BusinessOut = Dep
     return _to_mode_out(doc)
 
 
-@router.put("", response_model=AgentModeOut)
+@router.put("", response_model=AgentModeOut, dependencies=[_rate_limited])
 async def update_mode(
     agent_key: str,
     payload: AgentModeIn,

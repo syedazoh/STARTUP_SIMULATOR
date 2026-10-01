@@ -7,7 +7,12 @@ from fastapi.testclient import TestClient
 from mongomock_motor import AsyncMongoMockClient
 
 import app.api.routes.agent_actions as agent_actions_module
+import app.api.routes.agent_modes as agent_modes_module
+import app.api.routes.business_profiles as business_profiles_module
 import app.api.routes.chat as chat_module
+import app.api.routes.credentials as credentials_module
+import app.api.routes.policies as policies_module
+import app.api.routes.tasks as tasks_module
 import app.database.mongodb as mongodb_module
 import app.services.chat as chat_service_module
 from app.agents.schemas import ChatReply
@@ -182,4 +187,93 @@ class TestRateLimiting:
         second = client.post(
             f"/api/businesses/{business_id}/agents/finance/chat", json={"content": "hi again"}, headers=headers
         )
+        assert second.status_code == 429
+
+
+class TestNewlyRateLimitedRoutes:
+    """Coverage for the routes rate-limited alongside chat/agent-actions:
+    business_profiles, credentials connect/disconnect, policies, agent_modes,
+    and tasks approve/reject/request-changes/assets — so this coverage
+    doesn't silently regress if a future change drops one of them."""
+
+    def test_business_profile_upsert_returns_429_after_threshold(self, client, monkeypatch):
+        monkeypatch.setattr(business_profiles_module._profile_rate_limiter, "max_requests", 1)
+        headers = _auth_headers(client, "ratelimit-profile@example.com")
+        business_id = _create_business(client, headers)
+
+        first = client.post(f"/api/businesses/{business_id}/profile", json={}, headers=headers)
+        assert first.status_code == 200
+
+        second = client.post(f"/api/businesses/{business_id}/profile", json={}, headers=headers)
+        assert second.status_code == 429
+
+    def test_credential_connect_returns_429_after_threshold(self, client, monkeypatch):
+        monkeypatch.setattr(credentials_module._credentials_rate_limiter, "max_requests", 1)
+        headers = _auth_headers(client, "ratelimit-cred@example.com")
+        business_id = _create_business(client, headers)
+
+        first = client.post(
+            f"/api/businesses/{business_id}/credentials/instagram/connect",
+            json={"access_token": "tok", "scopes": []},
+            headers=headers,
+        )
+        assert first.status_code == 200
+
+        second = client.delete(f"/api/businesses/{business_id}/credentials/instagram", headers=headers)
+        assert second.status_code == 429
+
+    def test_policy_update_returns_429_after_threshold(self, client, monkeypatch):
+        monkeypatch.setattr(policies_module._policy_rate_limiter, "max_requests", 1)
+        headers = _auth_headers(client, "ratelimit-policy@example.com")
+        business_id = _create_business(client, headers)
+
+        first = client.put(
+            f"/api/businesses/{business_id}/agents/finance/policy",
+            json={"enabled": True, "auto_approve_max": 1000},
+            headers=headers,
+        )
+        assert first.status_code == 200
+
+        second = client.put(
+            f"/api/businesses/{business_id}/agents/finance/policy",
+            json={"enabled": True, "auto_approve_max": 2000},
+            headers=headers,
+        )
+        assert second.status_code == 429
+
+    def test_agent_mode_update_returns_429_after_threshold(self, client, monkeypatch):
+        monkeypatch.setattr(agent_modes_module._mode_rate_limiter, "max_requests", 1)
+        headers = _auth_headers(client, "ratelimit-mode@example.com")
+        business_id = _create_business(client, headers)
+
+        first = client.put(
+            f"/api/businesses/{business_id}/agents/finance/mode", json={"mode": "manual"}, headers=headers
+        )
+        assert first.status_code == 200
+
+        second = client.put(
+            f"/api/businesses/{business_id}/agents/finance/mode", json={"mode": "auto"}, headers=headers
+        )
+        assert second.status_code == 429
+
+    def test_task_decision_endpoints_return_429_after_threshold(self, client, monkeypatch):
+        monkeypatch.setattr(tasks_module._task_rate_limiter, "max_requests", 1)
+        headers = _auth_headers(client, "ratelimit-task@example.com")
+        business_id = _create_business(client, headers)
+
+        def _create_pending_task():
+            response = client.post(
+                f"/api/businesses/{business_id}/agents/finance/actions/budget-request",
+                json={"amount": 100, "department": "Operations"},
+                headers=headers,
+            )
+            return response.json()["id"]
+
+        first_task_id = _create_pending_task()
+        second_task_id = _create_pending_task()
+
+        first = client.post(f"/api/tasks/{first_task_id}/approve", headers=headers)
+        assert first.status_code == 200
+
+        second = client.post(f"/api/tasks/{second_task_id}/approve", headers=headers)
         assert second.status_code == 429

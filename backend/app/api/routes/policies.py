@@ -4,11 +4,15 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..deps import get_owned_business
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...database.utils import find_one
 from ...models.business_schemas import BusinessOut
 from ...models.policy_schemas import AgentPolicyIn, AgentPolicyOut
 
 router = APIRouter(prefix="/api/businesses/{business_id}/agents/{agent_key}/policy", tags=["policies"])
+
+_policy_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_policy_rate_limiter))
 
 # CEO arbitration is system-triggered by Finance's escalation path, not a
 # user-initiated department action — it doesn't fit the threshold-policy shape.
@@ -39,7 +43,7 @@ async def get_policy(agent_key: str, request: Request, business: BusinessOut = D
     return _to_policy_out(doc)
 
 
-@router.put("", response_model=AgentPolicyOut)
+@router.put("", response_model=AgentPolicyOut, dependencies=[_rate_limited])
 async def update_policy(
     agent_key: str,
     payload: AgentPolicyIn,

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import apiClient from '../api/client'
 import { STATUS } from '../theme/palette'
+
+const INITIAL_VISIBLE_COUNT = 50
+const LOAD_MORE_INCREMENT = 50
 
 function formatTimestamp(ts) {
   return new Date(ts).toLocaleString()
@@ -10,12 +12,12 @@ function formatTimestamp(ts) {
 
 function DecisionLog() {
   const { businessId } = useParams()
-  const dispatch = useDispatch()
   const [entries, setEntries] = useState([])
   const [runs, setRuns] = useState([])
   const [selectedRunId, setSelectedRunId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
 
   useEffect(() => {
     apiClient.get(`/api/businesses/${businessId}/simulation-runs`)
@@ -26,6 +28,7 @@ function DecisionLog() {
   useEffect(() => {
     setLoading(true)
     setError(null)
+    setVisibleCount(INITIAL_VISIBLE_COUNT)
     const url = `/api/businesses/${businessId}/simulation/decision-log${selectedRunId ? `?run_id=${selectedRunId}` : ''}`
     apiClient.get(url)
       .then((res) => {
@@ -88,7 +91,7 @@ function DecisionLog() {
         <p className="text-sm text-gray-400 text-center py-8">No decisions recorded yet.</p>
       ) : (
         <div className="space-y-3 max-h-[600px] overflow-y-auto">
-          {entries.map((entry, i) => (
+          {entries.slice(0, visibleCount).map((entry, i) => (
             <div key={i} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs font-medium text-gray-500">Tick {entry.tick}</span>
@@ -110,6 +113,15 @@ function DecisionLog() {
               </p>
             </div>
           ))}
+          {visibleCount < entries.length && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + LOAD_MORE_INCREMENT)}
+              className="w-full text-xs font-medium text-gray-500 hover:text-gray-700 py-2"
+            >
+              Load more ({entries.length - visibleCount} remaining)
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -11,6 +11,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 
 from ..deps import get_owned_business, get_owned_task
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
 from ...models.task_schemas import TaskDecisionIn, TaskOut, to_task_out
@@ -23,6 +24,9 @@ task_actions_router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 # A task can only be decided while it's actually waiting on the owner.
 DECIDABLE_STATUSES = {"pending_approval", "needs_changes"}
+
+_task_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
+_rate_limited = Depends(rate_limit_dependency(_task_rate_limiter))
 
 
 @router.get("", response_model=List[TaskOut])
@@ -39,7 +43,7 @@ async def list_tasks(
     return [to_task_out(d) for d in docs]
 
 
-@task_actions_router.post("/{task_id}/approve", response_model=TaskOut)
+@task_actions_router.post("/{task_id}/approve", response_model=TaskOut, dependencies=[_rate_limited])
 async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     task, business = owned["task"], owned["business"]
     if task["status"] not in DECIDABLE_STATUSES:
@@ -57,7 +61,7 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     return to_task_out(executed)
 
 
-@task_actions_router.post("/{task_id}/reject", response_model=TaskOut)
+@task_actions_router.post("/{task_id}/reject", response_model=TaskOut, dependencies=[_rate_limited])
 async def reject_task(payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)):
     task, business = owned["task"], owned["business"]
     if task["status"] not in DECIDABLE_STATUSES:
@@ -76,7 +80,7 @@ async def reject_task(payload: TaskDecisionIn, request: Request, owned: dict = D
     return to_task_out({**task, **update})
 
 
-@task_actions_router.post("/{task_id}/request-changes", response_model=TaskOut)
+@task_actions_router.post("/{task_id}/request-changes", response_model=TaskOut, dependencies=[_rate_limited])
 async def request_changes(payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)):
     task, business = owned["task"], owned["business"]
     if task["status"] not in DECIDABLE_STATUSES:
@@ -107,7 +111,7 @@ def _to_media_asset_out(doc: dict) -> MediaAssetOut:
     )
 
 
-@task_actions_router.post("/{task_id}/assets", response_model=MediaAssetOut)
+@task_actions_router.post("/{task_id}/assets", response_model=MediaAssetOut, dependencies=[_rate_limited])
 async def upload_task_asset(
     request: Request,
     media_type: str = Form(...),

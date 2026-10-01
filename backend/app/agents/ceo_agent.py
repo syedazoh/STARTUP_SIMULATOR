@@ -1,4 +1,5 @@
 """CEO Agent - arbitrates cross-department budget conflicts"""
+import math
 from typing import Any, Dict, List, Optional
 
 from ..core.llm import get_groq_llm
@@ -23,6 +24,46 @@ class CEOAgent(BaseAgent):
         if event.get("type") == "arbitration_request":
             return await self.handle_arbitration_request(event)
         return {"status": "unknown_event"}
+
+    def _clamp_arbitration_amount(
+        self, decision: ArbitrationDecision, marketing_position: Dict[str, Any]
+    ) -> ArbitrationDecision:
+        """Bounds the ruling's final_amount before it reaches the subscribers.
+
+        The model is free to answer with any number, and Finance's
+        handle_arbitration_result subtracts final_amount straight from
+        budget_pool — so an unvalidated value here can drain the pool below
+        zero, or (if negative) mint budget out of nothing. Marketing's
+        handle_arbitration_result grows customer_base off the same number.
+        Mirrors finance_agent._apply_decision's pre-subtract validation: clamp
+        to [0, what Marketing actually asked for], and treat "finance wins" as
+        a zero-amount denial regardless of what final_amount says.
+        """
+        try:
+            requested = float(marketing_position.get("requested_amount") or 0)
+        except (TypeError, ValueError):
+            requested = 0.0
+        if not math.isfinite(requested) or requested < 0:
+            requested = 0.0
+
+        amount = decision.final_amount
+        clamped = amount
+        if not isinstance(amount, (int, float)) or not math.isfinite(amount):
+            clamped = 0.0
+        else:
+            clamped = min(max(float(amount), 0.0), requested)
+
+        if decision.winner == "finance":
+            # A denial releases nothing; an amount here would contradict the ruling.
+            clamped = 0.0
+
+        if clamped != amount:
+            decision.final_amount = clamped
+            decision.rationale += (
+                f" [ADJUSTED: arbitration amount ${amount} clamped to "
+                f"${clamped:.2f}, within the ${requested:.2f} requested]"
+            )
+        return decision
 
     async def handle_arbitration_request(self, event: Dict[str, Any]) -> Dict[str, Any]:
         finance_position = event.get("finance_position", {})
@@ -68,6 +109,8 @@ class CEOAgent(BaseAgent):
                 final_amount=fallback_amount,
                 rationale="llm_fallback: sided with Finance's counter-proposal (or denial) deterministically",
             )
+
+        decision = self._clamp_arbitration_amount(decision, marketing_position)
 
         self.decision_count += 1
 

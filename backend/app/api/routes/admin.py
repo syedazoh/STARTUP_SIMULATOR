@@ -9,6 +9,7 @@ not a permissions check a future route could accidentally bypass. See
 tests/test_admin.py for the explicit check that a connected credential's
 secret never appears in any admin response.
 """
+import asyncio
 from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -41,28 +42,34 @@ async def _task_status_counts(db, business_id: str) -> Dict[str, int]:
     return counts
 
 
+async def _business_summary(db, biz: Dict) -> AdminBusinessSummaryOut:
+    owner, task_counts, simulation_status = await asyncio.gather(
+        find_one(db["users"], {"user_id": biz["owner_user_id"]}),
+        _task_status_counts(db, biz["business_id"]),
+        _latest_simulation_status(db, biz["business_id"]),
+    )
+    return AdminBusinessSummaryOut(
+        id=biz["business_id"],
+        company_name=biz["company_name"],
+        industry=biz["industry"],
+        owner_email=owner["email"] if owner else "unknown",
+        created_at=biz["created_at"],
+        simulation_status=simulation_status,
+        task_count=sum(task_counts.values()),
+        pending_task_count=task_counts.get("pending_approval", 0),
+    )
+
+
 @router.get("/businesses", response_model=List[AdminBusinessSummaryOut])
 async def list_all_businesses(request: Request, admin: UserOut = Depends(require_admin)):
     db = request.app.state.db
     businesses = await db["businesses"].find({}).to_list(length=500)
-
-    summaries = []
-    for biz in businesses:
-        owner = await find_one(db["users"], {"user_id": biz["owner_user_id"]})
-        task_counts = await _task_status_counts(db, biz["business_id"])
-        summaries.append(
-            AdminBusinessSummaryOut(
-                id=biz["business_id"],
-                company_name=biz["company_name"],
-                industry=biz["industry"],
-                owner_email=owner["email"] if owner else "unknown",
-                created_at=biz["created_at"],
-                simulation_status=await _latest_simulation_status(db, biz["business_id"]),
-                task_count=sum(task_counts.values()),
-                pending_task_count=task_counts.get("pending_approval", 0),
-            )
-        )
-    return summaries
+    # Each business's owner/task-count/simulation-status lookups run
+    # concurrently instead of three sequential round-trips per business —
+    # $in-batching the owner lookups isn't an option since the in-memory
+    # Mongo fallback (used when no real Mongo is running) doesn't support
+    # query operators (see database/mongodb.py's InMemoryCollection._find).
+    return list(await asyncio.gather(*(_business_summary(db, biz) for biz in businesses)))
 
 
 @router.get("/businesses/{business_id}", response_model=AdminBusinessDetailOut)

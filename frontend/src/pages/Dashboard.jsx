@@ -16,16 +16,10 @@ import EndOfRunSummary from '../components/EndOfRunSummary'
 import TaskQueue from '../components/TaskQueue'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
+import { toChartData } from '../utils/chartData'
+import useVisiblePolling from '../hooks/useVisiblePolling'
 
 const POLL_INTERVAL_MS = 1500
-
-function toChartData(snapshots, metricKey) {
-  // Snapshots arrive newest-first; reverse to chronological order for the x-axis.
-  return [...snapshots].reverse().map((snap, i) => ({
-    tick: i + 1,
-    [metricKey]: snap.state?.[metricKey],
-  }))
-}
 
 function Dashboard() {
   const { businessId } = useParams()
@@ -41,23 +35,22 @@ function Dashboard() {
     wasRunning.current = false
   }, [businessId, dispatch])
 
-  useEffect(() => {
-    const poll = () => {
+  useVisiblePolling(
+    () => {
       dispatch(fetchAgents(businessId))
       dispatch(fetchSimulationStatus(businessId))
       apiClient
         .get(`/api/businesses/${businessId}/agents/finance/history`, { params: { limit: 50 } })
         .then((res) => setFinanceHistory(res.data))
-        .catch(() => {})
+        .catch((err) => console.warn('Failed to load finance history', err))
       apiClient
         .get(`/api/businesses/${businessId}/agents/marketing/history`, { params: { limit: 50 } })
         .then((res) => setMarketingHistory(res.data))
-        .catch(() => {})
-    }
-    poll()
-    const interval = setInterval(poll, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
-  }, [dispatch, businessId])
+        .catch((err) => console.warn('Failed to load marketing history', err))
+    },
+    POLL_INTERVAL_MS,
+    [dispatch, businessId],
+  )
 
   useEffect(() => {
     if (wasRunning.current && !isRunning && runId) {

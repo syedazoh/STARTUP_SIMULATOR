@@ -5,6 +5,7 @@ import { createBusiness } from '../store/slices/businessSlice'
 import { saveBusinessProfile } from '../store/slices/businessProfileSlice'
 import ErrorBanner from '../components/ErrorBanner'
 import { STATUS } from '../theme/palette'
+import { toProfilePayload } from '../utils/profilePayload'
 
 const BUSINESS_DEFAULTS = {
   companyName: '',
@@ -61,43 +62,6 @@ const STEP_META = {
     title: 'Review and finish',
     subtitle: 'Confirm your setup, then launch your business.',
   },
-}
-
-const toList = (raw) =>
-  raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-function toProfilePayload(profile) {
-  return {
-    brand: {
-      voice_tone: profile.brand.voiceTone,
-      mission_statement: profile.brand.missionStatement,
-      target_audience: profile.brand.targetAudience,
-      competitors: toList(profile.brand.competitors),
-    },
-    product: {
-      description: profile.product.description,
-      pricing_model: profile.product.pricingModel,
-      price_points: toList(profile.product.pricePoints).map(Number).filter((n) => !Number.isNaN(n)),
-    },
-    marketing: {
-      active_channels: toList(profile.marketing.activeChannels),
-      posting_frequency: profile.marketing.postingFrequency,
-      content_dos: toList(profile.marketing.contentDos),
-      content_donts: toList(profile.marketing.contentDonts),
-    },
-    finance: {
-      monthly_budget_cap: Number(profile.finance.monthlyBudgetCap) || 0,
-      currency: profile.finance.currency || 'USD',
-      spend_categories: toList(profile.finance.spendCategories),
-    },
-    operations: {
-      support_hours: profile.operations.supportHours,
-      escalation_policy: profile.operations.escalationPolicy,
-    },
-  }
 }
 
 function SummaryBlock({ title, items }) {

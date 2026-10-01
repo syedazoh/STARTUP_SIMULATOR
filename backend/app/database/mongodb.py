@@ -86,6 +86,18 @@ class InMemoryCollection:
             self._docs.remove(matched[0])
 
     def _find(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
+        # Every call site in this codebase queries by plain equality — no
+        # Mongo operator (`$in`, `$gt`, etc.) is used against the in-memory
+        # fallback today. Rather than silently matching nothing (or the
+        # wrong documents) if one shows up, fail loudly so a future feature
+        # that needs one gets caught in dev instead of shipping broken.
+        for key, value in query.items():
+            if isinstance(value, dict) and any(k.startswith("$") for k in value):
+                raise NotImplementedError(
+                    f"In-memory Mongo fallback does not support query operators "
+                    f"(got {value!r} for field {key!r}). Run against real MongoDB, "
+                    f"or extend InMemoryCollection._find to support this operator."
+                )
         results = []
         for doc in self._docs:
             if all(doc.get(k) == v for k, v in query.items()):

@@ -49,8 +49,11 @@ function AgentActionForm({ businessId, config, onActionComplete }) {
       <form onSubmit={handleSubmit} className="space-y-3">
         {config.actionFields.map((field) => (
           <div key={field.name}>
-            <label className="block text-xs text-gray-500 mb-1">{field.label}</label>
+            <label className="block text-xs text-gray-500 mb-1" htmlFor={`action-${field.name}`}>
+              {field.label}
+            </label>
             <input
+              id={`action-${field.name}`}
               type={field.type}
               value={values[field.name]}
               onChange={update(field)}

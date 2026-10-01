@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { approveTask, fetchPendingTasks, rejectTask, requestTaskChanges } from '../store/slices/tasksSlice'
 import AssetUploadCard from './AssetUploadCard'
+import useVisiblePolling from '../hooks/useVisiblePolling'
 import { STATUS } from '../theme/palette'
 
 const POLL_INTERVAL_MS = 3000
+const INITIAL_VISIBLE_COUNT = 50
+const LOAD_MORE_INCREMENT = 50
 
 function formatPayload(payload) {
   return Object.entries(payload)
@@ -95,12 +98,11 @@ function TaskCard({ businessId, task }) {
 function TaskQueue({ businessId }) {
   const dispatch = useDispatch()
   const tasks = useSelector((state) => state.tasks.items)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
 
-  useEffect(() => {
-    dispatch(fetchPendingTasks(businessId))
-    const interval = setInterval(() => dispatch(fetchPendingTasks(businessId)), POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
-  }, [dispatch, businessId])
+  useVisiblePolling(() => dispatch(fetchPendingTasks(businessId)), POLL_INTERVAL_MS, [dispatch, businessId])
+
+  const visibleTasks = tasks.slice(0, visibleCount)
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -116,9 +118,18 @@ function TaskQueue({ businessId }) {
         <p className="text-sm text-gray-400">Nothing waiting on you right now.</p>
       ) : (
         <div className="space-y-3">
-          {tasks.map((task) => (
+          {visibleTasks.map((task) => (
             <TaskCard key={task.id} businessId={businessId} task={task} />
           ))}
+          {visibleCount < tasks.length && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + LOAD_MORE_INCREMENT)}
+              className="w-full text-xs font-medium text-gray-500 hover:text-gray-700 py-2"
+            >
+              Load more ({tasks.length - visibleCount} remaining)
+            </button>
+          )}
         </div>
       )}
     </div>

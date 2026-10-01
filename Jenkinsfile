@@ -10,6 +10,9 @@
 //   AWS_ACCOUNT_ID, AWS_REGION, EC2_HOST, EC2_USER, EC2_DEPLOY_PATH, VITE_API_URL
 // (EC2_DEPLOY_PATH is where docker-compose.prod.yml + .env already live on the host —
 //  see docs/deployment.md for the one-time EC2 setup that puts them there.)
+// (VITE_API_URL is baked into the frontend bundle at build time, so set it to the
+//  public HTTPS origin, e.g. https://app.example.com — the caddy service serves
+//  /api/* from the same origin as the bundle.)
 
 pipeline {
     agent any
@@ -19,6 +22,7 @@ pipeline {
         ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         BACKEND_IMAGE  = "${ECR_REGISTRY}/startup-simulator-backend"
         FRONTEND_IMAGE = "${ECR_REGISTRY}/startup-simulator-frontend"
+        CADDY_IMAGE     = "${ECR_REGISTRY}/startup-simulator-caddy"
         IMAGE_TAG      = "${env.GIT_COMMIT.take(7)}"
     }
 
@@ -57,6 +61,16 @@ pipeline {
             }
         }
 
+        stage('Build Caddy Image') {
+            steps {
+                // Tiny image that just bakes in the Caddyfile, so the TLS config
+                // ships with the commit instead of being synced onto the host.
+                dir('docker/caddy') {
+                    sh "docker build -t ${CADDY_IMAGE}:${IMAGE_TAG} -t ${CADDY_IMAGE}:latest ."
+                }
+            }
+        }
+
         stage('Push to ECR') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
@@ -66,6 +80,8 @@ pipeline {
                         docker push ${BACKEND_IMAGE}:latest
                         docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
                         docker push ${FRONTEND_IMAGE}:latest
+                        docker push ${CADDY_IMAGE}:${IMAGE_TAG}
+                        docker push ${CADDY_IMAGE}:latest
                     """
                 }
             }
@@ -79,6 +95,7 @@ pipeline {
                             cd ${EC2_DEPLOY_PATH} &&
                             export BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} &&
                             export FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} &&
+                            export CADDY_IMAGE=${CADDY_IMAGE}:${IMAGE_TAG} &&
                             docker compose -f docker-compose.prod.yml pull &&
                             docker compose -f docker-compose.prod.yml up -d &&
                             docker image prune -f

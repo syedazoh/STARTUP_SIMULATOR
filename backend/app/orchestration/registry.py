@@ -13,10 +13,12 @@ it trusts the latest snapshot as ground truth rather than re-running the
 non-deterministic LLM-driven decision log since that snapshot, which would
 be real additional scope (and couldn't be made deterministic anyway).
 """
+import asyncio
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from ..models.business_schemas import BusinessOut
+from ..models.policy_schemas import AgentPolicyOut
 from ..simulation.simulation_engine import SimulationEngine
 from .agent_manager import AgentManager, DEFAULT_ENABLED_AGENTS
 
@@ -46,24 +48,38 @@ class AgentRegistry:
     def __init__(self, db: Any = None):
         self._db = db
         self._runtimes: Dict[str, BusinessRuntime] = {}
+        # Guards creation only (see below) — without it, two concurrent
+        # first-touch requests for the same business_id could both miss the
+        # cache, each build its own AgentManager and rehydrate its own copy
+        # of agent state, and the second to finish would silently clobber
+        # the first in self._runtimes, stranding whichever caller kept a
+        # reference to the discarded one.
+        self._creation_lock = asyncio.Lock()
 
     async def get_or_create(self, business: BusinessOut) -> BusinessRuntime:
-        if business.id not in self._runtimes:
-            starting_state = {
-                "starting_budget": business.starting_budget,
-                "starting_customer_base": business.starting_customer_base,
-                "starting_headcount": business.starting_headcount,
-                "starting_resources": business.starting_resources,
-            }
-            enabled_agents = getattr(business, "enabled_agents", None) or DEFAULT_ENABLED_AGENTS
-            agent_manager = AgentManager(
-                business_id=business.id,
-                starting_state=starting_state,
-                enabled_agents=enabled_agents,
-            )
-            await self._rehydrate_from_snapshots(business.id, agent_manager)
-            self._runtimes[business.id] = BusinessRuntime(agent_manager=agent_manager)
-        return self._runtimes[business.id]
+        if business.id in self._runtimes:
+            return self._runtimes[business.id]
+
+        async with self._creation_lock:
+            # Re-check: another call may have finished creating it while we
+            # were waiting for the lock.
+            if business.id not in self._runtimes:
+                starting_state = {
+                    "starting_budget": business.starting_budget,
+                    "starting_customer_base": business.starting_customer_base,
+                    "starting_headcount": business.starting_headcount,
+                    "starting_resources": business.starting_resources,
+                }
+                enabled_agents = getattr(business, "enabled_agents", None) or DEFAULT_ENABLED_AGENTS
+                agent_manager = AgentManager(
+                    business_id=business.id,
+                    starting_state=starting_state,
+                    enabled_agents=enabled_agents,
+                )
+                await self._rehydrate_from_snapshots(business.id, agent_manager)
+                await self._rehydrate_policies(business.id, agent_manager)
+                self._runtimes[business.id] = BusinessRuntime(agent_manager=agent_manager)
+            return self._runtimes[business.id]
 
     async def _rehydrate_from_snapshots(self, business_id: str, agent_manager: AgentManager) -> None:
         if self._db is None:
@@ -78,3 +94,20 @@ class AgentRegistry:
             docs = await cursor.to_list(length=1)
             if docs:
                 _apply_snapshot_state(agent, docs[0].get("state", {}))
+
+    async def _rehydrate_policies(self, business_id: str, agent_manager: AgentManager) -> None:
+        if self._db is None:
+            return
+        cursor = self._db["agent_policies"].find({"business_id": business_id})
+        docs = await cursor.to_list(length=100)
+        for doc in docs:
+            agent_key = doc.get("agent_key")
+            agent = agent_manager.agents.get(agent_key)
+            if agent is not None:
+                policy = AgentPolicyOut(
+                    enabled=doc.get("enabled", False),
+                    auto_approve_max=doc.get("auto_approve_max"),
+                    auto_deny_min=doc.get("auto_deny_min"),
+                    updated_at=doc["updated_at"],
+                )
+                agent.set_policy(policy)

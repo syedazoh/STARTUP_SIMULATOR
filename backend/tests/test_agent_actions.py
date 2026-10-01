@@ -115,7 +115,7 @@ class TestFinanceAction:
 
 
 class TestMarketingAction:
-    def test_manual_campaign_launch_cascades_through_negotiation(self, client):
+    def test_manual_campaign_launch_lands_pending_and_cascades_on_approval(self, client):
         headers = _auth_headers(client, "action5@example.com")
         business_id = _create_business(client, headers)
         # Policy-gate both ends so the whole cascade stays deterministic and network-free.
@@ -128,7 +128,19 @@ class TestMarketingAction:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["desired_budget"] == 3000
+        body = response.json()
+        assert body["status"] == "pending_approval"
+        task_id = body["id"]
+
+        # Simulated business state is unchanged before approval
+        finance_before = client.get(f"/api/businesses/{business_id}/agents/finance", headers=headers).json()
+        assert finance_before["budget_pool"] == 100000
+
+        # Owner approves the task
+        approve_resp = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert approve_resp.status_code == 200
+        assert approve_resp.json()["status"] == "executed"
+        assert approve_resp.json()["result"]["desired_budget"] == 3000
 
         events = client.get(f"/api/businesses/{business_id}/events", headers=headers).json()
         event_types = [e["event_type"] for e in events]
@@ -142,7 +154,7 @@ class TestMarketingAction:
 
 
 class TestHRAndOperationsActions:
-    def test_manual_recruitment_request(self, client):
+    def test_manual_recruitment_request_requires_approval(self, client):
         headers = _auth_headers(client, "action6@example.com")
         business_id = _create_business(client, headers)
         _enable_policy(client, headers, business_id, "hr", auto_approve_max=5)
@@ -153,12 +165,19 @@ class TestHRAndOperationsActions:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["status"] == "approved"
+        body = response.json()
+        assert body["status"] == "pending_approval"
+        task_id = body["id"]
+
+        approve_resp = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert approve_resp.status_code == 200
+        assert approve_resp.json()["status"] == "executed"
+        assert approve_resp.json()["result"]["status"] == "approved"
 
         hr = client.get(f"/api/businesses/{business_id}/agents/hr", headers=headers).json()
         assert hr["employee_count"] == 52
 
-    def test_manual_resource_request(self, client):
+    def test_manual_resource_request_requires_approval(self, client):
         headers = _auth_headers(client, "action7@example.com")
         business_id = _create_business(client, headers)
         _enable_policy(client, headers, business_id, "operations", auto_approve_max=5000)
@@ -169,7 +188,36 @@ class TestHRAndOperationsActions:
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json()["status"] == "approved"
+        body = response.json()
+        assert body["status"] == "pending_approval"
+        task_id = body["id"]
+
+        approve_resp = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert approve_resp.status_code == 200
+        assert approve_resp.json()["status"] == "executed"
+        assert approve_resp.json()["result"]["status"] == "approved"
 
         operations = client.get(f"/api/businesses/{business_id}/agents/operations", headers=headers).json()
         assert operations["resource_pool"] == 9800
+
+    def test_auto_mode_executes_action_without_manual_approval(self, client):
+        headers = _auth_headers(client, "action8-auto@example.com")
+        business_id = _create_business(client, headers)
+        _enable_policy(client, headers, business_id, "operations", auto_approve_max=5000)
+
+        # Set operations agent mode to auto with auto_approve_max=500
+        client.put(
+            f"/api/businesses/{business_id}/agents/operations/mode",
+            json={"mode": "auto", "auto_thresholds": {"auto_approve_max": 500}},
+            headers=headers,
+        )
+
+        response = client.post(
+            f"/api/businesses/{business_id}/agents/operations/actions/resource-request",
+            json={"resource_type": "Cloud Compute", "quantity": 100},
+            headers=headers,
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "executed"
+        assert body["result"]["status"] == "approved"

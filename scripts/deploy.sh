@@ -10,4 +10,4 @@ docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 docker image prune -f
 
-echo "Deployed. Backend: http://localhost:8000/health  Frontend: http://localhost/"
+echo "Deployed. Verify: curl https://\${APP_DOMAIN}/health  (via the caddy TLS terminator)"

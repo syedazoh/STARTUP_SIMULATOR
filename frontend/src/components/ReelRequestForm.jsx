@@ -37,8 +37,11 @@ function ReelRequestForm({ businessId, onActionComplete }) {
       </p>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Campaign name</label>
+          <label className="block text-xs text-gray-500 mb-1" htmlFor="reel-campaign-name">
+            Campaign name
+          </label>
           <input
+            id="reel-campaign-name"
             required
             value={campaignName}
             onChange={(e) => setCampaignName(e.target.value)}
@@ -46,8 +49,11 @@ function ReelRequestForm({ businessId, onActionComplete }) {
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Brief</label>
+          <label className="block text-xs text-gray-500 mb-1" htmlFor="reel-brief">
+            Brief
+          </label>
           <textarea
+            id="reel-brief"
             value={brief}
             onChange={(e) => setBrief(e.target.value)}
             rows={2}

@@ -23,6 +23,12 @@ def _noop_on_complete(summary: Any) -> None:
     pass
 
 
+MAX_RETAINED_RECORDS = 500
+DEFAULT_MAX_TICKS = 500
+MAX_SERVER_TICKS = 1000
+MAX_SERVER_DURATION_SECONDS = 3600.0
+
+
 class SimulationEngine:
     """Runs ticks against a shared AgentManager without any human clicking each step.
 
@@ -36,10 +42,12 @@ class SimulationEngine:
         agent_manager: AgentManager,
         on_decision: Callable[[Dict[str, Any]], Any] = _noop_on_decision,
         on_complete: Callable[[Any], Any] = _noop_on_complete,
+        max_retained_records: int = MAX_RETAINED_RECORDS,
     ):
         self.agent_manager = agent_manager
         self.on_decision = on_decision
         self.on_complete = on_complete
+        self.max_retained_records = max_retained_records
         self.tick_count = 0
         self.is_running = False
         self.is_paused = False
@@ -70,6 +78,8 @@ class SimulationEngine:
             "timestamp": datetime.now().isoformat(),
         }
         self.decision_log.append(record)
+        if len(self.decision_log) > self.max_retained_records:
+            self.decision_log.pop(0)
 
         result = self.on_decision(record)
         if asyncio.iscoroutine(result):
@@ -77,13 +87,23 @@ class SimulationEngine:
 
     async def run(self, config: Optional[SimulationConfig] = None) -> None:
         config = config or SimulationConfig()
-        deadline = time.monotonic() + config.duration_seconds if config.duration_seconds else None
+        max_duration = min(config.duration_seconds, MAX_SERVER_DURATION_SECONDS) if config.duration_seconds else None
+        deadline = time.monotonic() + max_duration if max_duration is not None else None
+        
+        # Enforce a finite tick limit even if requested as unlimited
+        if config.ticks is not None:
+            effective_ticks = min(config.ticks, MAX_SERVER_TICKS)
+        elif deadline is None:
+            effective_ticks = DEFAULT_MAX_TICKS
+        else:
+            effective_ticks = None
+
         weights = config.resolved_weights()
 
         self.is_running = True
         try:
             while self.is_running:
-                if config.ticks is not None and self.tick_count >= config.ticks:
+                if effective_ticks is not None and self.tick_count >= effective_ticks:
                     break
                 if deadline is not None and time.monotonic() >= deadline:
                     break

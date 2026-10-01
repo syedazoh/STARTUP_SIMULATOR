@@ -78,6 +78,41 @@ class TestFinanceAgent:
         assert "llm_fallback" in result["reasoning"]
         assert result["status"] == "approved"
 
+    async def test_llm_approved_amount_exceeding_requested_is_rejected(self, finance_agent):
+        # Model tries to approve $50,000 on a $1,000 request
+        finance_agent._structured_llm = FakeStructuredLLM([
+            FinanceDecision(approved=True, reasoning="Approved with huge bonus", amount_approved=50000.0)
+        ])
+        event = {"type": "budget_request", "amount": 1000, "department": "Marketing"}
+        result = await finance_agent.process_event(event)
+        assert result["status"] == "denied"
+        assert result["amount_approved"] == 0.0
+        assert "exceeded requested amount" in result["reasoning"]
+        assert finance_agent.budget_pool == 100000.0  # budget not deducted
+
+    async def test_llm_approved_amount_exceeding_budget_pool_is_rejected(self, finance_agent):
+        finance_agent.budget_pool = 500.0
+        finance_agent._structured_llm = FakeStructuredLLM([
+            FinanceDecision(approved=True, reasoning="Approved", amount_approved=1000.0)
+        ])
+        event = {"type": "budget_request", "amount": 1000, "department": "Marketing"}
+        result = await finance_agent.process_event(event)
+        assert result["status"] == "denied"
+        assert result["amount_approved"] == 0.0
+        assert "exceeded available budget pool" in result["reasoning"]
+        assert finance_agent.budget_pool == 500.0
+
+    async def test_llm_approved_negative_amount_is_rejected(self, finance_agent):
+        finance_agent._structured_llm = FakeStructuredLLM([
+            FinanceDecision(approved=True, reasoning="Negative approval", amount_approved=-500.0)
+        ])
+        event = {"type": "budget_request", "amount": 1000, "department": "Marketing"}
+        result = await finance_agent.process_event(event)
+        assert result["status"] == "denied"
+        assert result["amount_approved"] == 0.0
+        assert "finite, non-negative" in result["reasoning"]
+        assert finance_agent.budget_pool == 100000.0
+
 
 @pytest.mark.asyncio
 class TestHRAgent:

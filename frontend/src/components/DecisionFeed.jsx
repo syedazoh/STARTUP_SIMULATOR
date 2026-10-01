@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchEvents } from '../store/slices/eventsSlice'
 import { CATEGORICAL } from '../theme/palette'
 
 const POLL_INTERVAL_MS = 1500
+const INITIAL_VISIBLE_COUNT = 50
+const LOAD_MORE_INCREMENT = 50
 
 // Fixed identity color per event type — never reassigned by rank/position in the feed.
 const EVENT_COLORS = {
@@ -28,6 +30,12 @@ function formatTime(isoString) {
 function DecisionFeed({ businessId }) {
   const dispatch = useDispatch()
   const events = useSelector((state) => state.events.items)
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
+  const [prevBusinessId, setPrevBusinessId] = useState(businessId)
+  if (businessId !== prevBusinessId) {
+    setPrevBusinessId(businessId)
+    setVisibleCount(INITIAL_VISIBLE_COUNT)
+  }
 
   useEffect(() => {
     dispatch(fetchEvents(businessId))
@@ -36,6 +44,7 @@ function DecisionFeed({ businessId }) {
   }, [dispatch, businessId])
 
   const recent = [...events].reverse()
+  const visible = recent.slice(0, visibleCount)
 
   return (
     <div className="bg-white rounded-lg shadow p-4 flex flex-col h-full">
@@ -44,7 +53,7 @@ function DecisionFeed({ businessId }) {
         {recent.length === 0 && (
           <p className="text-sm text-gray-400">No events yet.</p>
         )}
-        {recent.map((event) => {
+        {visible.map((event) => {
           const color = EVENT_COLORS[event.event_type] || DEFAULT_COLOR
           return (
             <div key={event.event_id} className="border-l-2 pl-3 py-1" style={{ borderColor: color }}>
@@ -59,6 +68,15 @@ function DecisionFeed({ businessId }) {
             </div>
           )
         })}
+        {visibleCount < recent.length && (
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + LOAD_MORE_INCREMENT)}
+            className="w-full text-xs font-medium text-gray-500 hover:text-gray-700 py-2"
+          >
+            Load more ({recent.length - visibleCount} remaining)
+          </button>
+        )}
       </div>
     </div>
   )

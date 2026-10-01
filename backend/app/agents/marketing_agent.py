@@ -1,4 +1,5 @@
 """Marketing Agent Implementation"""
+import math
 from typing import Any, Dict, Optional, TypedDict
 
 from langgraph.graph import END, StateGraph
@@ -250,6 +251,15 @@ class MarketingAgent(BaseAgent):
         winner = event.get("winner")
         final_amount = event.get("final_amount", 0) or 0
         self.decision_count += 1
+        # Same defence in depth as finance_agent: a non-finite or negative
+        # final_amount must not grow customer_base/brand_value.
+        try:
+            final_amount = float(final_amount)
+        except (TypeError, ValueError):
+            final_amount = 0.0
+        if not math.isfinite(final_amount) or final_amount < 0:
+            final_amount = 0.0
+
         if winner != "finance" and final_amount > 0:
             self._apply_campaign_effects(final_amount)
             return {"status": "campaign_launched_via_arbitration", "amount": final_amount}

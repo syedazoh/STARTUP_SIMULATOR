@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import apiClient from '../api/client'
+import useVisiblePolling from '../hooks/useVisiblePolling'
 import { STATUS } from '../theme/palette'
 
 const POLL_INTERVAL_MS = 5000
@@ -18,14 +19,13 @@ function HealthCard({ label, value, color }) {
 function AdminSystemHealth() {
   const [health, setHealth] = useState(null)
 
-  useEffect(() => {
-    const poll = () => {
+  useVisiblePolling(
+    () => {
       apiClient.get('/api/admin/system-health').then((res) => setHealth(res.data)).catch(() => {})
-    }
-    poll()
-    const interval = setInterval(poll, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
-  }, [])
+    },
+    POLL_INTERVAL_MS,
+    [],
+  )
 
   if (!health) {
     return <div className="max-w-3xl mx-auto px-4 py-6 text-sm text-gray-400">Loading…</div>

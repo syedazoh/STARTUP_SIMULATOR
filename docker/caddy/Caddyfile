@@ -1,0 +1,70 @@
+# Public TLS terminator for the production stack.
+#
+# Everything else in docker-compose.prod.yml listens on the internal network
+# only and publishes no host port, so this is the single ingress: browsers and
+# API clients reach the app over 443 and every request is HTTPS before a
+# password, bearer token, or frontend bundle has been sent.
+#
+# Certificates are obtained and renewed automatically by Caddy's ACME client,
+# so there is no cert file to mount and nothing to renew by hand.
+#
+# Required environment:
+#   APP_DOMAIN    - the DNS name this stack is served on, e.g. app.example.com.
+#                   Its A/AAAA record must already point at the EC2 host, and
+#                   ports 80/443 must be open in the security group for the
+#                   HTTP-01 challenge and for traffic.
+#   ACME_EMAIL    - address Let's Encrypt uses for expiry notices. Required
+#                   here only because an empty value would leave the `email`
+#                   directive below without an argument.
+
+{
+	email {$ACME_EMAIL}
+	# Uncomment to stage against Let's Encrypt's staging endpoint first; it has
+	# generous rate limits, so use it while iterating and switch to the real
+	# endpoint once the domain resolves.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Automatic HTTP -> HTTPS redirect. Port 80 stays published solely so Caddy can
+# answer the ACME challenge; it serves no application content.
+:80 {
+	redir https://{host}{uri} permanent
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# The backend's routes are already mounted under /api/*, so this proxies
+	# without a prefix rewrite. Serving both under one origin also keeps the
+	# browser's requests same-origin, so the frontend needs no cross-origin
+	# credentialed CORS in production.
+	handle /api/* {
+		reverse_proxy backend:8000
+	}
+
+	# Everything else is the SPA: static assets from the frontend's nginx, which
+	# owns the history-fallback rewrite to index.html.
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	header {
+		# Don't let a browser second-guess an asset type we deliberately serve.
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# The app is entirely same-origin under this host and loads no third-party
+		# scripts, styles, fonts, or frames. script-src stays strict because
+		# nothing injects an inline <script>; style-src has to allow 'unsafe-inline'
+		# only because the React components set inline style attributes (style={{...}}),
+		# which CSP would otherwise block and break the UI.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		# Remove the version fingerprint off the responses that reach the browser.
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
