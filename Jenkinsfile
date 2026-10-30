@@ -1,6 +1,6 @@
 // CD pipeline: build -> test -> push to ECR -> deploy to EC2 via docker-compose.prod.yml.
 // GitHub Actions (.github/workflows/) still runs fast PR-gating CI; this pipeline
-// is the deployment path, triggered on merges to main.
+// runs on merges to main; publishing/deployment require an explicit opt-in.
 //
 // Required Jenkins credentials (Manage Jenkins > Credentials):
 //   aws-ecr-creds   - AWS access key/secret with ECR push permissions
@@ -16,6 +16,11 @@
 
 pipeline {
     agent any
+
+    parameters {
+        booleanParam(name: 'DEPLOY_TO_PRODUCTION', defaultValue: false,
+            description: 'Explicitly publish images and deploy to EC2. Leave disabled during development.')
+    }
 
     environment {
         AWS_REGION     = "${params.AWS_REGION ?: 'us-east-1'}"
@@ -72,6 +77,7 @@ pipeline {
         }
 
         stage('Push to ECR') {
+            when { expression { params.DEPLOY_TO_PRODUCTION == true } }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
                     sh """
@@ -88,6 +94,7 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
+            when { expression { params.DEPLOY_TO_PRODUCTION == true } }
             steps {
                 sshagent(credentials: ['ec2-deploy-key']) {
                     sh """
@@ -108,7 +115,13 @@ pipeline {
 
     post {
         success {
-            echo "Deployed ${IMAGE_TAG} to ${EC2_HOST}."
+            script {
+                if (params.DEPLOY_TO_PRODUCTION == true) {
+                    echo "Deployed ${IMAGE_TAG} to ${EC2_HOST}."
+                } else {
+                    echo "Build and tests completed. Production publishing and deployment were disabled."
+                }
+            }
         }
         failure {
             echo 'Pipeline failed — check the stage logs above. Nothing was deployed if Build/Test/Push failed; if Deploy itself failed, roll back per docs/deployment.md.'
