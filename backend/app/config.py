@@ -1,5 +1,5 @@
 """Application Configuration"""
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     # (see main.py's CORSMiddleware). Defaults cover the Vite dev server and
     # its dev-mode proxy target; override in production with the deployed
     # frontend origin(s).
-    allowed_origins: List[str] = ["http://localhost:5173", "http://localhost:8000"]
+    # Union permits raw CSV to reach the validator in pydantic-settings 2.2,
+    # which otherwise JSON-decodes list fields before validators run.
+    allowed_origins: Union[List[str], str] = ["http://localhost:5173", "http://localhost:8000"]
 
     @field_validator("allowed_origins", mode="before")
     @classmethod

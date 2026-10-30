@@ -4,6 +4,11 @@ services:
     container_name: startup-simulator-mongo
     ports:
       - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "if (!db.adminCommand('ping').ok) quit(1)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     volumes:
       - mongo_data:/data/db
 
@@ -16,13 +21,25 @@ services:
       MONGODB_URL: mongodb://mongo:27017
       MONGODB_DB_NAME: startup_simulator
       CHROMA_PERSIST_DIR: /app/chroma_data
-      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      # Development-only fallbacks match backend/app/config.py. Supply real
+      # values in docker/.env before connecting third-party credentials.
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      CREDENTIAL_MASTER_KEY: ${CREDENTIAL_MASTER_KEY:-iJ7xpFNwPD8CwdnW0NN6viQNZ0OF-87hwCWMbswRUWQ=}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8000}
       DEBUG: "true"
     ports:
       - "8000:8000"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request; r=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)); assert r['mongo']=='connected'"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 20
     volumes:
       - ../backend:/app
       - chroma_data:/app/chroma_data
@@ -34,8 +51,18 @@ services:
     container_name: startup-simulator-frontend
     ports:
       - "5173:5173"
+    environment:
+      VITE_API_URL: /
+      API_PROXY_TARGET: http://backend:8000
+      VITE_USE_POLLING: "true"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - ../frontend:/app
       # Anonymous volume shadows the bind mount above for this one path, so the
@@ -53,7 +80,7 @@ services:
       MONGODB_URL: mongodb://mongo:27017
       MONGODB_DB_NAME: startup_simulator_test
       CHROMA_PERSIST_DIR: /app/chroma_data
-      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
       DEBUG: "true"
     volumes:

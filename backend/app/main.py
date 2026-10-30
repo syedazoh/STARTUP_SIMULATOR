@@ -108,13 +108,15 @@ def read_root():
     return {"message": "Welcome to Startup Simulator API", "version": "0.1.0"}
 
 
+@app.get("/api/health")
 @app.get("/health")
 async def health_check():
     mongo_ok = await ping_mongo()
     return {
-        "status": "healthy",
+        "status": "healthy" if mongo_ok else "degraded",
         "service": "startup-simulator-backend",
         "mongo": "connected" if mongo_ok else "unavailable",
+        "ai_configured": bool(settings.groq_api_key and settings.groq_api_key != "your-groq-api-key"),
     }
 
 
