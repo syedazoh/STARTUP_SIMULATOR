@@ -16,3 +16,16 @@ def setup_test_master_key(monkeypatch):
     _master_fernet.cache_clear()
     yield
     _master_fernet.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def offline_llm(monkeypatch):
+    """Exercise deterministic fallbacks unless a test installs its own model fake."""
+    class UnavailableModel:
+        def with_structured_output(self, schema):
+            return self
+
+        async def ainvoke(self, prompt):
+            raise RuntimeError("External LLM calls are disabled in tests")
+
+    monkeypatch.setattr("app.core.llm._cached_groq_llm", lambda *args: UnavailableModel())

@@ -21,21 +21,30 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except ValueError:
+        return False
 
 
-def create_access_token(subject: str, expires_minutes: Optional[int] = None) -> str:
+def create_access_token(subject: str, expires_minutes: Optional[int] = None, session_id: Optional[str] = None) -> str:
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=expires_minutes or settings.access_token_expire_minutes
     )
     to_encode: Dict[str, Any] = {"sub": subject, "exp": expire}
+    if session_id is not None:
+        to_encode["sid"] = session_id
     return jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
 
 
-def decode_access_token(token: str) -> Optional[str]:
-    """Returns the subject (user id) if the token is valid, else None."""
+def decode_access_claims(token: str) -> Optional[Dict[str, Any]]:
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+        return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM],
+                          options={"require_exp": True, "require_sub": True})
     except JWTError:
         return None
-    return payload.get("sub")
+
+
+def decode_access_token(token: str) -> Optional[str]:
+    claims = decode_access_claims(token)
+    return claims.get("sub") if claims else None

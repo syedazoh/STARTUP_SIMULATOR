@@ -52,6 +52,6 @@ async def post_to_instagram(db, business: BusinessOut, payload: Dict[str, Any]) 
 
         return {"status": "posted", "provider": "instagram", "content_preview": content[:80], "media_id": media_id}
     except httpx.HTTPStatusError as exc:
-        return {"status": "failed", "reason": f"instagram_api_error: {exc.response.status_code} {exc.response.text[:200]}"}
+        return {"status": "failed", "reason": f"instagram_api_error: {exc.response.status_code}"}
     except Exception as exc:
-        return {"status": "failed", "reason": f"unexpected_error: {str(exc)[:200]}"}
+        return {"status": "failed", "reason": "instagram_connection_error"}

@@ -2,7 +2,11 @@
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+
+from ...models.action_schemas import ACTION_CONTRACTS
+from ...core.rate_limit import RateLimiter, rate_limit_dependency
+from ...services.tasks import create_task
 
 from ..deps import get_owned_business
 from ...models.business_schemas import BusinessOut
@@ -40,7 +44,9 @@ async def list_events(
     return runtime.agent_manager.event_bus.get_event_history(limit=limit)
 
 
-@router.post("")
+_limiter = RateLimiter(max_requests=30, window_seconds=60)
+
+@router.post("", dependencies=[Depends(rate_limit_dependency(_limiter))])
 async def publish_event(
     payload: PublishEventRequest, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
@@ -50,6 +56,12 @@ async def publish_event(
             detail=f"Event type is not publishable: {payload.event_type}",
         )
 
-    runtime = await request.app.state.agent_registry.get_or_create(business)
-    await runtime.agent_manager.process_event(payload.event_type, payload.data, source=payload.source)
-    return {"status": "published", "event_type": payload.event_type}
+    try:
+        task = await create_task(
+            request.app.state.db, request.app.state.agent_registry, business,
+            ACTION_CONTRACTS[payload.event_type][0], payload.event_type, payload.data,
+            source="api",
+        )
+    except (ValueError, ValidationError) as exc:
+        raise HTTPException(status_code=422, detail="Invalid action payload") from exc
+    return {"status": "queued", "event_type": payload.event_type, "task_id": task["task_id"]}

@@ -10,6 +10,7 @@ import ConnectedAccounts from '../components/ConnectedAccounts'
 import InstagramPostForm from '../components/InstagramPostForm'
 import ReelRequestForm from '../components/ReelRequestForm'
 import ChatPanel from '../components/ChatPanel'
+import CEOSupervision from '../components/CEOSupervision'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 import { toChartData } from '../utils/chartData'
@@ -50,6 +51,7 @@ function AgentDetail() {
         <h1 className="text-2xl font-bold text-gray-900">
           {config ? config.label : 'CEO'} Agent
         </h1>
+        {agentKey === 'ceo' && <CEOSupervision key={businessId} businessId={businessId} />}
         {status && <AgentStatusCard agentKey={agentKey} status={status} />}
 
         {config && (
@@ -83,8 +85,7 @@ function AgentDetail() {
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Arbitration Activity</h3>
             <p className="text-xs text-gray-400 mb-3">
-              The CEO arbitrates automatically when Finance and Marketing disagree — there's no
-              manual trigger or automation policy for this role.
+              Alongside department planning and report review, the CEO resolves Finance–Marketing budget disputes.
             </p>
             {arbitrationEvents.length === 0 ? (
               <p className="text-sm text-gray-400">No arbitration events yet.</p>

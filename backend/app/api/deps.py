@@ -1,10 +1,11 @@
 """Shared FastAPI dependencies"""
 from typing import Any, Dict, Optional
+from datetime import datetime, timezone
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ..core.security import decode_access_token
+from ..core.security import decode_access_claims
 from ..database.utils import find_one
 from ..models.auth_schemas import UserOut
 from ..models.business_schemas import BusinessOut
@@ -19,10 +20,15 @@ async def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
-    user_id = decode_access_token(credentials.credentials)
-    if user_id is None:
+    claims = decode_access_claims(credentials.credentials)
+    user_id = claims.get("sub") if claims else None
+    if user_id is None or not claims.get("sid"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
 
+    session = await find_one(request.app.state.db["sessions"], {"session_id": claims["sid"]})
+    if (session is None or session["revoked"] or session["user_id"] != user_id
+            or session["expires_ts"] <= datetime.now(timezone.utc).timestamp()):
+        raise HTTPException(status_code=401, detail="Session has ended")
     user_doc = await find_one(request.app.state.db["users"], {"user_id": user_id})
     if user_doc is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
@@ -63,6 +69,7 @@ async def get_owned_business(
         starting_customer_base=doc["starting_customer_base"],
         starting_headcount=doc["starting_headcount"],
         starting_resources=doc["starting_resources"],
+        enabled_agents=doc.get("enabled_agents", ["finance", "marketing", "hr", "operations", "ceo"]),
         created_at=doc["created_at"],
     )
 
@@ -93,6 +100,7 @@ async def get_owned_task(
         starting_customer_base=business_doc["starting_customer_base"],
         starting_headcount=business_doc["starting_headcount"],
         starting_resources=business_doc["starting_resources"],
+        enabled_agents=business_doc.get("enabled_agents", ["finance", "marketing", "hr", "operations", "ceo"]),
         created_at=business_doc["created_at"],
     )
     return {"task": task_doc, "business": business}

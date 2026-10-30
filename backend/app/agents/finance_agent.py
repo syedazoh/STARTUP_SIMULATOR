@@ -276,7 +276,7 @@ class FinanceAgent(BaseAgent):
                 await self.event_bus.publish(
                     "arbitration_request",
                     {
-                        "finance_position": decision.model_dump(),
+                        "finance_position": {**decision.model_dump(), "available_budget": self.budget_pool},
                         "marketing_position": {
                             "department": event.get("department", "Unknown"),
                             "campaign_name": event.get("campaign_name"),

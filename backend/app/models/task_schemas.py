@@ -20,6 +20,8 @@ class TaskOut(BaseModel):
     id: str
     business_id: str
     agent: str
+    source: str = "manual"
+    plan_id: Optional[str] = None
     action_type: str
     payload: Dict[str, Any]
     requires_asset: bool = False
@@ -41,6 +43,8 @@ def to_task_out(doc: Dict[str, Any]) -> TaskOut:
         id=doc["task_id"],
         business_id=doc["business_id"],
         agent=doc["agent"],
+        source=doc.get("source", "manual"),
+        plan_id=doc.get("plan_id"),
         action_type=doc["action_type"],
         payload=doc["payload"],
         requires_asset=doc.get("requires_asset", False),

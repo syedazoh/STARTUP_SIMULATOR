@@ -166,6 +166,9 @@ class HRAgent(BaseAgent):
 
     async def _apply_decision(self, state: HRGraphState) -> HRGraphState:
         decision: HRDecision = state["decision"]
+        decision.headcount_approved = min(max(decision.headcount_approved, 0), max(state["event"].get("headcount", 1), 0))
+        if decision.headcount_approved == 0:
+            decision.approved = False
         if decision.approved:
             self.employee_count += decision.headcount_approved
         if decision.morale_impact:

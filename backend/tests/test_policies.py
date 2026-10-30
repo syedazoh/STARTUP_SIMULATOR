@@ -235,10 +235,8 @@ class TestPolicyRoutes:
         headers = _auth_headers(client, "policy4@example.com")
         business_id = _create_business(client, headers)
 
-        # Touch the agent once so the registry lazily creates it with a real (unmocked)
-        # LLM client, proving the policy's short-circuit — not a mock — is what keeps
-        # this test network-free: the amount stays under auto_approve_max, so the
-        # graph never reaches the call_llm node at all.
+        # Construct the live agent before updating its policy, then prove the
+        # updated policy is used after the task receives owner approval.
         client.get(f"/api/businesses/{business_id}/agents/finance", headers=headers)
 
         client.put(
@@ -253,6 +251,9 @@ class TestPolicyRoutes:
             headers=headers,
         )
         assert response.status_code == 200
-
+        # Policy controls the agent decision; it does not bypass owner approval.
+        task_id = response.json()["task_id"]
+        approved = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
+        assert approved.status_code == 200
         agent = client.get(f"/api/businesses/{business_id}/agents/finance", headers=headers).json()
         assert agent["budget_pool"] == 99000

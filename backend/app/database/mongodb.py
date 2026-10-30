@@ -19,6 +19,7 @@ with or without a database.
 """
 import logging
 from copy import deepcopy
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -85,24 +86,42 @@ class InMemoryCollection:
         if matched:
             self._docs.remove(matched[0])
 
+    async def count_documents(self, query):
+        return len(self._find(query))
+
+    async def delete_many(self, query):
+        matches = self._find(query)
+        for doc in matches:
+            self._docs.remove(doc)
+        return SimpleNamespace(deleted_count=len(matches))
+
+    async def find_one_and_update(self, query, update, return_document=False):
+        # No await between matching and writing: atomic within this dev process.
+        matches = self._find(query)
+        if not matches:
+            return None
+        before = deepcopy(matches[0])
+        matches[0].update(deepcopy(update.get("$set", {})))
+        return deepcopy(matches[0]) if return_document else before
+
     def _find(self, query: Dict[str, Any]) -> List[Dict[str, Any]]:
-        # Every call site in this codebase queries by plain equality — no
-        # Mongo operator (`$in`, `$gt`, etc.) is used against the in-memory
-        # fallback today. Rather than silently matching nothing (or the
-        # wrong documents) if one shows up, fail loudly so a future feature
-        # that needs one gets caught in dev instead of shipping broken.
-        for key, value in query.items():
-            if isinstance(value, dict) and any(k.startswith("$") for k in value):
-                raise NotImplementedError(
-                    f"In-memory Mongo fallback does not support query operators "
-                    f"(got {value!r} for field {key!r}). Run against real MongoDB, "
-                    f"or extend InMemoryCollection._find to support this operator."
-                )
-        results = []
-        for doc in self._docs:
-            if all(doc.get(k) == v for k, v in query.items()):
-                results.append(doc)
-        return results
+        def matches(doc):
+            for key, expected in query.items():
+                actual = doc.get(key)
+                if isinstance(expected, dict):
+                    for op, value in expected.items():
+                        if op == "$in":
+                            if actual not in value: return False
+                        elif op == "$gte":
+                            if actual is None or actual < value: return False
+                        elif op == "$exists":
+                            if (key in doc) != value: return False
+                        else:
+                            raise NotImplementedError(f"Unsupported fallback operator: {op}")
+                elif actual != expected:
+                    return False
+            return True
+        return [doc for doc in self._docs if matches(doc)]
 
     def find(self, query: Optional[Dict[str, Any]] = None) -> "InMemoryQueryBuilder":
         return InMemoryQueryBuilder(self, query or {})
@@ -177,6 +196,8 @@ async def connect_to_mongo() -> None:
         # Force a round-trip so an unreachable server fails fast and we fall back.
         await client.admin.command("ping")
     except Exception as exc:
+        if not settings.debug:
+            raise RuntimeError("MongoDB is required in production") from exc
         logger.warning(
             "MongoDB unavailable at %s (%s); using in-memory fallback. "
             "Data will NOT persist across restarts.",

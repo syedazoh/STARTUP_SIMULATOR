@@ -207,8 +207,13 @@ class MarketingAgent(BaseAgent):
         }
         final_state = await self._graph.ainvoke(initial_state)
         decision: MarketingDecision = final_state["decision"]
+        requested = event.get("requested_budget", decision.desired_budget)
+        if not math.isfinite(decision.desired_budget) or decision.desired_budget < 0:
+            decision.desired_budget = 0.0
+        decision.desired_budget = min(decision.desired_budget, max(requested, 0))
         self.decision_count += 1
 
+        previous_brand = self.brand_value
         if self.event_bus is not None:
             await self.event_bus.publish(
                 "budget_request",
@@ -225,7 +230,7 @@ class MarketingAgent(BaseAgent):
             )
 
         return {
-            "status": "budget_requested",
+            "status": "campaign_launched" if self.brand_value > previous_brand else "campaign_denied",
             "campaign_name": decision.campaign_name,
             "desired_budget": decision.desired_budget,
             "reasoning": decision.reasoning,

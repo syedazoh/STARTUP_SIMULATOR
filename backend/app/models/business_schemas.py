@@ -8,10 +8,10 @@ from pydantic import BaseModel, Field
 class BusinessCreate(BaseModel):
     company_name: str = Field(min_length=1)
     industry: str = Field(min_length=1)
-    starting_budget: float = 100000.0
-    starting_customer_base: int = 1000
-    starting_headcount: int = 50
-    starting_resources: int = 10000
+    starting_budget: float = Field(default=100000.0, ge=0, allow_inf_nan=False)
+    starting_customer_base: int = Field(default=1000, ge=0)
+    starting_headcount: int = Field(default=50, ge=0)
+    starting_resources: int = Field(default=10000, ge=0)
     enabled_agents: Optional[List[str]] = None
 
 

@@ -4,6 +4,12 @@
 
 Startup Simulator is a comprehensive multi-agent AI-powered business simulation platform designed to model complex business operations through autonomous agents managing different departments of a startup.
 
+## CEO supervision and authentication
+
+The CEO can propose department assignments and review their execution reports. Actions from the UI, chat, event API and deployed simulation pass through task approvals. Authentication uses short-lived access tokens in memory and rotating HttpOnly refresh cookies with server-side revocation.
+
+See [CEO supervision and session guide](docs/CEO_SUPERVISION_AND_SESSIONS.md) for usage, migration, validation and remaining work. Existing sessions require a fresh login after this update.
+
 ## Architecture
 
 ### Backend (FastAPI - Python)

@@ -2,13 +2,16 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 from ..deps import get_current_user
 from ...core.crypto import encrypt_data_key, generate_data_key
 from ...core.security import create_access_token, hash_password, verify_password
 from ...database.utils import ensure_unique_index, find_one
 from ...models.auth_schemas import TokenOut, UserCreate, UserLogin, UserOut
+from ...services.sessions import (COOKIE_NAME, check_cookie_request, create_session,
+    rotate_refresh, revoke_session, set_refresh_cookie, clear_refresh_cookie, token_hash)
+from ...core.security import decode_access_claims
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -53,7 +56,11 @@ def _get_client_ip(request: Request) -> str:
 
 
 @router.post("/login", response_model=TokenOut)
-async def login(payload: UserLogin, request: Request):
+async def login(payload: UserLogin, request: Request, response: Response):
+    origin = request.headers.get("origin")
+    from ...config import settings
+    if origin is not None and origin not in settings.allowed_origins:
+        raise HTTPException(status_code=403, detail="Invalid login origin")
     db = request.app.state.db
     email = payload.email.lower()
     client_ip = _get_client_ip(request)
@@ -96,10 +103,40 @@ async def login(payload: UserLogin, request: Request):
     # Clear failed login attempts on successful login
     await db["login_attempts"].delete_many({"email": email})
 
-    token = create_access_token(subject=user_doc["user_id"])
+    session_id, refresh = await create_session(db, user_doc["user_id"])
+    set_refresh_cookie(response, refresh)
+    token = create_access_token(subject=user_doc["user_id"], session_id=session_id)
     return TokenOut(access_token=token)
 
 
 @router.get("/me", response_model=UserOut)
 async def me(user: UserOut = Depends(get_current_user)):
     return user
+
+
+@router.post("/refresh", response_model=TokenOut)
+async def refresh(request: Request, response: Response):
+    check_cookie_request(request)
+    token = request.cookies.get(COOKIE_NAME)
+    if not token:
+        raise HTTPException(status_code=401, detail="No refresh session")
+    session, rotated = await rotate_refresh(request.app.state.db, token)
+    set_refresh_cookie(response, rotated)
+    return TokenOut(access_token=create_access_token(session["user_id"], session_id=session["session_id"]))
+
+
+@router.post("/logout", status_code=204)
+async def logout(request: Request, response: Response):
+    check_cookie_request(request)
+    db = request.app.state.db
+    token = request.cookies.get(COOKIE_NAME)
+    if token:
+        doc = await find_one(db["refresh_tokens"], {"token_hash": token_hash(token)})
+        if doc:
+            await revoke_session(db, doc["session_id"])
+    authorization = request.headers.get("authorization", "")
+    if authorization.lower().startswith("bearer "):
+        claims = decode_access_claims(authorization[7:])
+        if claims and claims.get("sid"):
+            await revoke_session(db, claims["sid"])
+    clear_refresh_cookie(response)

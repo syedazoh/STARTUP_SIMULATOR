@@ -10,6 +10,8 @@ from ...database.utils import find_one
 from ...models.business_schemas import BusinessOut
 from ...models.schemas import SimulationStatusOut
 from ...services.persistence import record_decision, snapshot_agents
+from ...services.tasks import create_task
+from ...models.action_schemas import ACTION_CONTRACTS
 from ...simulation import SimulationConfig, SimulationEngine
 
 router = APIRouter(prefix="/api/businesses/{business_id}/simulation", tags=["simulation"])
@@ -106,7 +108,12 @@ async def start_simulation(
             {"$set": {"status": "completed", "ended_at": now}},
         )
 
-    engine = SimulationEngine(runtime.agent_manager, on_decision=on_decision, on_complete=on_complete)
+    async def submit_event(event_type, data):
+        await create_task(db, registry, business, ACTION_CONTRACTS[event_type][0],
+                          event_type, data, source="simulation", run_id=run_id)
+
+    engine = SimulationEngine(runtime.agent_manager, on_decision=on_decision,
+                              on_complete=on_complete, submit_event=submit_event)
     runtime.simulation_engine = engine
     runtime.current_run_id = run_id
     engine.start(config=payload)

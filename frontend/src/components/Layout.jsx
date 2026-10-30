@@ -17,10 +17,12 @@ function Layout() {
   const { businessId } = useParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const logoutError = useSelector((state) => state.auth.error)
   const isAdmin = useSelector((state) => state.auth.user?.role === 'admin')
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    const result = await dispatch(logout())
+    if (!logout.fulfilled.match(result)) return
     dispatch(clearBusinesses())
     navigate('/login')
   }
@@ -91,6 +93,7 @@ function Layout() {
           >
             Log out
           </button>
+          {logoutError && <p role="alert" className="text-xs text-red-600">{logoutError}</p>}
         </div>
       </aside>
 

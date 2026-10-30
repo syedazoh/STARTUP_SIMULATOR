@@ -14,7 +14,7 @@ non-deterministic LLM-driven decision log since that snapshot, which would
 be real additional scope (and couldn't be made deterministic anyway).
 """
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from ..models.business_schemas import BusinessOut
@@ -34,6 +34,7 @@ class BusinessRuntime:
     agent_manager: AgentManager
     simulation_engine: Optional[SimulationEngine] = None
     current_run_id: Optional[str] = None
+    execution_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 def _apply_snapshot_state(agent: Any, state: Dict[str, Any]) -> None:

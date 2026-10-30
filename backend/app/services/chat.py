@@ -15,6 +15,7 @@ from ..agents.schemas import ChatReply
 from ..core.llm import get_groq_llm
 from ..database.utils import find_one
 from ..models.business_schemas import BusinessOut
+from ..models.action_schemas import validate_action
 from .tasks import create_task
 
 # Which action_types a chat message is allowed to request per agent, and the
@@ -106,6 +107,8 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
     live_agent = runtime.agent_manager.agents.get(agent)
     live_status = await live_agent.get_status() if live_agent is not None else None
 
+    if agent == "ceo":
+        live_status = {"departments": await runtime.agent_manager.get_all_agents_status()}
     prompt = _build_prompt(agent, profile, live_status, thread["messages"], content)
     try:
         reply: ChatReply = await get_groq_llm().with_structured_output(ChatReply).ainvoke(prompt)
@@ -133,6 +136,13 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
         except (json.JSONDecodeError, TypeError):
             payload = None
         if isinstance(payload, dict):
-            task = await create_task(db, agent_registry, business, agent, reply.action_type, payload)
+            try:
+                payload = validate_action(agent, reply.action_type, payload)
+                task = await create_task(db, agent_registry, business, agent, reply.action_type, payload, source="chat")
+            except ValueError:
+                reply.reply += " The proposed action was invalid; please specify valid action details."
+                doc["messages"][-1]["content"] = reply.reply
+                await db["chat_threads"].update_one(
+                    {"business_id": business.id, "agent": agent}, {"$set": doc})
 
     return {"thread": doc, "task": task}
