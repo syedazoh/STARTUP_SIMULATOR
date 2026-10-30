@@ -54,6 +54,8 @@ else:
 
 if args.phase == 'before-restart':
     assert request('/')[0] == 200, 'Frontend HTML is unavailable'
+    css_status, css = request('/src/index.css')
+    assert css_status == 200 and '--tw-' in css, 'Tailwind stylesheet compilation failed'
     credentials = {'email': f'wiring-{secrets.token_hex(8)}@example.com', 'password': secrets.token_urlsafe(24)}
     assert request('/api/auth/register', 'POST', credentials)[0] == 201
     status, login = request('/api/auth/login', 'POST', credentials)
