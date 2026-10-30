@@ -1,4 +1,5 @@
 """Event Bus for Agent Communication"""
+import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Tuple
 from uuid import uuid4
@@ -47,7 +48,8 @@ class EventBus:
                 try:
                     results.append(await callback(payload))
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).exception("Event handler failed for %s", event_type)
+                    raise
         return event, results
 
     def get_event_history(self, limit: int = 100) -> List[Dict[str, Any]]:

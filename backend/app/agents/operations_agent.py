@@ -166,6 +166,9 @@ class OperationsAgent(BaseAgent):
 
     async def _apply_decision(self, state: OperationsGraphState) -> OperationsGraphState:
         decision: OperationsDecision = state["decision"]
+        decision.quantity_approved = min(max(decision.quantity_approved, 0), max(state["event"].get("quantity", 1), 0), max(self.resource_pool, 0))
+        if decision.quantity_approved == 0:
+            decision.approved = False
         if decision.approved:
             self.resource_pool -= decision.quantity_approved
         if decision.efficiency_impact:

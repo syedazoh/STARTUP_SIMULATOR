@@ -29,33 +29,10 @@ _action_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
 _rate_limited = Depends(rate_limit_dependency(_action_rate_limiter))
 
 
-class BudgetRequestAction(BaseModel):
-    amount: float
-    department: str = "General"
-
-
-class CampaignLaunchAction(BaseModel):
-    campaign_name: str
-    requested_budget: float = 5000
-
-
-class InstagramPostAction(BaseModel):
-    content: str
-
-
-class ReelRequestAction(BaseModel):
-    campaign_name: str
-    brief: str = ""
-
-
-class RecruitmentRequestAction(BaseModel):
-    role: str
-    headcount: int = 1
-
-
-class ResourceRequestAction(BaseModel):
-    resource_type: str
-    quantity: int = 1
+from ...models.action_schemas import (
+    BudgetRequestAction, CampaignLaunchAction, InstagramPostAction,
+    ReelRequestAction, RecruitmentRequestAction, ResourceRequestAction,
+)
 
 
 @router.post("/finance/actions/budget-request", response_model=TaskOut, dependencies=[_rate_limited])

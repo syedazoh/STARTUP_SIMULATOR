@@ -38,11 +38,20 @@ class TestInternalEventTypesRejected:
 
         response = client.post(
             f"/api/businesses/{business_id}/events",
-            json={"event_type": event_type, "data": {}},
+            json={"event_type": event_type, "data": PAYLOADS.get(event_type, {})},
             headers=headers,
         )
         assert response.status_code == 400
 
+
+PAYLOADS = {
+    "budget_request": {"amount": 100},
+    "campaign_launch": {"campaign_name": "Test"},
+    "instagram_post": {"content": "Test"},
+    "reel_request": {"campaign_name": "Test"},
+    "recruitment_request": {"role": "Engineer"},
+    "resource_request": {"resource_type": "Compute"},
+}
 
 class TestPublishableEventTypesRoundTrip:
     @pytest.mark.parametrize("event_type", sorted(PUBLISHABLE_EVENT_TYPES))
@@ -52,11 +61,13 @@ class TestPublishableEventTypesRoundTrip:
 
         response = client.post(
             f"/api/businesses/{business_id}/events",
-            json={"event_type": event_type, "data": {}},
+            json={"event_type": event_type, "data": PAYLOADS.get(event_type, {})},
             headers=headers,
         )
         assert response.status_code == 200
-        assert response.json() == {"status": "published", "event_type": event_type}
+        assert response.json()["status"] == "queued"
+        assert response.json()["event_type"] == event_type
 
-        events = client.get(f"/api/businesses/{business_id}/events", headers=headers).json()
-        assert any(e["event_type"] == event_type for e in events)
+        tasks = client.get(f"/api/businesses/{business_id}/tasks", headers=headers).json()
+        assert any(t["action_type"] == event_type for t in tasks)
+        assert all(t["status"] in {"pending_approval", "awaiting_asset"} for t in tasks)

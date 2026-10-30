@@ -11,7 +11,10 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
+from fastapi import HTTPException
+from pymongo import ReturnDocument
 from ..database.utils import find_one
+from ..models.action_schemas import validate_action
 from ..models.business_schemas import BusinessOut
 from .audit import record_audit
 from .persistence import record_decision, snapshot_agents
@@ -67,7 +70,20 @@ async def create_task(
     payload: Dict[str, Any],
     requires_asset: bool = False,
     user_id: Optional[str] = None,
+    source: str = "manual",
+    plan_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    objective: Optional[str] = None,
+    success_criteria: Optional[str] = None,
 ) -> Dict[str, Any]:
+    try:
+        payload = validate_action(agent, action_type, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Invalid action payload") from exc
+    runtime = await agent_registry.get_or_create(business)
+    if agent not in runtime.agent_manager.agents:
+        raise HTTPException(status_code=409, detail="Department is disabled for this business")
+    requires_asset = requires_asset or action_type == "reel_request"
     mode_doc = await _get_mode(db, business.id, agent)
     created_at = datetime.now(timezone.utc)
 
@@ -80,6 +96,11 @@ async def create_task(
 
     task = {
         "task_id": str(uuid4()),
+        "source": source,
+        "plan_id": plan_id,
+        "run_id": run_id,
+        "objective": objective,
+        "success_criteria": success_criteria,
         "business_id": business.id,
         "agent": agent,
         "action_type": action_type,
@@ -112,32 +133,50 @@ async def create_task(
 async def execute_task(
     db, agent_registry, business: BusinessOut, task: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Runs the task's action, then records the outcome.
+    """Atomically claim work before applying effects; terminal failures are not retried.
 
-    This is the only code path that actually applies a task's effects: for
-    action_types with a real external side effect (EXTERNAL_ACTION_HANDLERS),
-    that means calling out to a third-party API via a just-in-time-decrypted
-    vault credential; for everything else, it's still the simulated agent
-    decision via AgentManager.trigger_action, unchanged from Phase 2.
+    An interrupted external call remains `executing` for reconciliation. It must
+    never be automatically retried: the provider may have accepted the call.
     """
+    claimed = await db["tasks"].find_one_and_update(
+        {"task_id": task["task_id"], "business_id": business.id,
+         "status": {"$in": ["approved", "auto_approved"]}},
+        {"$set": {"status": "executing"}}, return_document=ReturnDocument.AFTER,
+    )
+    if claimed is None:
+        raise HTTPException(status_code=409, detail="Task is not eligible for execution")
+
     runtime = await agent_registry.get_or_create(business)
-    now = datetime.now(timezone.utc)
-    handler = EXTERNAL_ACTION_HANDLERS.get(task["action_type"])
-    try:
-        if handler is not None:
-            result = await handler(db, business, task["payload"])
-        else:
-            result = await runtime.agent_manager.trigger_action(task["agent"], task["action_type"], task["payload"])
-        update = {"status": "executed", "executed_at": now, "result": result}
-    except Exception as exc:
-        update = {"status": "failed", "executed_at": now, "result": {"error": str(exc)}}
+    async with runtime.execution_lock:
+        before = await runtime.agent_manager.get_all_agents_status()
+        try:
+            handler = EXTERNAL_ACTION_HANDLERS.get(claimed["action_type"])
+            if handler is not None:
+                result = await handler(db, business, claimed["payload"])
+            else:
+                result = await runtime.agent_manager.trigger_action(
+                    claimed["agent"], claimed["action_type"], claimed["payload"])
+            outcome = result.get("status")
+            if outcome in {"failed", "no_subscriber", "unknown_event"}:
+                status = "failed"
+            elif outcome in {"denied", "campaign_denied"}:
+                status = "denied"
+            else:
+                status = "executed"
+        except Exception:
+            # Do not expose exception strings that may contain provider secrets.
+            import logging
+            logging.getLogger(__name__).warning("Task execution failed: %s", claimed["task_id"])
+            result, status = {"status": "failed", "reason": "execution_error"}, "failed"
 
-    await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": update})
-    # Every create_task() call today originates from a manual per-agent action
-    # (see agent_actions.py), so "manual" is still the accurate decision-log
-    # source — revisit if a non-manual caller (e.g. a simulation tick) starts
-    # creating tasks too.
-    await record_decision(db, business.id, task["action_type"], task["payload"], source="manual")
-    await snapshot_agents(db, business.id, runtime.agent_manager)
-
-    return {**task, **update}
+        now = datetime.now(timezone.utc)
+        update = {"status": status, "executed_at": now, "result": result}
+        await db["tasks"].update_one({"task_id": claimed["task_id"]}, {"$set": update})
+        completed = {**claimed, **update}
+        await record_decision(db, business.id, claimed["action_type"],
+                              {"payload": claimed["payload"], "result": result, "task_id": claimed["task_id"]},
+                              source=claimed.get("source", "manual"), run_id=claimed.get("run_id"))
+        await snapshot_agents(db, business.id, runtime.agent_manager)
+        from .supervision import report_task
+        await report_task(db, business, runtime, completed, before)
+        return completed

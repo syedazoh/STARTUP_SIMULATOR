@@ -43,8 +43,10 @@ class SimulationEngine:
         on_decision: Callable[[Dict[str, Any]], Any] = _noop_on_decision,
         on_complete: Callable[[Any], Any] = _noop_on_complete,
         max_retained_records: int = MAX_RETAINED_RECORDS,
+        submit_event: Optional[Callable] = None,
     ):
         self.agent_manager = agent_manager
+        self.submit_event = submit_event
         self.on_decision = on_decision
         self.on_complete = on_complete
         self.max_retained_records = max_retained_records
@@ -68,7 +70,10 @@ class SimulationEngine:
 
         agent_statuses = await self.agent_manager.get_all_agents_status()
         event_type, data = generate_event(weights=event_weights, agent_statuses=agent_statuses)
-        await self.agent_manager.process_event(event_type, data, source="simulation")
+        if self.submit_event is not None:
+            await self.submit_event(event_type, data)
+        else:
+            await self.agent_manager.process_event(event_type, data, source="simulation")
 
         self.tick_count += 1
         record = {

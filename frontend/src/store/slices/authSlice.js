@@ -1,63 +1,62 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import apiClient, { TOKEN_STORAGE_KEY } from '../../api/client'
+import apiClient, { clearAccessToken, endSession, refreshSession, setAccessToken } from '../../api/client'
 
-export const register = createAsyncThunk('auth/register', async ({ email, password }) => {
-  await apiClient.post('/api/auth/register', { email, password })
-  const loginResponse = await apiClient.post('/api/auth/login', { email, password })
-  return loginResponse.data
+function errorMessage(error) {
+  const detail = error.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail)) return detail.map((item) => item.msg).join('. ')
+  return error.response ? 'Unable to sign in. Please try again.' : 'Cannot reach the server. Check your connection.'
+}
+
+export const login = createAsyncThunk('auth/login', async ({ email, password }, { rejectWithValue }) => {
+  try {
+    const { data } = await apiClient.post('/api/auth/login', { email, password })
+    setAccessToken(data.access_token)
+    return data
+  } catch (error) { return rejectWithValue(errorMessage(error)) }
+})
+export const register = createAsyncThunk('auth/register', async ({ email, password }, { rejectWithValue }) => {
+  try {
+    await apiClient.post('/api/auth/register', { email, password })
+    const { data } = await apiClient.post('/api/auth/login', { email, password })
+    setAccessToken(data.access_token)
+    return data
+  } catch (error) { return rejectWithValue(errorMessage(error)) }
+})
+export const restoreSession = createAsyncThunk('auth/restore', () => refreshSession())
+export const fetchMe = createAsyncThunk('auth/fetchMe', async () => (await apiClient.get('/api/auth/me')).data)
+export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
+  try { await endSession() }
+  catch { return rejectWithValue('Could not confirm server logout. Please retry.') }
 })
 
-export const login = createAsyncThunk('auth/login', async ({ email, password }) => {
-  const response = await apiClient.post('/api/auth/login', { email, password })
-  return response.data
-})
-
-export const fetchMe = createAsyncThunk('auth/fetchMe', async () => {
-  const response = await apiClient.get('/api/auth/me')
-  return response.data
-})
-
+const initialState = { token: null, user: null, initialized: false, status: 'idle', error: null }
 const authSlice = createSlice({
-  name: 'auth',
-  initialState: {
-    token: localStorage.getItem(TOKEN_STORAGE_KEY),
-    user: null,
-    status: 'idle',
-    error: null,
-  },
+  name: 'auth', initialState,
   reducers: {
-    logout: (state) => {
-      localStorage.removeItem(TOKEN_STORAGE_KEY)
-      state.token = null
-      state.user = null
-    },
+    clearAuth: (state) => { state.token = null; state.user = null; state.initialized = true },
+    tokenRefreshed: (state, action) => { state.token = action.payload; state.initialized = true },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(register.fulfilled, (state, action) => {
+    for (const thunk of [login, register, restoreSession]) {
+      builder.addCase(thunk.pending, (state) => { state.status = 'loading'; state.error = null })
+      builder.addCase(thunk.fulfilled, (state, action) => {
         state.token = action.payload.access_token
-        localStorage.setItem(TOKEN_STORAGE_KEY, action.payload.access_token)
+        state.user = null
+        state.initialized = true
         state.status = 'succeeded'
       })
-      .addCase(login.fulfilled, (state, action) => {
-        state.token = action.payload.access_token
-        localStorage.setItem(TOKEN_STORAGE_KEY, action.payload.access_token)
-        state.status = 'succeeded'
-        state.error = null
-      })
-      .addCase(login.rejected, (state, _action) => {
+      builder.addCase(thunk.rejected, (state, action) => {
+        state.initialized = true
         state.status = 'failed'
-        state.error = 'Invalid email or password'
+        state.error = thunk === restoreSession ? null : action.payload
       })
-      .addCase(register.rejected, (state, action) => {
-        state.status = 'failed'
-        state.error = action.error.message
-      })
-      .addCase(fetchMe.fulfilled, (state, action) => {
-        state.user = action.payload
-      })
+    }
+    builder.addCase(fetchMe.fulfilled, (state, action) => { state.user = action.payload })
+    builder.addCase(logout.fulfilled, () => ({ ...initialState, initialized: true }))
+    builder.addCase(logout.rejected, (state, action) => { state.error = action.payload })
   },
 })
-
-export const { logout } = authSlice.actions
+export const { clearAuth, tokenRefreshed } = authSlice.actions
+export { clearAccessToken }
 export default authSlice.reducer

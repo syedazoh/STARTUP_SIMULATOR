@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import supervision as supervision_routes
 from .api.routes import admin as admin_routes
 from .api.routes import agent_actions as agent_actions_routes
 from .api.routes import agent_modes as agent_modes_routes
@@ -21,7 +22,7 @@ from .api.routes import tasks as tasks_routes
 from .config import settings
 from .core.llm import get_groq_llm
 from .database.mongodb import close_mongo_connection, connect_to_mongo, get_database, ping_mongo
-from .database.utils import ensure_index, ensure_ttl_index
+from .database.utils import ensure_index, ensure_ttl_index, ensure_unique_index
 from .orchestration.registry import AgentRegistry
 
 # auth.py's lockout only ever counts attempts inside LOGIN_LOCKOUT_WINDOW_SECONDS,
@@ -34,6 +35,12 @@ async def _create_indexes(db) -> None:
     """Indexes for every field queried frequently enough to matter beyond
     users.email (created lazily in auth.py's register). No-ops against the
     in-memory fallback (see ensure_index)."""
+    await ensure_unique_index(db["sessions"], "session_id")
+    await ensure_unique_index(db["refresh_tokens"], "token_hash")
+    await ensure_ttl_index(db["sessions"], "expires_at", 0)
+    await ensure_ttl_index(db["refresh_tokens"], "expires_at", 0)
+    await ensure_index(db["ceo_plans"], [("business_id", 1), ("created_at", -1)])
+    await ensure_index(db["department_reports"], [("business_id", 1), ("created_at", -1)])
     await ensure_index(db["businesses"], "owner_user_id")
     await ensure_index(db["businesses"], "business_id")
     await ensure_index(db["tasks"], [("business_id", 1), ("status", 1)])
@@ -79,6 +86,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_routes.router)
+app.include_router(supervision_routes.router)
 app.include_router(admin_routes.router)
 app.include_router(businesses_routes.router)
 app.include_router(business_profiles_routes.router)

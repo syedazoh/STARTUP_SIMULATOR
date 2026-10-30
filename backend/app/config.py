@@ -1,7 +1,7 @@
 """Application Configuration"""
 from typing import List, Optional
 
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Insecure out-of-the-box values — fine for local dev (see credential_master_key's
@@ -30,7 +30,8 @@ class Settings(BaseSettings):
     groq_model: str = "llama-3.3-70b-versatile"
 
     secret_key: str = _DEFAULT_SECRET_KEY
-    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
+    access_token_expire_minutes: int = Field(default=15, ge=1, le=60)
+    refresh_token_expire_days: int = Field(default=7, ge=1, le=30)
 
     # Master key for the credential vault's envelope encryption (see
     # core/crypto.py). Must be a Fernet key — generate one with
@@ -58,9 +59,9 @@ class Settings(BaseSettings):
         if self.debug:
             return self
         insecure = []
-        if self.secret_key == _DEFAULT_SECRET_KEY:
+        if not self.secret_key or self.secret_key == _DEFAULT_SECRET_KEY:
             insecure.append("SECRET_KEY")
-        if self.credential_master_key == _DEFAULT_CREDENTIAL_MASTER_KEY:
+        if not self.credential_master_key or self.credential_master_key == _DEFAULT_CREDENTIAL_MASTER_KEY:
             insecure.append("CREDENTIAL_MASTER_KEY")
         if insecure:
             raise ValueError(

@@ -1,4 +1,4 @@
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { logout } from '../store/slices/authSlice'
 import { clearBusinesses } from '../store/slices/businessSlice'
@@ -7,9 +7,11 @@ import { STATUS } from '../theme/palette'
 function AdminLayout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const logoutError = useSelector((state) => state.auth.error)
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    const result = await dispatch(logout())
+    if (!logout.fulfilled.match(result)) return
     dispatch(clearBusinesses())
     navigate('/login')
   }
@@ -51,6 +53,7 @@ function AdminLayout() {
           >
             Log out
           </button>
+          {logoutError && <p role="alert" className="text-xs text-red-600">{logoutError}</p>}
         </div>
       </aside>
 

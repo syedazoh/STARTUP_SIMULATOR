@@ -1,36 +1,77 @@
 import axios from 'axios'
 
-const TOKEN_STORAGE_KEY = 'simulator_token'
+// Discard pre-session tokens; never persist bearer credentials in browser storage.
+localStorage.removeItem('simulator_token')
+const options = {
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:8000'),
+  withCredentials: true,
+  headers: { 'X-Requested-With': 'XMLHttpRequest' },
+}
+const apiClient = axios.create(options)
+const sessionClient = axios.create(options)
+let accessToken = null
+let refreshPromise = null
+let onUnauthorized = () => {}
+let onToken = () => {}
+let sessionVersion = 0
 
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
-})
+export function setAccessToken(token) {
+  accessToken = token
+}
+export function setOnToken(handler) { onToken = handler }
+export function setOnUnauthorized(handler) { onUnauthorized = handler }
+
+export function clearAccessToken() {
+  sessionVersion += 1
+  accessToken = null
+}
+
+export function refreshSession() {
+  if (!refreshPromise) {
+    const version = sessionVersion
+    const refresh = () => sessionClient.post('/api/auth/refresh')
+    const request = navigator.locks ? navigator.locks.request('startup-session-refresh', refresh) : refresh()
+    refreshPromise = request.then(({ data }) => {
+      if (version !== sessionVersion) throw new Error('Session changed')
+      setAccessToken(data.access_token)
+      onToken(data.access_token)
+      return data
+    }).finally(() => { refreshPromise = null })
+  }
+  return refreshPromise
+}
+
+export async function endSession() {
+  // Stop an already-running refresh from restoring a token during logout.
+  const token = accessToken
+  clearAccessToken()
+  await sessionClient.post('/api/auth/logout', {}, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+}
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_STORAGE_KEY)
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
+  if (accessToken && !config.url.startsWith('/api/auth/')) config.headers.Authorization = `Bearer ${accessToken}`
   return config
 })
 
-// Set from App.jsx (a component, so it can navigate) rather than imported here,
-// since this module has no access to the router outside a component tree.
-let onUnauthorized = () => {}
-export function setOnUnauthorized(handler) {
-  onUnauthorized = handler
-}
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem(TOKEN_STORAGE_KEY)
-      onUnauthorized()
+apiClient.interceptors.response.use((response) => response, async (error) => {
+  const config = error.config
+  if (error.response?.status === 401 && config && !config.url.startsWith('/api/auth/')) {
+    if (!config._retried) {
+      config._retried = true
+      try {
+        const data = await refreshSession()
+        config.headers.Authorization = `Bearer ${data.access_token}`
+        return await apiClient(config)
+      } catch {
+        // Fall through to the signed-out state once, without a refresh loop.
+      }
     }
-    return Promise.reject(error)
-  },
-)
+    clearAccessToken()
+    onUnauthorized()
+  }
+  return Promise.reject(error)
+})
 
-export { TOKEN_STORAGE_KEY }
 export default apiClient

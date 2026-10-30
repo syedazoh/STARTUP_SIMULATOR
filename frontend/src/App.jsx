@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { setOnUnauthorized } from './api/client'
-import { logout } from './store/slices/authSlice'
+import { clearAccessToken, setOnToken, setOnUnauthorized } from './api/client'
+import { clearAuth, tokenRefreshed } from './store/slices/authSlice'
 import ProtectedRoute from './components/ProtectedRoute'
 import RequireBusiness from './components/RequireBusiness'
 import HomeRedirect from './components/HomeRedirect'
@@ -29,8 +29,10 @@ function UnauthorizedHandler() {
   const navigate = useNavigate()
 
   useEffect(() => {
+    setOnToken((token) => dispatch(tokenRefreshed(token)))
     setOnUnauthorized(() => {
-      dispatch(logout())
+      clearAccessToken()
+      dispatch(clearAuth())
       navigate('/login')
     })
   }, [dispatch, navigate])

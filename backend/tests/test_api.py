@@ -111,9 +111,10 @@ class TestEventRoutes:
         )
         assert response.status_code == 200
 
-        history = client.get(f"/api/businesses/{business_id}/events", headers=headers).json()
-        assert len(history) == 1
-        assert history[0]["event_type"] == "recruitment_request"
+        tasks = client.get(f"/api/businesses/{business_id}/tasks", headers=headers).json()
+        assert len(tasks) == 1
+        assert tasks[0]["action_type"] == "recruitment_request"
+        assert tasks[0]["status"] == "pending_approval"
 
 
 class TestSimulationRoutes:

@@ -7,6 +7,7 @@ get_owned_task resolves ownership from that instead of a path param.
 """
 from datetime import datetime, timezone
 from typing import List, Optional
+from pymongo import ReturnDocument
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 
@@ -53,8 +54,13 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
 
     db = request.app.state.db
     decided_at = datetime.now(timezone.utc)
-    await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": {"status": "approved", "decided_at": decided_at}})
-    task = {**task, "status": "approved", "decided_at": decided_at}
+    task = await db["tasks"].find_one_and_update(
+        {"task_id": task["task_id"], "status": task["status"]},
+        {"$set": {"status": "approved", "decided_at": decided_at}},
+        return_document=ReturnDocument.AFTER,
+    )
+    if task is None:
+        raise HTTPException(status_code=409, detail="Task was already decided")
     await record_audit(db, business.owner_user_id, business.id, "task_approved", target_id=task["task_id"])
 
     executed = await execute_task(db, request.app.state.agent_registry, business, task)
@@ -72,11 +78,21 @@ async def reject_task(payload: TaskDecisionIn, request: Request, owned: dict = D
     db = request.app.state.db
     decided_at = datetime.now(timezone.utc)
     update = {"status": "rejected", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
-    await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": update})
+    changed = await db["tasks"].find_one_and_update(
+        {"task_id": task["task_id"], "status": task["status"]}, {"$set": update},
+        return_document=ReturnDocument.AFTER,
+    )
+    if changed is None:
+        raise HTTPException(status_code=409, detail="Task was already decided")
     await record_audit(
         db, business.owner_user_id, business.id, "task_rejected", target_id=task["task_id"],
         details={"owner_feedback": payload.owner_feedback},
     )
+    from ...services.supervision import report_task
+    runtime = await request.app.state.agent_registry.get_or_create(business)
+    async with runtime.execution_lock:
+        await report_task(db, business, runtime, {**task, **update},
+                          await runtime.agent_manager.get_all_agents_status())
     return to_task_out({**task, **update})
 
 
@@ -91,7 +107,12 @@ async def request_changes(payload: TaskDecisionIn, request: Request, owned: dict
     db = request.app.state.db
     decided_at = datetime.now(timezone.utc)
     update = {"status": "needs_changes", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
-    await db["tasks"].update_one({"task_id": task["task_id"]}, {"$set": update})
+    changed = await db["tasks"].find_one_and_update(
+        {"task_id": task["task_id"], "status": task["status"]}, {"$set": update},
+        return_document=ReturnDocument.AFTER,
+    )
+    if changed is None:
+        raise HTTPException(status_code=409, detail="Task was already decided")
     await record_audit(
         db, business.owner_user_id, business.id, "task_needs_changes", target_id=task["task_id"],
         details={"owner_feedback": payload.owner_feedback},
