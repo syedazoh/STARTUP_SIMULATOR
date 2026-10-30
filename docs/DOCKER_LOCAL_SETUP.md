@@ -78,7 +78,7 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 
 ## Verification limits
 
-The fixes were checked with clean Linux npm installation, frontend tests/build/lint, backend tests, official Compose schema validation, and an HTTP smoke test through Vite to FastAPI. The smoke test used the development in-memory database because this verification environment has no Docker daemon or live MongoDB service. A Docker Desktop build/start and real MongoDB persistence still need confirmation on a machine that can run containers.
+The fixes were checked with clean Linux npm installation, frontend tests/build/lint, backend tests, official Compose schema validation, and an HTTP smoke test through Vite to FastAPI. The smoke test used the development in-memory database because this verification environment has no Docker daemon or live MongoDB service. The full Docker CI job additionally verified real MongoDB persistence across a backend restart. The user's own Windows Docker Desktop installation and live Groq/Instagram integrations remain unverified.
 
 Frontend CI additionally builds the development Docker image and checks its HTTP server and Docker-DNS API proxy against a clearly labelled backend stub. That check validates the frontend container; it does not replace a complete FastAPI/MongoDB Compose test.
 
