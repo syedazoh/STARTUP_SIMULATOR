@@ -25,6 +25,9 @@ test('Vite proxies API paths, refresh cookies, and health checks to the configur
     await frontend.listen()
     const origin = `http://127.0.0.1:${frontend.httpServer.address().port}`
     assert.equal((await fetch(origin)).status, 200)
+    const css = await fetch(`${origin}/src/index.css`)
+    assert.equal(css.status, 200, 'Vite must compile the actual app stylesheet')
+    assert.match(await css.text(), /--tw-/, 'Tailwind must generate CSS, not leave unresolved directives')
     const health = await fetch(`${origin}/api/health`)
     assert.equal(health.status, 200)
     assert.equal((await health.json()).mongo, 'connected')

@@ -50,6 +50,7 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml logs --tail 1
 
 | Symptom | Check |
 | --- | --- |
+| Missing `tailwindcss/base` export | The app uses pinned Tailwind 3.4.19 with `@tailwind` directives. Pull the latest source, rebuild the frontend image and renew its anonymous dependency volume; check `docker compose --env-file docker/.env -f docker/docker-compose.yml exec frontend npm ls tailwindcss`. |
 | Missing Rollup/esbuild binary, invalid executable, or native module errors | Rebuild and renew the frontend dependency volume with the commands below. Host `node_modules` is excluded from the image. |
 | Frontend waits without starting | Check MongoDB/backend health and backend build logs. A waiting container can be a backend problem. |
 | Port 5173/8000 already allocated | Stop the other app/container using that port; Vite now fails explicitly instead of moving to an unexposed port. |
