@@ -86,8 +86,10 @@ way to iterate without burning rate limit while getting DNS sorted.
 
 ## Deploying
 
-Either via Jenkins (`Jenkinsfile` at repo root — see its header comment for the
-required credentials/env vars), or manually from the EC2 host:
+Jenkins builds and tests on merges, but production publishing and deployment are
+disabled by default. When the project is ready, explicitly run the Jenkins job
+with `DEPLOY_TO_PRODUCTION=true` (see the `Jenkinsfile` header for required
+credentials/env vars). You can also deploy manually from the EC2 host:
 
 ```bash
 cd ~/startup-simulator
