@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [22.x]
     steps:
       - uses: actions/checkout@v3
       - name: Setup Node.js
@@ -30,3 +30,33 @@ jobs:
         run: |
           cd frontend
           npm run build
+      - name: Test session and proxy wiring
+        run: |
+          cd frontend
+          npm test
+          npm run lint
+      - name: Build frontend development container
+        run: docker build -f frontend/Dockerfile -t startup-frontend-wiring ./frontend
+      - name: Smoke test frontend container and Docker API proxy
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture_dir=$(mktemp -d)
+          mkdir -p "$fixture_dir/api"
+          echo '{"service":"ci-backend-stub","mongo":"stubbed"}' > "$fixture_dir/api/health"
+          cleanup() {
+            docker logs frontend-wiring || true
+            docker rm -f frontend-wiring backend-wiring || true
+            docker network rm startup-wiring || true
+            rm -rf "$fixture_dir"
+          }
+          trap cleanup EXIT
+          docker network create startup-wiring
+          docker run -d --name backend-wiring --network startup-wiring --network-alias backend \
+            -v "$fixture_dir:/srv:ro" -w /srv python:3.11-alpine python -m http.server 8000
+          docker run -d --name frontend-wiring --network startup-wiring \
+            -p 127.0.0.1:5173:5173 -e API_PROXY_TARGET=http://backend:8000 -e VITE_API_URL=/ \
+            startup-frontend-wiring
+          curl --fail --retry 20 --retry-all-errors --retry-connrefused --retry-delay 1 --max-time 5 http://127.0.0.1:5173/ > /dev/null
+          curl --fail --retry 10 --retry-all-errors --retry-connrefused --retry-delay 1 --max-time 5 http://127.0.0.1:5173/api/health \
+            | python -c 'import json,sys; assert json.load(sys.stdin)["service"] == "ci-backend-stub"'

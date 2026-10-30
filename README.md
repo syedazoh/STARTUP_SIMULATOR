@@ -87,9 +87,11 @@ Frontend will be available at `http://localhost:5173`
 #### Option 2: Docker Compose
 
 ```bash
-cd docker
-docker-compose up
+# From the repository root, create docker/.env from docker/.env.example first.
+docker compose --env-file docker/.env -f docker/docker-compose.yml up --build --renew-anon-volumes
 ```
+
+See [Docker local setup and troubleshooting](docs/DOCKER_LOCAL_SETUP.md) for Windows commands, health checks, and dependency-volume recovery.
 
 ## Project Structure
 
