@@ -1,0 +1,42 @@
+name: Docker Compose Wiring
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker/**'
+      - 'scripts/smoke_stack.py'
+      - '.github/workflows/docker-wiring.yml'
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker/**'
+      - 'scripts/smoke_stack.py'
+      - '.github/workflows/docker-wiring.yml'
+
+jobs:
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GROQ_API_KEY: ''
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the isolated development stack
+        run: docker compose -p startup-wiring -f docker/docker-compose.yml up -d --build --wait --wait-timeout 180
+      - name: Check HTTP wiring, approvals and database writes
+        run: python scripts/smoke_stack.py before-restart --state-file "$RUNNER_TEMP/startup-wiring.json"
+      - name: Restart backend and verify persistence and session lifecycle
+        run: |
+          docker compose -p startup-wiring -f docker/docker-compose.yml restart backend
+          python scripts/smoke_stack.py after-restart --state-file "$RUNNER_TEMP/startup-wiring.json"
+      - name: Logs and isolated test cleanup
+        if: always()
+        run: |
+          docker compose -p startup-wiring -f docker/docker-compose.yml logs --tail 100
+          docker compose -p startup-wiring -f docker/docker-compose.yml down -v
+          rm -f "$RUNNER_TEMP/startup-wiring.json"

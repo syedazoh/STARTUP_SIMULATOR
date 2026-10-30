@@ -81,3 +81,5 @@ docker compose --env-file docker/.env -f docker/docker-compose.yml down
 The fixes were checked with clean Linux npm installation, frontend tests/build/lint, backend tests, official Compose schema validation, and an HTTP smoke test through Vite to FastAPI. The smoke test used the development in-memory database because this verification environment has no Docker daemon or live MongoDB service. A Docker Desktop build/start and real MongoDB persistence still need confirmation on a machine that can run containers.
 
 Frontend CI additionally builds the development Docker image and checks its HTTP server and Docker-DNS API proxy against a clearly labelled backend stub. That check validates the frontend container; it does not replace a complete FastAPI/MongoDB Compose test.
+
+The `Docker Compose Wiring` CI job builds the full isolated stack and runs `scripts/smoke_stack.py` before and after restarting the backend. It checks real MongoDB session/business/snapshot persistence and the refresh/logout flow. Its cleanup deletes only the disposable CI project volumes; do not copy `down -v` into normal local recovery commands.
