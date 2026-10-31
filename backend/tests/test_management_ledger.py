@@ -230,3 +230,69 @@ def test_slow_ceo_report_review_does_not_block_department_work(client, monkeypat
         await asyncio.gather(*jobs, return_exceptions=True)
 
     client.portal.call(cancel_jobs)
+
+
+def test_chat_and_planning_use_ledger_not_temporary_execution_balance(
+    client, monkeypatch
+):
+    import json
+    from app.main import app
+    from app.agents.schemas import ChatReply
+    from app.models.supervision_schemas import CEOPlan
+    from tests.test_chat import FakeChatLLM
+
+    owner = account(client)
+    bid = business(client, owner)
+    tid = pending(client, owner, bid)
+    assert client.post(f"/api/tasks/{tid}/approve", headers=owner).status_code == 200
+    finance = app.state.agent_registry._runtimes[bid].agent_manager.agents["finance"]
+    finance.budget_pool = (
+        200000  # Private spendable balance during an in-flight execution.
+    )
+    fake = FakeChatLLM(
+        [ChatReply(reply="Balance recorded"), ChatReply(reply="Balance recorded")]
+    )
+    monkeypatch.setattr("app.services.chat.get_groq_llm", lambda *a, **kw: fake)
+    for agent in ("finance", "ceo"):
+        response = client.post(
+            f"/api/businesses/{bid}/agents/{agent}/chat",
+            headers=owner,
+            json={"content": "Current budget?"},
+        )
+        assert response.status_code == 200
+        line = next(
+            line
+            for line in fake.last_prompt.splitlines()
+            if line.startswith("Your current status: ")
+        )
+        status = json.loads(line.removeprefix("Your current status: "))
+        assert (status["departments"]["finance"] if agent == "ceo" else status)[
+            "budget_pool"
+        ] == 99900
+
+    async def plan(self, goal, context):
+        assert context["departments"]["finance"]["budget_pool"] == 99900
+        assert context["finances"]["reserved"] == 100
+        return CEOPlan(
+            strategy="Preserve cash",
+            assignments=[
+                {
+                    "department": "hr",
+                    "action_type": "recruitment_request",
+                    "payload": {"role": "Engineer", "headcount": 1},
+                    "objective": "Hire one engineer",
+                    "success_criteria": "One additional engineer",
+                }
+            ],
+        )
+
+    monkeypatch.setattr("app.agents.ceo_agent.CEOAgent.create_plan", plan)
+    assert (
+        client.post(
+            f"/api/businesses/{bid}/ceo/plans",
+            headers=owner,
+            json={"goal": "Grow with safe cash reserves"},
+        ).status_code
+        == 200
+    )
+    assert finance.budget_pool == 200000

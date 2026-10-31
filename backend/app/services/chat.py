@@ -7,6 +7,7 @@ create_task() call. That keeps chat-originated actions on the exact same
 manual/auto/threshold pipeline every other entry point uses instead of a
 parallel "the chatbot did it directly" path.
 """
+
 import json
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
@@ -48,11 +49,18 @@ MAX_HISTORY_MESSAGES = 20
 
 
 def _empty_thread(business_id: str, agent: str) -> Dict[str, Any]:
-    return {"business_id": business_id, "agent": agent, "messages": [], "updated_at": datetime.now(timezone.utc)}
+    return {
+        "business_id": business_id,
+        "agent": agent,
+        "messages": [],
+        "updated_at": datetime.now(timezone.utc),
+    }
 
 
 async def get_thread(db, business_id: str, agent: str) -> Dict[str, Any]:
-    doc = await find_one(db["chat_threads"], {"business_id": business_id, "agent": agent})
+    doc = await find_one(
+        db["chat_threads"], {"business_id": business_id, "agent": agent}
+    )
     return doc if doc is not None else _empty_thread(business_id, agent)
 
 
@@ -74,14 +82,21 @@ def _build_prompt(
         lines.append("")
 
     if profile:
-        context = {k: v for k, v in profile.items() if k not in ("_id", "business_id", "updated_at")}
+        context = {
+            k: v
+            for k, v in profile.items()
+            if k not in ("_id", "business_id", "updated_at")
+        }
         if any(context.values()):
             lines.append(f"Business context: {json.dumps(context, default=str)}")
             lines.append("")
 
     actions = AGENT_ACTIONS.get(agent, {})
     if actions:
-        action_desc = "; ".join(f'"{name}" (fields: {", ".join(fields)})' for name, fields in actions.items())
+        action_desc = "; ".join(
+            f'"{name}" (fields: {", ".join(fields)})'
+            for name, fields in actions.items()
+        )
         lines.append(
             "If the owner's message asks you to actually take an action (not just answer a question), "
             f"set action_requested=true, action_type to exactly one of: {action_desc}, and "
@@ -100,7 +115,9 @@ def _build_prompt(
     return "\n".join(lines)
 
 
-async def send_message(db, agent_registry, business: BusinessOut, agent: str, content: str) -> Dict[str, Any]:
+async def send_message(
+    db, agent_registry, business: BusinessOut, agent: str, content: str
+) -> Dict[str, Any]:
     thread = await get_thread(db, business.id, agent)
     profile = await find_one(db["business_profiles"], {"business_id": business.id})
 
@@ -109,11 +126,29 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
     live_status = await live_agent.get_status() if live_agent is not None else None
 
     if agent == "ceo":
-        live_status = {"departments": await runtime.agent_manager.get_all_agents_status()}
+        live_status = {
+            "departments": await runtime.agent_manager.get_all_agents_status()
+        }
+    from . import ledger
+
+    financial = await ledger.account_for(db, business, runtime)
+    finance_status = (
+        (live_status or {}).get("departments", {}).get("finance")
+        if agent == "ceo"
+        else live_status if agent == "finance" else None
+    )
+    if finance_status is not None:
+        finance_status.update(
+            budget_pool=ledger.amount(ledger.available(financial)),
+            revenue=ledger.amount(financial["revenue_minor"]),
+            expenses=ledger.amount(financial["expenses_minor"]),
+        )
     prompt = _build_prompt(agent, profile, live_status, thread["messages"], content)
     ai_error = None
     try:
-        reply: ChatReply = await get_groq_llm().with_structured_output(ChatReply).ainvoke(prompt)
+        reply: ChatReply = (
+            await get_groq_llm().with_structured_output(ChatReply).ainvoke(prompt)
+        )
     except Exception as exc:
         failure = report_llm_failure("chat", exc)
         ai_error = failure.code
@@ -124,13 +159,22 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
         {"role": "owner", "content": content, "created_at": now},
         {"role": "agent", "content": reply.reply, "created_at": now},
     ]
-    doc = {"business_id": business.id, "agent": agent, "messages": messages, "updated_at": now}
+    doc = {
+        "business_id": business.id,
+        "agent": agent,
+        "messages": messages,
+        "updated_at": now,
+    }
 
-    existing = await find_one(db["chat_threads"], {"business_id": business.id, "agent": agent})
+    existing = await find_one(
+        db["chat_threads"], {"business_id": business.id, "agent": agent}
+    )
     if existing is None:
         await db["chat_threads"].insert_one(doc)
     else:
-        await db["chat_threads"].update_one({"business_id": business.id, "agent": agent}, {"$set": doc})
+        await db["chat_threads"].update_one(
+            {"business_id": business.id, "agent": agent}, {"$set": doc}
+        )
 
     task = None
     allowed = AGENT_ACTIONS.get(agent, {})
@@ -142,11 +186,20 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
         if isinstance(payload, dict):
             try:
                 payload = validate_action(agent, reply.action_type, payload)
-                task = await create_task(db, agent_registry, business, agent, reply.action_type, payload, source="chat")
+                task = await create_task(
+                    db,
+                    agent_registry,
+                    business,
+                    agent,
+                    reply.action_type,
+                    payload,
+                    source="chat",
+                )
             except ValueError:
                 reply.reply += " The proposed action was invalid; please specify valid action details."
                 doc["messages"][-1]["content"] = reply.reply
                 await db["chat_threads"].update_one(
-                    {"business_id": business.id, "agent": agent}, {"$set": doc})
+                    {"business_id": business.id, "agent": agent}, {"$set": doc}
+                )
 
     return {"thread": doc, "task": task, "ai_error": ai_error}

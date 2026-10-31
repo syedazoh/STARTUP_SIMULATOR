@@ -26,6 +26,18 @@ async def propose_plan(db, registry, business, goal):
             db["business_profiles"], {"business_id": business.id}
         ),
     }
+    from . import ledger
+
+    financial = await ledger.account_for(db, business, runtime)
+    if "finance" in context["departments"]:
+        context["departments"]["finance"].update(
+            budget_pool=ledger.amount(ledger.available(financial)),
+            revenue=ledger.amount(financial["revenue_minor"]),
+            expenses=ledger.amount(financial["expenses_minor"]),
+        )
+    context["finances"] = {
+        k: v for k, v in ledger.public_account(financial).items() if k != "entries"
+    }
     try:
         plan = CEOPlan.model_validate(await ceo.create_plan(goal, context))
     except Exception as exc:
