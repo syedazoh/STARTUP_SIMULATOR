@@ -22,7 +22,7 @@ services:
       MONGODB_DB_NAME: startup_simulator
       CHROMA_PERSIST_DIR: /app/chroma_data
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       # Development-only fallbacks match backend/app/config.py. Supply real
       # values in docker/.env before connecting third-party credentials.
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
@@ -81,7 +81,7 @@ services:
       MONGODB_DB_NAME: startup_simulator_test
       CHROMA_PERSIST_DIR: /app/chroma_data
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       DEBUG: "true"
     volumes:
       - ../backend:/app

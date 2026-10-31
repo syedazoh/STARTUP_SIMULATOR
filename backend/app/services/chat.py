@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional
 
 from ..agents.schemas import ChatReply
 from ..core.llm import get_groq_llm
+from ..core.llm_errors import report_llm_failure
 from ..database.utils import find_one
 from ..models.business_schemas import BusinessOut
 from ..models.action_schemas import validate_action
@@ -110,10 +111,13 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
     if agent == "ceo":
         live_status = {"departments": await runtime.agent_manager.get_all_agents_status()}
     prompt = _build_prompt(agent, profile, live_status, thread["messages"], content)
+    ai_error = None
     try:
         reply: ChatReply = await get_groq_llm().with_structured_output(ChatReply).ainvoke(prompt)
-    except Exception:
-        reply = ChatReply(reply="Sorry, I couldn't process that just now — could you try again?")
+    except Exception as exc:
+        failure = report_llm_failure("chat", exc)
+        ai_error = failure.code
+        reply = ChatReply(reply=failure.message)
 
     now = datetime.now(timezone.utc)
     messages = thread["messages"] + [
@@ -145,4 +149,4 @@ async def send_message(db, agent_registry, business: BusinessOut, agent: str, co
                 await db["chat_threads"].update_one(
                     {"business_id": business.id, "agent": agent}, {"$set": doc})
 
-    return {"thread": doc, "task": task}
+    return {"thread": doc, "task": task, "ai_error": ai_error}

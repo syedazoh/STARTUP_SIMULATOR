@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     chroma_persist_dir: str = "./chroma_data"
 
     groq_api_key: Optional[str] = None
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "openai/gpt-oss-120b"
 
     secret_key: str = _DEFAULT_SECRET_KEY
     access_token_expire_minutes: int = Field(default=15, ge=1, le=60)

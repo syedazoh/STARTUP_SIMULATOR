@@ -30,3 +30,4 @@ class ChatReplyOut(BaseModel):
     # same object shape the task queue already renders, so the frontend can
     # reuse existing UI for it rather than a bespoke chat-task widget.
     task: Optional[TaskOut] = None
+    ai_error: Optional[str] = None
