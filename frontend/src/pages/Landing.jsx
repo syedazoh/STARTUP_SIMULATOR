@@ -1,6 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { useEffect } from 'react'
 import { STATUS } from '../theme/palette'
 
 const AGENTS = [
@@ -75,18 +74,8 @@ const FEATURES = [
 ]
 
 function Landing() {
-  const navigate = useNavigate()
-  const { token, user } = useSelector((state) => state.auth)
-
-  useEffect(() => {
-    if (token && user) {
-      navigate('/')
-    }
-  }, [token, user, navigate])
-
-  if (token && user) {
-    return null
-  }
+  const token = useSelector((state) => state.auth.token)
+  if (token) return <Navigate to="/app" replace />
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">

@@ -18,10 +18,16 @@ export const login = createAsyncThunk('auth/login', async ({ email, password }, 
 export const register = createAsyncThunk('auth/register', async ({ email, password }, { rejectWithValue }) => {
   try {
     await apiClient.post('/api/auth/register', { email, password })
+  } catch (error) { return rejectWithValue(errorMessage(error)) }
+  try {
     const { data } = await apiClient.post('/api/auth/login', { email, password })
     setAccessToken(data.access_token)
     return data
-  } catch (error) { return rejectWithValue(errorMessage(error)) }
+  } catch (error) {
+    // The account exists even if automatic sign-in fails. Do not ask the user
+    // to submit registration again; send them to the dedicated login screen.
+    return rejectWithValue({ accountCreated: true, message: errorMessage(error) })
+  }
 })
 export const restoreSession = createAsyncThunk('auth/restore', () => refreshSession())
 export const fetchMe = createAsyncThunk('auth/fetchMe', async () => (await apiClient.get('/api/auth/me')).data)
@@ -34,6 +40,7 @@ const initialState = { token: null, user: null, initialized: false, status: 'idl
 const authSlice = createSlice({
   name: 'auth', initialState,
   reducers: {
+    clearAuthError: (state) => { state.error = null },
     clearAuth: (state) => { state.token = null; state.user = null; state.initialized = true },
     tokenRefreshed: (state, action) => { state.token = action.payload; state.initialized = true },
   },
@@ -49,7 +56,7 @@ const authSlice = createSlice({
       builder.addCase(thunk.rejected, (state, action) => {
         state.initialized = true
         state.status = 'failed'
-        state.error = thunk === restoreSession ? null : action.payload
+        state.error = thunk === restoreSession ? null : action.payload?.message || action.payload
       })
     }
     builder.addCase(fetchMe.fulfilled, (state, action) => { state.user = action.payload })
@@ -57,6 +64,6 @@ const authSlice = createSlice({
     builder.addCase(logout.rejected, (state, action) => { state.error = action.payload })
   },
 })
-export const { clearAuth, tokenRefreshed } = authSlice.actions
+export const { clearAuth, clearAuthError, tokenRefreshed } = authSlice.actions
 export { clearAccessToken }
 export default authSlice.reducer

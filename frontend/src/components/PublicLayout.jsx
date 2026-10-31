@@ -58,7 +58,7 @@ export default function PublicLayout() {
           {isAuthenticated ? (
             <>
               <Link
-                to="/"
+                to="/app"
                 className="block text-sm font-medium text-gray-500 hover:text-gray-700"
               >
                 → Dashboard

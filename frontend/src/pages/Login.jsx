@@ -1,22 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../store/slices/authSlice'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { clearAuthError, login } from '../store/slices/authSlice'
 import ErrorBanner from '../components/ErrorBanner'
 import { STATUS } from '../theme/palette'
 
 function Login() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const location = useLocation()
   const { status, error } = useSelector((state) => state.auth)
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(location.state?.email || '')
   const [password, setPassword] = useState('')
+
+  useEffect(() => { dispatch(clearAuthError()) }, [dispatch])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     const result = await dispatch(login({ email, password }))
     if (login.fulfilled.match(result)) {
-      navigate('/')
+      navigate('/app', { replace: true })
     }
   }
 
@@ -30,11 +33,17 @@ function Login() {
           </div>
           <p className="text-sm text-gray-500 mb-8">Sign in to your account</p>
 
+          {location.state?.accountCreated && <p role="status" className="text-sm text-gray-700 mb-4">
+            Your account was created, but automatic sign-in failed. Sign in below.
+          </p>}
+          {location.state?.accountCreated && !error && <ErrorBanner message={location.state?.signInError} />}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-xs text-gray-500 mb-1.5" htmlFor="email">Email</label>
               <input
                 id="email"
+                autoComplete="username"
                 type="email"
                 required
                 value={email}
@@ -47,6 +56,7 @@ function Login() {
               <label className="block text-xs text-gray-500 mb-1.5" htmlFor="password">Password</label>
               <input
                 id="password"
+                autoComplete="current-password"
                 type="password"
                 required
                 value={password}
