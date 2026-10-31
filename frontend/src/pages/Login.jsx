@@ -19,7 +19,7 @@ function Login() {
     e.preventDefault()
     const result = await dispatch(login({ email, password }))
     if (login.fulfilled.match(result)) {
-      navigate('/')
+      navigate('/app', { replace: true })
     }
   }
 

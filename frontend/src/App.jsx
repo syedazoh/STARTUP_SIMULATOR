@@ -55,7 +55,7 @@ function App() {
           <Route path="/onboarding" element={<Setup />} />
 
           <Route element={<RequireBusiness />}>
-            <Route path="/" element={<HomeRedirect />} />
+            <Route path="/app" element={<HomeRedirect />} />
             <Route element={<Layout />}>
               <Route path="/b/:businessId/dashboard" element={<Dashboard />} />
               <Route path="/b/:businessId/agents/:agentKey" element={<AgentDetail />} />
