@@ -11,6 +11,8 @@ import InstagramPostForm from '../components/InstagramPostForm'
 import ReelRequestForm from '../components/ReelRequestForm'
 import ChatPanel from '../components/ChatPanel'
 import CEOSupervision from '../components/CEOSupervision'
+import DepartmentTasks from '../components/DepartmentTasks'
+import FinancialSummary from '../components/FinancialSummary'
 import AgentMetricChart from '../components/charts/AgentMetricChart'
 import { CATEGORICAL } from '../theme/palette'
 import { toChartData } from '../utils/chartData'
@@ -52,6 +54,8 @@ function AgentDetail() {
           {config ? config.label : 'CEO'} Agent
         </h1>
         {agentKey === 'ceo' && <CEOSupervision key={businessId} businessId={businessId} />}
+        <DepartmentTasks key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey === 'ceo' ? undefined : agentKey} />
+        {agentKey === 'finance' && <FinancialSummary key={businessId} businessId={businessId} />}
         {status && <AgentStatusCard agentKey={agentKey} status={status} />}
 
         {config && (

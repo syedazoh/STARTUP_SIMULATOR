@@ -5,7 +5,7 @@ import apiClient from '../../api/client'
 // actionable by the owner — the first two via approve/reject/request
 // changes, the last via uploading a file (Phase 4). Fetched unfiltered and
 // narrowed here since the API only takes one status value per call.
-const ACTIONABLE_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset'])
+const ACTIONABLE_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset', 'pending_ceo_review', 'needs_revision', 'ceo_reviewing'])
 
 export const fetchPendingTasks = createAsyncThunk('tasks/fetchPending', async (businessId) => {
   const response = await apiClient.get(`/api/businesses/${businessId}/tasks`)

@@ -1,5 +1,6 @@
 """CEO assignment lifecycle. All effects still use the shared approval pipeline."""
 
+import asyncio
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -24,6 +25,18 @@ async def propose_plan(db, registry, business, goal):
         "profile": await find_one(
             db["business_profiles"], {"business_id": business.id}
         ),
+    }
+    from . import ledger
+
+    financial = await ledger.account_for(db, business, runtime)
+    if "finance" in context["departments"]:
+        context["departments"]["finance"].update(
+            budget_pool=ledger.amount(ledger.available(financial)),
+            revenue=ledger.amount(financial["revenue_minor"]),
+            expenses=ledger.amount(financial["expenses_minor"]),
+        )
+    context["finances"] = {
+        k: v for k, v in ledger.public_account(financial).items() if k != "entries"
     }
     try:
         plan = CEOPlan.model_validate(await ceo.create_plan(goal, context))
@@ -132,20 +145,11 @@ async def report_task(db, business, runtime, task, before):
         "before": before.get(task["agent"], {}),
         "after": after.get(task["agent"], {}),
         "created_at": datetime.now(timezone.utc),
+        "review_status": "pending",
     }
     # Persist evidence before an optional model call, so outages don't lose it.
     await db["department_reports"].insert_one(report)
-    ceo = runtime.agent_manager.agents.get("ceo")
-    if ceo is not None:
-        review = await ceo.process_event(
-            {
-                "type": "department_report",
-                "report": {k: v for k, v in report.items() if k != "_id"},
-            }
-        )
-        await db["department_reports"].update_one(
-            {"report_id": report["report_id"]}, {"$set": {"ceo_review": review}}
-        )
+    await schedule_pending_reviews(db, business, runtime)
     await record_audit(
         db,
         business.owner_user_id,
@@ -175,3 +179,81 @@ async def report_task(db, business, runtime, task, before):
             await db["ceo_plans"].update_one(
                 {"plan_id": task["plan_id"]}, {"$set": {"status": "completed"}}
             )
+
+
+async def schedule_pending_reviews(db, business, runtime):
+    """Recover pending or expired review leases when work/reports are accessed."""
+    if "ceo" not in runtime.agent_manager.agents:
+        return
+    slots = max(0, 4 - len(runtime.review_jobs))
+    if not slots:
+        return
+    docs = (
+        await db["department_reports"]
+        .find(
+            {
+                "business_id": business.id,
+                "review_status": {"$in": ["pending", "reviewing"]},
+            }
+        )
+        .sort("created_at", 1)
+        .to_list(length=100)
+    )
+    now = datetime.now(timezone.utc).timestamp()
+    for doc in docs:
+        if len(runtime.review_jobs) >= 4:
+            break
+        if (
+            doc["review_status"] == "reviewing"
+            and doc.get("review_lease_until", 0) > now
+        ):
+            continue
+        lease = str(uuid4())
+        claimed = await db["department_reports"].find_one_and_update(
+            {
+                "report_id": doc["report_id"],
+                "review_status": doc["review_status"],
+                **(
+                    {"review_lease": doc.get("review_lease")}
+                    if doc["review_status"] == "reviewing"
+                    else {}
+                ),
+            },
+            {
+                "$set": {
+                    "review_status": "reviewing",
+                    "review_lease": lease,
+                    "review_lease_until": now + 60,
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if claimed:
+            job = asyncio.create_task(_review_report(db, runtime, claimed, lease))
+            runtime.review_jobs.add(job)
+            job.add_done_callback(runtime.review_jobs.discard)
+
+
+async def _review_report(db, runtime, report, lease):
+    try:
+        review = await asyncio.wait_for(
+            runtime.agent_manager.agents["ceo"].process_event(
+                {
+                    "type": "department_report",
+                    "report": {k: v for k, v in report.items() if k != "_id"},
+                }
+            ),
+            timeout=20,
+        )
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        review = {
+            "assessment": "Execution evidence saved; narrative review unavailable.",
+            "next_action": "owner_attention",
+            "recommendation": "Review the recorded result.",
+        }
+    await db["department_reports"].update_one(
+        {"report_id": report["report_id"], "review_lease": lease},
+        {"$set": {"review_status": "completed", "ceo_review": review}},
+    )

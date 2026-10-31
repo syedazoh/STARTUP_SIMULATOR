@@ -13,6 +13,7 @@ it trusts the latest snapshot as ground truth rather than re-running the
 non-deterministic LLM-driven decision log since that snapshot, which would
 be real additional scope (and couldn't be made deterministic anyway).
 """
+
 import asyncio
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
@@ -35,6 +36,7 @@ class BusinessRuntime:
     simulation_engine: Optional[SimulationEngine] = None
     current_run_id: Optional[str] = None
     execution_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    review_jobs: set = field(default_factory=set)
 
 
 def _apply_snapshot_state(agent: Any, state: Dict[str, Any]) -> None:
@@ -71,7 +73,9 @@ class AgentRegistry:
                     "starting_headcount": business.starting_headcount,
                     "starting_resources": business.starting_resources,
                 }
-                enabled_agents = getattr(business, "enabled_agents", None) or DEFAULT_ENABLED_AGENTS
+                enabled_agents = (
+                    getattr(business, "enabled_agents", None) or DEFAULT_ENABLED_AGENTS
+                )
                 agent_manager = AgentManager(
                     business_id=business.id,
                     starting_state=starting_state,
@@ -79,10 +83,25 @@ class AgentRegistry:
                 )
                 await self._rehydrate_from_snapshots(business.id, agent_manager)
                 await self._rehydrate_policies(business.id, agent_manager)
-                self._runtimes[business.id] = BusinessRuntime(agent_manager=agent_manager)
+                if self._db is not None:
+                    from ..database.utils import find_one
+                    from ..services.ledger import sync_finance
+
+                    account = await find_one(
+                        self._db["financial_accounts"], {"_id": business.id}
+                    )
+                    if account:
+                        sync_finance(
+                            BusinessRuntime(agent_manager=agent_manager), account
+                        )
+                self._runtimes[business.id] = BusinessRuntime(
+                    agent_manager=agent_manager
+                )
             return self._runtimes[business.id]
 
-    async def _rehydrate_from_snapshots(self, business_id: str, agent_manager: AgentManager) -> None:
+    async def _rehydrate_from_snapshots(
+        self, business_id: str, agent_manager: AgentManager
+    ) -> None:
         if self._db is None:
             return
         for agent in agent_manager.agents.values():
@@ -96,7 +115,9 @@ class AgentRegistry:
             if docs:
                 _apply_snapshot_state(agent, docs[0].get("state", {}))
 
-    async def _rehydrate_policies(self, business_id: str, agent_manager: AgentManager) -> None:
+    async def _rehydrate_policies(
+        self, business_id: str, agent_manager: AgentManager
+    ) -> None:
         if self._db is None:
             return
         cursor = self._db["agent_policies"].find({"business_id": business_id})
@@ -112,3 +133,13 @@ class AgentRegistry:
                     updated_at=doc["updated_at"],
                 )
                 agent.set_policy(policy)
+
+    async def close(self):
+        jobs = {
+            job for runtime in self._runtimes.values() for job in runtime.review_jobs
+        }
+        if jobs:
+            _, pending = await asyncio.wait(jobs, timeout=5)
+            for job in pending:
+                job.cancel()
+            await asyncio.gather(*pending, return_exceptions=True)

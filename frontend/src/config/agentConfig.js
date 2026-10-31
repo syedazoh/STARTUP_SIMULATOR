@@ -36,6 +36,7 @@ const AGENT_CONFIG = {
     actionFields: [
       { name: 'role', label: 'Role', type: 'text', default: 'Engineer' },
       { name: 'headcount', label: 'Headcount', type: 'number', default: 1 },
+      { name: 'monthly_salary', label: 'Monthly salary per hire ($)', type: 'number', default: 3000 },
     ],
     policyLabels: {
       auto_approve_max: 'Auto-approve headcount requests under',
@@ -49,6 +50,7 @@ const AGENT_CONFIG = {
     actionFields: [
       { name: 'resource_type', label: 'Resource type', type: 'text', default: 'Cloud Compute' },
       { name: 'quantity', label: 'Quantity', type: 'number', default: 100 },
+      { name: 'unit_cost', label: 'Cost per unit ($)', type: 'number', default: 100 },
     ],
     policyLabels: {
       auto_approve_max: 'Auto-approve resource requests under quantity',

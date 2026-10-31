@@ -20,6 +20,7 @@ with or without a database.
 import logging
 from copy import deepcopy
 from types import SimpleNamespace
+from pymongo.errors import DuplicateKeyError
 from typing import Any, Dict, List, Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
@@ -65,6 +66,8 @@ class InMemoryCollection:
         if "_id" not in doc:
             self._seq += 1
             doc["_id"] = self._seq
+        if any(existing.get("_id") == doc["_id"] for existing in self._docs):
+            raise DuplicateKeyError("Duplicate document id")
         self._docs.append(doc)
 
     async def insert_many(self, documents: List[Dict[str, Any]]) -> None:

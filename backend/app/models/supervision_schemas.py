@@ -33,3 +33,8 @@ class CEOReview(BaseModel):
     assessment: str
     next_action: Literal["continue", "revise_plan", "owner_attention"]
     recommendation: str
+
+
+class TaskAuthorization(BaseModel):
+    decision: Literal["approve", "reject", "request_changes", "escalate"]
+    reason: str = Field(min_length=1, max_length=2000)

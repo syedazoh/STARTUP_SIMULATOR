@@ -51,4 +51,8 @@ async def plans(request: Request, business: BusinessOut = Depends(get_owned_busi
 async def reports(
     request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
+    from ...services.supervision import schedule_pending_reviews
+
+    runtime = await request.app.state.agent_registry.get_or_create(business)
+    await schedule_pending_reviews(request.app.state.db, business, runtime)
     return await _list(request, business, "department_reports")

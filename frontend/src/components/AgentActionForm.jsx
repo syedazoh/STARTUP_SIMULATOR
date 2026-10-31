@@ -10,7 +10,7 @@ import { STATUS } from '../theme/palette'
 // doesn't need to know which agent it's talking to.
 const GOOD_STATUSES = new Set(['approved', 'executed', 'auto_approved'])
 const BAD_STATUSES = new Set(['denied', 'rejected', 'failed'])
-const WAITING_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset'])
+const WAITING_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset', 'pending_ceo_review', 'ceo_reviewing', 'needs_revision'])
 
 function AgentActionForm({ businessId, config, onActionComplete }) {
   const [values, setValues] = useState(
@@ -55,6 +55,7 @@ function AgentActionForm({ businessId, config, onActionComplete }) {
             <input
               id={`action-${field.name}`}
               type={field.type}
+              step={field.type === 'number' ? 'any' : undefined}
               value={values[field.name]}
               onChange={update(field)}
               className="w-full border rounded px-2 py-1 text-sm"
