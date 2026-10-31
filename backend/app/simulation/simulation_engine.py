@@ -44,9 +44,11 @@ class SimulationEngine:
         on_complete: Callable[[Any], Any] = _noop_on_complete,
         max_retained_records: int = MAX_RETAINED_RECORDS,
         submit_event: Optional[Callable] = None,
+        credit_revenue: Optional[Callable] = None,
     ):
         self.agent_manager = agent_manager
         self.submit_event = submit_event
+        self.credit_revenue = credit_revenue
         self.on_decision = on_decision
         self.on_complete = on_complete
         self.max_retained_records = max_retained_records
@@ -59,6 +61,9 @@ class SimulationEngine:
         self._resume_event.set()
 
     async def _inject_revenue(self) -> None:
+        if self.credit_revenue is not None:
+            await self.credit_revenue(REVENUE_AMOUNT, self.tick_count)
+            return
         finance = self.agent_manager.agents.get("finance")
         if finance is not None and hasattr(finance, "budget_pool"):
             finance.budget_pool += REVENUE_AMOUNT

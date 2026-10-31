@@ -5,20 +5,30 @@ business-scoped (a business's approval queue), while deciding on a task is
 addressed by task id alone — the task already carries its business_id, and
 get_owned_task resolves ownership from that instead of a path param.
 """
+
 from datetime import datetime, timezone
 from typing import List, Optional
 from pymongo import ReturnDocument
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    UploadFile,
+    status,
+)
 
 from ..deps import get_owned_business, get_owned_task
 from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
-from ...models.task_schemas import TaskDecisionIn, TaskOut, to_task_out
+from ...models.task_schemas import TaskDecisionIn, TaskOut, TaskRevisionIn, to_task_out
 from ...services.audit import record_audit
 from ...services.media_assets import upload_asset
-from ...services.tasks import execute_task
+from ...services.tasks import execute_task, review_task
 
 router = APIRouter(prefix="/api/businesses/{business_id}/tasks", tags=["tasks"])
 task_actions_router = APIRouter(prefix="/api/tasks", tags=["tasks"])
@@ -35,8 +45,16 @@ async def list_tasks(
     request: Request,
     business: BusinessOut = Depends(get_owned_business),
     task_status: Optional[str] = None,
+    agent: Optional[str] = None,
+    source: Optional[str] = None,
 ):
     query = {"business_id": business.id}
+    if agent is not None:
+        if agent not in {"finance", "marketing", "hr", "operations"}:
+            raise HTTPException(status_code=422, detail="Unknown department")
+        query["agent"] = agent
+    if source is not None:
+        query["source"] = source
     if task_status is not None:
         query["status"] = task_status
     cursor = request.app.state.db["tasks"].find(query).sort("created_at", -1)
@@ -44,15 +62,26 @@ async def list_tasks(
     return [to_task_out(d) for d in docs]
 
 
-@task_actions_router.post("/{task_id}/approve", response_model=TaskOut, dependencies=[_rate_limited])
+@task_actions_router.post(
+    "/{task_id}/approve", response_model=TaskOut, dependencies=[_rate_limited]
+)
 async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     task, business = owned["task"], owned["business"]
     if task["status"] not in DECIDABLE_STATUSES:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=f"Task is {task['status']}, not awaiting approval"
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Task is {task['status']}, not awaiting approval",
         )
 
     db = request.app.state.db
+    if not task.get("ceo_authorized"):
+        task = await review_task(
+            db, request.app.state.agent_registry, business, task, allow_auto=False
+        )
+        if task["status"] not in DECIDABLE_STATUSES:
+            raise HTTPException(
+                status_code=409, detail="Task is awaiting CEO authorization"
+            )
     decided_at = datetime.now(timezone.utc)
     task = await db["tasks"].find_one_and_update(
         {"task_id": task["task_id"], "status": task["status"]},
@@ -61,60 +90,103 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     )
     if task is None:
         raise HTTPException(status_code=409, detail="Task was already decided")
-    await record_audit(db, business.owner_user_id, business.id, "task_approved", target_id=task["task_id"])
+    await record_audit(
+        db,
+        business.owner_user_id,
+        business.id,
+        "task_approved",
+        target_id=task["task_id"],
+    )
 
     executed = await execute_task(db, request.app.state.agent_registry, business, task)
     return to_task_out(executed)
 
 
-@task_actions_router.post("/{task_id}/reject", response_model=TaskOut, dependencies=[_rate_limited])
-async def reject_task(payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)):
+@task_actions_router.post(
+    "/{task_id}/reject", response_model=TaskOut, dependencies=[_rate_limited]
+)
+async def reject_task(
+    payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)
+):
     task, business = owned["task"], owned["business"]
-    if task["status"] not in DECIDABLE_STATUSES:
+    if task["status"] not in DECIDABLE_STATUSES | {
+        "pending_ceo_review",
+        "needs_revision",
+    }:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=f"Task is {task['status']}, not awaiting approval"
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Task is {task['status']}, not awaiting approval",
         )
 
     db = request.app.state.db
     decided_at = datetime.now(timezone.utc)
-    update = {"status": "rejected", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
+    update = {
+        "status": "rejected",
+        "owner_feedback": payload.owner_feedback,
+        "decided_at": decided_at,
+    }
     changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]}, {"$set": update},
+        {"task_id": task["task_id"], "status": task["status"]},
+        {"$set": update},
         return_document=ReturnDocument.AFTER,
     )
     if changed is None:
         raise HTTPException(status_code=409, detail="Task was already decided")
     await record_audit(
-        db, business.owner_user_id, business.id, "task_rejected", target_id=task["task_id"],
+        db,
+        business.owner_user_id,
+        business.id,
+        "task_rejected",
+        target_id=task["task_id"],
         details={"owner_feedback": payload.owner_feedback},
     )
     from ...services.supervision import report_task
+
     runtime = await request.app.state.agent_registry.get_or_create(business)
     async with runtime.execution_lock:
-        await report_task(db, business, runtime, {**task, **update},
-                          await runtime.agent_manager.get_all_agents_status())
+        await report_task(
+            db,
+            business,
+            runtime,
+            {**task, **update},
+            await runtime.agent_manager.get_all_agents_status(),
+        )
     return to_task_out({**task, **update})
 
 
-@task_actions_router.post("/{task_id}/request-changes", response_model=TaskOut, dependencies=[_rate_limited])
-async def request_changes(payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)):
+@task_actions_router.post(
+    "/{task_id}/request-changes", response_model=TaskOut, dependencies=[_rate_limited]
+)
+async def request_changes(
+    payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)
+):
     task, business = owned["task"], owned["business"]
     if task["status"] not in DECIDABLE_STATUSES:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=f"Task is {task['status']}, not awaiting approval"
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Task is {task['status']}, not awaiting approval",
         )
 
     db = request.app.state.db
     decided_at = datetime.now(timezone.utc)
-    update = {"status": "needs_changes", "owner_feedback": payload.owner_feedback, "decided_at": decided_at}
+    update = {
+        "status": "needs_changes",
+        "owner_feedback": payload.owner_feedback,
+        "decided_at": decided_at,
+    }
     changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]}, {"$set": update},
+        {"task_id": task["task_id"], "status": task["status"]},
+        {"$set": update},
         return_document=ReturnDocument.AFTER,
     )
     if changed is None:
         raise HTTPException(status_code=409, detail="Task was already decided")
     await record_audit(
-        db, business.owner_user_id, business.id, "task_needs_changes", target_id=task["task_id"],
+        db,
+        business.owner_user_id,
+        business.id,
+        "task_needs_changes",
+        target_id=task["task_id"],
         details={"owner_feedback": payload.owner_feedback},
     )
     return to_task_out({**task, **update})
@@ -132,7 +204,9 @@ def _to_media_asset_out(doc: dict) -> MediaAssetOut:
     )
 
 
-@task_actions_router.post("/{task_id}/assets", response_model=MediaAssetOut, dependencies=[_rate_limited])
+@task_actions_router.post(
+    "/{task_id}/assets", response_model=MediaAssetOut, dependencies=[_rate_limited]
+)
 async def upload_task_asset(
     request: Request,
     media_type: str = Form(...),
@@ -142,9 +216,106 @@ async def upload_task_asset(
     task = owned["task"]
     if task["status"] != "awaiting_asset":
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=f"Task is {task['status']}, not awaiting an asset"
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Task is {task['status']}, not awaiting an asset",
         )
 
     content = await file.read()
-    doc = await upload_asset(request.app.state.db, task["business_id"], task, file.filename, content, media_type)
+    doc = await upload_asset(
+        request.app.state.db,
+        task["business_id"],
+        task,
+        file.filename,
+        content,
+        media_type,
+    )
     return _to_media_asset_out(doc)
+
+
+@task_actions_router.post(
+    "/{task_id}/ceo-review", response_model=TaskOut, dependencies=[_rate_limited]
+)
+async def review_with_ceo(request: Request, owned: dict = Depends(get_owned_task)):
+    task, business = owned["task"], owned["business"]
+    if task["status"] not in {"pending_ceo_review", "needs_revision", "ceo_reviewing"}:
+        raise HTTPException(status_code=409, detail="Task is not awaiting CEO review")
+    return to_task_out(
+        await review_task(
+            request.app.state.db, request.app.state.agent_registry, business, task
+        )
+    )
+
+
+@task_actions_router.post("/{task_id}/release-budget", dependencies=[_rate_limited])
+async def release_budget(request: Request, owned: dict = Depends(get_owned_task)):
+    from ...services import ledger
+
+    task, business = owned["task"], owned["business"]
+    runtime = await request.app.state.agent_registry.get_or_create(business)
+    async with runtime.execution_lock:
+        account = await ledger.release_allocation(
+            request.app.state.db, business, runtime, task["task_id"]
+        )
+        ledger.sync_finance(runtime, account)
+        from ...services.persistence import snapshot_agents
+
+        await snapshot_agents(request.app.state.db, business.id, runtime.agent_manager)
+    await record_audit(
+        request.app.state.db,
+        business.owner_user_id,
+        business.id,
+        "allocation_released",
+        target_id=task["task_id"],
+    )
+    return ledger.public_account(account)
+
+
+@task_actions_router.post(
+    "/{task_id}/revise", response_model=TaskOut, dependencies=[_rate_limited]
+)
+async def revise_task(
+    payload: TaskRevisionIn, request: Request, owned: dict = Depends(get_owned_task)
+):
+    from ...models.action_schemas import validate_action
+
+    task, business = owned["task"], owned["business"]
+    if task["status"] not in {
+        "pending_approval",
+        "needs_changes",
+        "needs_revision",
+        "pending_ceo_review",
+    }:
+        raise HTTPException(
+            status_code=409, detail="Task cannot be revised after execution starts"
+        )
+    try:
+        proposal = validate_action(task["agent"], task["action_type"], payload.payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="Invalid revised proposal") from exc
+    update = {
+        "payload": proposal,
+        "ceo_authorized": False,
+        "ceo_review": None,
+        "status": "pending_ceo_review",
+        "source": "owner_revision",
+        "objective": payload.objective or task.get("objective"),
+    }
+    changed = await request.app.state.db["tasks"].find_one_and_update(
+        {"task_id": task["task_id"], "status": task["status"]},
+        {"$set": update},
+        return_document=ReturnDocument.AFTER,
+    )
+    if changed is None:
+        raise HTTPException(status_code=409, detail="Task changed during revision")
+    await record_audit(
+        request.app.state.db,
+        business.owner_user_id,
+        business.id,
+        "task_revised",
+        target_id=task["task_id"],
+    )
+    return to_task_out(
+        await review_task(
+            request.app.state.db, request.app.state.agent_registry, business, changed
+        )
+    )

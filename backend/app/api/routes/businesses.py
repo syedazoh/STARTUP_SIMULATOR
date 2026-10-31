@@ -1,4 +1,5 @@
 """Business (onboarding) routes"""
+
 from datetime import datetime, timezone
 from typing import List
 from uuid import uuid4
@@ -62,3 +63,15 @@ async def list_businesses(request: Request, user: UserOut = Depends(get_current_
 @router.get("/{business_id}", response_model=BusinessOut)
 async def get_business(business: BusinessOut = Depends(get_owned_business)):
     return business
+
+
+@router.get("/{business_id}/finances")
+async def finances(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
+    from ...services import ledger
+
+    runtime = await request.app.state.agent_registry.get_or_create(business)
+    return ledger.public_account(
+        await ledger.account_for(request.app.state.db, business, runtime)
+    )

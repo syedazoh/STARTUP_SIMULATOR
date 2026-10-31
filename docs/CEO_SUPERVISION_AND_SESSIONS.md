@@ -1,5 +1,7 @@
 # CEO supervision and revocable sessions
 
+For mandatory authorization, department dashboards, ledger semantics and the current milestone, see [CEO tasks and ledger](CEO_TASKS_AND_LEDGER.md).
+
 ## What changed
 
 The CEO can now turn an owner's goal into a validated draft plan, delegate simulated department actions through the shared task pipeline, and review persisted department execution reports. Owner approval and per-department auto-approval thresholds still apply. A plan does not execute while it is a draft.

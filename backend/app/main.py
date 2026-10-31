@@ -39,6 +39,7 @@ async def _create_indexes(db) -> None:
     await ensure_unique_index(db["refresh_tokens"], "token_hash")
     await ensure_ttl_index(db["sessions"], "expires_at", 0)
     await ensure_ttl_index(db["refresh_tokens"], "expires_at", 0)
+    await ensure_index(db["tasks"], [("business_id", 1), ("agent", 1), ("created_at", -1)])
     await ensure_index(db["ceo_plans"], [("business_id", 1), ("created_at", -1)])
     await ensure_index(db["department_reports"], [("business_id", 1), ("created_at", -1)])
     await ensure_index(db["businesses"], "owner_user_id")
@@ -67,6 +68,7 @@ async def lifespan(app: FastAPI):
     # temperature, so every agent's later call reuses this instance.
     get_groq_llm()
     yield
+    await app.state.agent_registry.close()
     await close_mongo_connection()
 
 

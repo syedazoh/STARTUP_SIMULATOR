@@ -30,11 +30,13 @@ class ReelRequestAction(Action):
 class RecruitmentRequestAction(Action):
     role: str = Field(min_length=1, max_length=200)
     headcount: int = Field(default=1, gt=0, le=1000)
+    monthly_salary: float = Field(default=3000, ge=0)
 
 
 class ResourceRequestAction(Action):
     resource_type: str = Field(min_length=1, max_length=200)
     quantity: int = Field(default=1, gt=0)
+    unit_cost: float = Field(default=100, ge=0)
 
 
 ACTION_CONTRACTS = {

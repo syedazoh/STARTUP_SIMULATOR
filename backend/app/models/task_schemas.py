@@ -5,6 +5,7 @@ create it, decide (auto or by the owner), then execute. Keeping this generic
 across agents is what lets Marketing/HR/Operations reuse the same pipeline
 later instead of each growing its own approve/deny plumbing.
 """
+
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -22,6 +23,10 @@ class TaskOut(BaseModel):
     agent: str
     source: str = "manual"
     plan_id: Optional[str] = None
+    objective: Optional[str] = None
+    success_criteria: Optional[str] = None
+    ceo_authorized: bool = False
+    ceo_review: Optional[Dict[str, Any]] = None
     action_type: str
     payload: Dict[str, Any]
     requires_asset: bool = False
@@ -45,6 +50,10 @@ def to_task_out(doc: Dict[str, Any]) -> TaskOut:
         agent=doc["agent"],
         source=doc.get("source", "manual"),
         plan_id=doc.get("plan_id"),
+        objective=doc.get("objective"),
+        success_criteria=doc.get("success_criteria"),
+        ceo_authorized=doc.get("ceo_authorized", False),
+        ceo_review=doc.get("ceo_review"),
         action_type=doc["action_type"],
         payload=doc["payload"],
         requires_asset=doc.get("requires_asset", False),
@@ -56,3 +65,8 @@ def to_task_out(doc: Dict[str, Any]) -> TaskOut:
         decided_at=doc.get("decided_at"),
         executed_at=doc.get("executed_at"),
     )
+
+
+class TaskRevisionIn(BaseModel):
+    payload: Dict[str, Any]
+    objective: Optional[str] = Field(default=None, min_length=1, max_length=1000)

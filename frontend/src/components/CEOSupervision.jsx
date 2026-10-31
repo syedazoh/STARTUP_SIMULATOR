@@ -53,6 +53,7 @@ export default function CEOSupervision({ businessId }) {
       <p><strong className="capitalize">{report.department}</strong> → CEO · {report.status}</p>
       <p>{report.objective}</p>
       {report.result && <p className="text-gray-600">{report.result.reasoning || report.result.reason || report.result.status}</p>}
+      {!report.ceo_review && <p className="text-gray-500">CEO review pending; execution evidence has been saved.</p>}
       {report.ceo_review && <><p>CEO review: {report.ceo_review.assessment}</p><p className="text-gray-600">Next: {report.ceo_review.recommendation}</p></>}
     </article>)}
   </section>

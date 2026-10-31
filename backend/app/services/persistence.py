@@ -31,6 +31,12 @@ async def record_decision(
 
 async def snapshot_agents(db, business_id: str, agent_manager, run_id: Optional[str] = None) -> None:
     statuses = await agent_manager.get_all_agents_status()
+    from ..database.utils import find_one
+    from .ledger import amount, available
+    account = await find_one(db["financial_accounts"], {"_id": business_id})
+    if account and "finance" in statuses:
+        statuses["finance"].update(budget_pool=amount(available(account)),
+            revenue=amount(account["revenue_minor"]), expenses=amount(account["expenses_minor"]))
     now = datetime.now(timezone.utc)
     snapshots = [
         {

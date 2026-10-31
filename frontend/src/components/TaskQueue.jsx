@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import apiClient from '../api/client'
 import { useDispatch, useSelector } from 'react-redux'
 import { approveTask, fetchPendingTasks, rejectTask, requestTaskChanges } from '../store/slices/tasksSlice'
 import AssetUploadCard from './AssetUploadCard'
@@ -19,11 +20,15 @@ function TaskCard({ businessId, task }) {
   const dispatch = useDispatch()
   const [feedback, setFeedback] = useState('')
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const waitingCEO = ['pending_ceo_review', 'needs_revision', 'ceo_reviewing'].includes(task.status)
 
   const run = async (thunk) => {
     setBusy(true)
-    await dispatch(thunk)
-    setBusy(false)
+    setError('')
+    try { await dispatch(thunk).unwrap() }
+    catch { setError('Could not update the task. Refresh and retry.') }
+    finally { setBusy(false) }
   }
 
   return (
@@ -44,6 +49,9 @@ function TaskCard({ businessId, task }) {
           </span>
         )}
       </div>
+      {task.objective && <p className="text-sm">{task.plan_id ? 'CEO assignment: ' : ''}{task.objective}</p>}
+      {task.ceo_review && <p className="text-xs">CEO: {task.ceo_review.reason}</p>}
+      {error && <p role="alert" className="text-red-700 text-sm">{error}</p>}
       <p className="text-xs text-gray-500">{formatPayload(task.payload)}</p>
       {task.owner_feedback && (
         <p className="text-xs text-gray-400 italic">Your feedback: "{task.owner_feedback}"</p>
@@ -51,6 +59,13 @@ function TaskCard({ businessId, task }) {
 
       {task.status === 'awaiting_asset' ? (
         <AssetUploadCard businessId={businessId} task={task} />
+      ) : waitingCEO ? (
+        <button disabled={busy} onClick={async () => {
+          setBusy(true); setError('')
+          try { await apiClient.post(`/api/tasks/${task.id}/ceo-review`); await dispatch(fetchPendingTasks(businessId)).unwrap() }
+          catch { setError('CEO review is unavailable. Open the department page to revise or retry.') }
+          finally { setBusy(false) }
+        }}>Retry CEO review · {task.status.replace(/_/g, ' ')}</button>
       ) : (
         <>
           <input

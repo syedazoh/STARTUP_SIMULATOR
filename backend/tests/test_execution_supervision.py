@@ -263,6 +263,15 @@ def test_invalid_actions_are_rejected_before_queueing(client, payload):
 
 
 def test_failed_external_result_is_not_success(client, monkeypatch):
+    async def authorize(self, task, context):
+        return {
+            "decision": "approve",
+            "basis": "test",
+            "reason": "Test CEO authorization",
+        }
+
+    monkeypatch.setattr("app.agents.ceo_agent.CEOAgent.authorize_task", authorize)
+
     async def failed(*args):
         return {"status": "failed", "reason": "provider_unavailable"}
 
@@ -281,6 +290,12 @@ def test_failed_external_result_is_not_success(client, monkeypatch):
     response = client.post(f"/api/tasks/{tid}/approve", headers=headers)
     assert response.status_code == 200
     assert response.json()["status"] == "failed"
+
+    async def await_reviews():
+        runtime = app.state.agent_registry._runtimes[bid]
+        await asyncio.gather(*runtime.review_jobs)
+
+    client.portal.call(await_reviews)
     reports = client.get(f"/api/businesses/{bid}/ceo/reports", headers=headers).json()
     assert reports[0]["status"] == "failed"
     assert reports[0]["ceo_review"]["next_action"] == "owner_attention"
@@ -355,6 +370,16 @@ def test_ceo_delegates_and_receives_department_reports(client, monkeypatch):
     )
     tasks = client.get(f"/api/businesses/{bid}/tasks", headers=headers).json()
     assert tasks[0]["plan_id"] == pid and tasks[0]["status"] == "pending_approval"
+    personal = client.get(
+        f"/api/businesses/{bid}/tasks?agent=hr", headers=headers
+    ).json()
+    assert personal[0]["objective"] == "Hire one engineer"
+    assert personal[0]["success_criteria"] == "One additional engineer"
+    assert personal[0]["ceo_review"]["basis"] == "ceo_plan"
+    assert (
+        client.get(f"/api/businesses/{bid}/tasks?agent=finance", headers=headers).json()
+        == []
+    )
     assert (
         client.post(f"/api/tasks/{tasks[0]['id']}/approve", headers=headers).json()[
             "status"
@@ -413,23 +438,40 @@ def test_every_department_reports_to_ceo(client):
     bid = business(client, headers)
     actions = [
         ("finance", "budget-request", {"amount": 100}),
-        ("marketing", "campaign-launch", {"campaign_name": "Test", "requested_budget": 100}),
+        (
+            "marketing",
+            "campaign-launch",
+            {"campaign_name": "Test", "requested_budget": 100},
+        ),
         ("hr", "recruitment-request", {"role": "Engineer", "headcount": 1}),
         ("operations", "resource-request", {"resource_type": "Compute", "quantity": 1}),
     ]
     for agent, action, payload in actions:
         tid = pending(client, headers, bid, agent, action, payload)
-        assert client.post(f"/api/tasks/{tid}/approve", headers=headers).json()["status"] == "executed"
+        assert (
+            client.post(f"/api/tasks/{tid}/approve", headers=headers).json()["status"]
+            == "executed"
+        )
     reports = client.get(f"/api/businesses/{bid}/ceo/reports", headers=headers).json()
-    assert {r["department"] for r in reports} == {"finance", "marketing", "hr", "operations"}
+    assert {r["department"] for r in reports} == {
+        "finance",
+        "marketing",
+        "hr",
+        "operations",
+    }
     assert all("ceo_review" in r for r in reports)
 
 
 def test_expired_session_blocks_both_access_and_refresh(client):
     headers = account(client)
     from app.core.security import decode_access_claims
+
     sid = decode_access_claims(headers["Authorization"][7:])["sid"]
-    client.portal.call(lambda: app.state.db["sessions"].update_one({"session_id": sid}, {"$set": {"expires_ts": 0}}))
+    client.portal.call(
+        lambda: app.state.db["sessions"].update_one(
+            {"session_id": sid}, {"$set": {"expires_ts": 0}}
+        )
+    )
     assert client.get("/api/auth/me", headers=headers).status_code == 401
     assert client.post("/api/auth/refresh", headers=SESSION_HEADERS).status_code == 401
 
@@ -437,8 +479,10 @@ def test_expired_session_blocks_both_access_and_refresh(client):
 def test_production_refuses_database_fallback(monkeypatch):
     from app.config import settings
     from app.database.mongodb import connect_to_mongo
+
     def unavailable(*args, **kwargs):
         raise ConnectionError("Database unavailable")
+
     monkeypatch.setattr(settings, "debug", False)
     monkeypatch.setattr("app.database.mongodb.AsyncIOMotorClient", unavailable)
     with pytest.raises(RuntimeError, match="MongoDB is required"):
@@ -447,15 +491,29 @@ def test_production_refuses_database_fallback(monkeypatch):
 
 def test_plan_marks_completed_after_its_assignment_reports(client, monkeypatch):
     async def plan(self, goal, context):
-        return CEOPlan(strategy="Manage spending", assignments=[{
-            "department": "finance", "objective": "Allocate a small budget", "action_type": "budget_request",
-            "payload": {"amount": 100}, "success_criteria": "Budget allocated"}])
+        return CEOPlan(
+            strategy="Manage spending",
+            assignments=[
+                {
+                    "department": "finance",
+                    "objective": "Allocate a small budget",
+                    "action_type": "budget_request",
+                    "payload": {"amount": 100},
+                    "success_criteria": "Budget allocated",
+                }
+            ],
+        )
+
     monkeypatch.setattr("app.agents.ceo_agent.CEOAgent.create_plan", plan)
     headers = account(client)
     bid = business(client, headers)
     base = f"/api/businesses/{bid}/ceo"
-    pid = client.post(f"{base}/plans", headers=headers, json={"goal": "Manage spending"}).json()["plan_id"]
+    pid = client.post(
+        f"{base}/plans", headers=headers, json={"goal": "Manage spending"}
+    ).json()["plan_id"]
     client.post(f"{base}/plans/{pid}/activate", headers=headers)
     tid = client.get(f"/api/businesses/{bid}/tasks", headers=headers).json()[0]["id"]
     client.post(f"/api/tasks/{tid}/approve", headers=headers)
-    assert client.get(f"{base}/plans", headers=headers).json()[0]["status"] == "completed"
+    assert (
+        client.get(f"{base}/plans", headers=headers).json()[0]["status"] == "completed"
+    )

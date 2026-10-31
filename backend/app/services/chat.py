@@ -32,8 +32,8 @@ AGENT_ACTIONS: Dict[str, Dict[str, List[str]]] = {
         "instagram_post": ["content"],
         "reel_request": ["campaign_name", "brief"],
     },
-    "hr": {"recruitment_request": ["role", "headcount"]},
-    "operations": {"resource_request": ["resource_type", "quantity"]},
+    "hr": {"recruitment_request": ["role", "headcount", "monthly_salary"]},
+    "operations": {"resource_request": ["resource_type", "quantity", "unit_cost"]},
 }
 
 AGENT_PERSONAS = {

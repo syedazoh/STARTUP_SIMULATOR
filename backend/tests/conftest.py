@@ -23,6 +23,11 @@ def offline_llm(monkeypatch):
     """Exercise deterministic fallbacks unless a test installs its own model fake."""
     class UnavailableModel:
         def with_structured_output(self, schema):
+            if schema.__name__ == "TaskAuthorization":
+                class Approval:
+                    async def ainvoke(self, prompt):
+                        return schema(decision="approve", reason="Explicit test CEO authorization")
+                return Approval()
             return self
 
         async def ainvoke(self, prompt):

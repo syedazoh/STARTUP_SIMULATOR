@@ -1,4 +1,5 @@
 """Simulation control routes (business-scoped)"""
+
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -14,7 +15,9 @@ from ...services.tasks import create_task
 from ...models.action_schemas import ACTION_CONTRACTS
 from ...simulation import SimulationConfig, SimulationEngine
 
-router = APIRouter(prefix="/api/businesses/{business_id}/simulation", tags=["simulation"])
+router = APIRouter(
+    prefix="/api/businesses/{business_id}/simulation", tags=["simulation"]
+)
 
 MIN_SIMULATION_INTERVAL = 0.1
 MAX_SIMULATION_TICKS = 1000
@@ -25,7 +28,9 @@ MAX_CONCURRENT_SIMULATIONS = 10
 
 @router.post("/start")
 async def start_simulation(
-    payload: SimulationConfig, request: Request, business: BusinessOut = Depends(get_owned_business)
+    payload: SimulationConfig,
+    request: Request,
+    business: BusinessOut = Depends(get_owned_business),
 ):
     if payload.min_interval < MIN_SIMULATION_INTERVAL:
         raise HTTPException(
@@ -43,7 +48,10 @@ async def start_simulation(
         payload.ticks = DEFAULT_SIMULATION_TICKS
     elif payload.ticks is not None and payload.ticks > MAX_SIMULATION_TICKS:
         payload.ticks = MAX_SIMULATION_TICKS
-    if payload.duration_seconds is not None and payload.duration_seconds > MAX_SIMULATION_DURATION:
+    if (
+        payload.duration_seconds is not None
+        and payload.duration_seconds > MAX_SIMULATION_DURATION
+    ):
         payload.duration_seconds = MAX_SIMULATION_DURATION
 
     registry = request.app.state.agent_registry
@@ -63,15 +71,17 @@ async def start_simulation(
     run_id = str(uuid.uuid4())
     started_at = datetime.now(timezone.utc)
 
-    await db["simulation_runs"].insert_one({
-        "business_id": business.id,
-        "run_id": run_id,
-        "started_at": started_at,
-        "ended_at": None,
-        "status": "running",
-        "tick_count": 0,
-        "config": payload.model_dump(),
-    })
+    await db["simulation_runs"].insert_one(
+        {
+            "business_id": business.id,
+            "run_id": run_id,
+            "started_at": started_at,
+            "ended_at": None,
+            "status": "running",
+            "tick_count": 0,
+            "config": payload.model_dump(),
+        }
+    )
 
     async def on_decision(record):
         await record_decision(
@@ -84,21 +94,24 @@ async def start_simulation(
             tick=record["tick"],
         )
         await db["simulation_runs"].update_one(
-            {"business_id": business.id, "run_id": run_id}, {"$set": {"tick_count": record["tick"]}}
+            {"business_id": business.id, "run_id": run_id},
+            {"$set": {"tick_count": record["tick"]}},
         )
         await snapshot_agents(db, business.id, runtime.agent_manager, run_id=run_id)
 
     async def on_complete(summary):
         now = datetime.now(timezone.utc)
-        await db["run_summaries"].insert_one({
-            "business_id": business.id,
-            "run_id": run_id,
-            "headline": summary.headline,
-            "key_decisions": summary.key_decisions,
-            "risks": summary.risks,
-            "recommendation": summary.recommendation,
-            "created_at": now,
-        })
+        await db["run_summaries"].insert_one(
+            {
+                "business_id": business.id,
+                "run_id": run_id,
+                "headline": summary.headline,
+                "key_decisions": summary.key_decisions,
+                "risks": summary.risks,
+                "recommendation": summary.recommendation,
+                "created_at": now,
+            }
+        )
         # Marks the run "completed" whenever run() ends for any reason (tick limit
         # reached, or stop() cancelling it); stop_simulation() below overwrites this
         # with "stopped" for the user-initiated case, so the final status still
@@ -109,11 +122,33 @@ async def start_simulation(
         )
 
     async def submit_event(event_type, data):
-        await create_task(db, registry, business, ACTION_CONTRACTS[event_type][0],
-                          event_type, data, source="simulation", run_id=run_id)
+        await create_task(
+            db,
+            registry,
+            business,
+            ACTION_CONTRACTS[event_type][0],
+            event_type,
+            data,
+            source="simulation",
+            run_id=run_id,
+        )
 
-    engine = SimulationEngine(runtime.agent_manager, on_decision=on_decision,
-                              on_complete=on_complete, submit_event=submit_event)
+    async def credit_revenue(value, tick):
+        from ...services import ledger
+
+        async with runtime.execution_lock:
+            account = await ledger.credit(
+                db, business, runtime, ledger.minor(value), f"{run_id}:{tick}"
+            )
+            ledger.sync_finance(runtime, account)
+
+    engine = SimulationEngine(
+        runtime.agent_manager,
+        on_decision=on_decision,
+        on_complete=on_complete,
+        submit_event=submit_event,
+        credit_revenue=credit_revenue,
+    )
     runtime.simulation_engine = engine
     runtime.current_run_id = run_id
     engine.start(config=payload)
@@ -122,7 +157,9 @@ async def start_simulation(
 
 
 @router.post("/stop")
-async def stop_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+async def stop_simulation(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
     runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
@@ -139,7 +176,9 @@ async def stop_simulation(request: Request, business: BusinessOut = Depends(get_
 
 
 @router.post("/pause")
-async def pause_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+async def pause_simulation(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
     runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
@@ -149,7 +188,9 @@ async def pause_simulation(request: Request, business: BusinessOut = Depends(get
 
 
 @router.post("/resume")
-async def resume_simulation(request: Request, business: BusinessOut = Depends(get_owned_business)):
+async def resume_simulation(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
     runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None or not engine.is_running:
@@ -159,18 +200,25 @@ async def resume_simulation(request: Request, business: BusinessOut = Depends(ge
 
 
 @router.get("/status", response_model=SimulationStatusOut)
-async def simulation_status(request: Request, business: BusinessOut = Depends(get_owned_business)):
+async def simulation_status(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
     runtime = await request.app.state.agent_registry.get_or_create(business)
     engine: Optional[SimulationEngine] = runtime.simulation_engine
     if engine is None:
-        return SimulationStatusOut(is_running=False, tick_count=0, decision_log_size=0, run_id=None)
+        return SimulationStatusOut(
+            is_running=False, tick_count=0, decision_log_size=0, run_id=None
+        )
     status = engine.status()
     return SimulationStatusOut(**status, run_id=runtime.current_run_id)
 
 
 @router.get("/runs/{run_id}/log")
 async def get_run_log(
-    run_id: str, request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 500
+    run_id: str,
+    request: Request,
+    business: BusinessOut = Depends(get_owned_business),
+    limit: int = 500,
 ):
     db = request.app.state.db
     cursor = (
@@ -190,7 +238,9 @@ async def get_run_summary(
     run_id: str, request: Request, business: BusinessOut = Depends(get_owned_business)
 ):
     db = request.app.state.db
-    doc = await find_one(db["run_summaries"], {"business_id": business.id, "run_id": run_id})
+    doc = await find_one(
+        db["run_summaries"], {"business_id": business.id, "run_id": run_id}
+    )
     if doc is None:
         raise HTTPException(status_code=404, detail="Summary not available yet")
     doc["_id"] = str(doc["_id"])
@@ -217,10 +267,14 @@ async def get_decision_log(
 
 
 @router.get("/simulation-runs")
-async def get_simulation_runs(request: Request, business: BusinessOut = Depends(get_owned_business)):
+async def get_simulation_runs(
+    request: Request, business: BusinessOut = Depends(get_owned_business)
+):
     """Get all simulation runs for a business."""
     db = request.app.state.db
-    cursor = db["simulation_runs"].find({"business_id": business.id}).sort("started_at", -1)
+    cursor = (
+        db["simulation_runs"].find({"business_id": business.id}).sort("started_at", -1)
+    )
     docs = await cursor.to_list(length=100)
     for doc in docs:
         doc["_id"] = str(doc["_id"])
