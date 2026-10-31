@@ -42,5 +42,6 @@ async def post_chat_message(
     )
     return ChatReplyOut(
         thread=ChatThreadOut(**result["thread"]),
+        ai_error=result.get("ai_error"),
         task=to_task_out(result["task"]) if result["task"] else None,
     )

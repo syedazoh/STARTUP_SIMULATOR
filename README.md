@@ -97,6 +97,8 @@ See [Docker local setup and troubleshooting](docs/DOCKER_LOCAL_SETUP.md) for Win
 
 Complete folder structure with 36+ files for backend, frontend, and DevOps configuration.
 
+For AI fallback messages or chat failures, see [AI configuration and diagnostics](docs/AI_TROUBLESHOOTING.md).
+
 ## Testing
 
 ### Backend

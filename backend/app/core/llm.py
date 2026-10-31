@@ -4,6 +4,7 @@ from functools import lru_cache
 from langchain_groq import ChatGroq
 
 from ..config import settings
+from .llm_errors import LLMNotConfiguredError
 
 
 class UnconfiguredLLM:
@@ -12,7 +13,7 @@ class UnconfiguredLLM:
         return self
 
     async def ainvoke(self, prompt):
-        raise RuntimeError("Configure GROQ_API_KEY to enable AI responses")
+        raise LLMNotConfiguredError("Configure GROQ_API_KEY to enable AI responses")
 
 
 @lru_cache(maxsize=8)

@@ -8,6 +8,7 @@ from pymongo import ReturnDocument
 
 from ..database.utils import find_one
 from ..models.supervision_schemas import CEOPlan
+from ..core.llm_errors import report_llm_failure
 from .audit import record_audit
 
 
@@ -27,9 +28,10 @@ async def propose_plan(db, registry, business, goal):
     try:
         plan = CEOPlan.model_validate(await ceo.create_plan(goal, context))
     except Exception as exc:
+        failure = report_llm_failure("ceo_plan", exc)
         raise HTTPException(
             status_code=503,
-            detail="CEO could not produce a valid plan. Please try again.",
+            detail=failure.message,
         ) from exc
     if any(a.department not in runtime.agent_manager.agents for a in plan.assignments):
         raise HTTPException(

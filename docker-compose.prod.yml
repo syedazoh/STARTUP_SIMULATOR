@@ -34,7 +34,7 @@ services:
       MONGODB_DB_NAME: startup_simulator
       CHROMA_PERSIST_DIR: /app/chroma_data
       GROQ_API_KEY: ${GROQ_API_KEY}
-      GROQ_MODEL: ${GROQ_MODEL:-llama-3.3-70b-versatile}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       DEBUG: "false"
       # Deployment-specific signing key for JWTs. Anyone holding this value plus
       # a user id can mint a token the API accepts as that user, so it must be

@@ -46,7 +46,7 @@ goal if time remains, but isn't required to demo a working deployment.
    ACME_EMAIL=you@example.com
    ALLOWED_ORIGINS=https://app.example.com
    GROQ_API_KEY=your-real-groq-key
-   GROQ_MODEL=llama-3.3-70b-versatile
+   GROQ_MODEL=openai/gpt-oss-120b
    MONGO_ROOT_USERNAME=admin
    MONGO_ROOT_PASSWORD=<generate a strong one>
    SECRET_KEY=<the openssl rand -hex 32 output>

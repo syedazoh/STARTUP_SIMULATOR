@@ -26,7 +26,7 @@ Every technology used in the project, layer by layer, with what it's for and why
 | **FastAPI (Python)** | Core backend framework — REST API, auto-generated OpenAPI docs at `/docs`, dependency-injection-based auth guards. |
 | **Uvicorn** | ASGI server running FastAPI, supports the `--reload` dev workflow and WebSocket connections. |
 | **LangGraph** | State-machine framework for each agent (CEO, Marketing, Finance, Operations, HR) — models each agent's decision flow as a graph of steps rather than a single prompt call. |
-| **Groq API (Llama-3)** | The LLM provider — fast inference for agent reasoning and generation (campaign copy, support replies, financial analysis, strategic directives). |
+| **Groq API (GPT-OSS)** | The LLM provider — fast inference for agent reasoning and generation (campaign copy, support replies, financial analysis, strategic directives). |
 | **Pydantic** | Schema validation for every request/response and for structured LLM outputs (`agents/schemas.py` — e.g. `HRDecision`) so agent output is always typed, not free text. |
 | **python-jose + bcrypt** | Authentication — JWT issuance/verification and password hashing. |
 | **Motor / PyMongo** | Async MongoDB driver used by `database/mongodb.py`. |
@@ -53,7 +53,7 @@ Every technology used in the project, layer by layer, with what it's for and why
 | Technology | Purpose |
 |---|---|
 | **LangGraph** | Orchestrates each agent's internal multi-step reasoning (evaluate → decide → produce structured output). |
-| **Groq (Llama-3)** | The underlying LLM every agent calls into. |
+| **Groq (GPT-OSS)** | The underlying LLM every agent calls into. |
 | **Custom event bus (`orchestration/event_bus.py`)** | Not a third-party message queue — a lightweight in-process pub/sub scoped per business, since agent-to-agent coordination only needs to happen within one business's simulation, not across the whole system. |
 | **ChromaDB + embeddings pipeline** | Gives agents recall of past decisions specific to their own domain and business. |
 
