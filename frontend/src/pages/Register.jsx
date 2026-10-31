@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
-import { register } from '../store/slices/authSlice'
+import { clearAuthError, register } from '../store/slices/authSlice'
 import ErrorBanner from '../components/ErrorBanner'
 import { STATUS } from '../theme/palette'
 
@@ -12,11 +12,15 @@ function Register() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
+  useEffect(() => { dispatch(clearAuthError()) }, [dispatch])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const result = await dispatch(register({ email, password }))
     if (register.fulfilled.match(result)) {
       navigate('/onboarding')
+    } else if (result.payload?.accountCreated) {
+      navigate('/login', { replace: true, state: { email, accountCreated: true, signInError: result.payload.message } })
     }
   }
 
@@ -35,6 +39,7 @@ function Register() {
               <label className="block text-xs text-gray-500 mb-1.5" htmlFor="email">Email</label>
               <input
                 id="email"
+                autoComplete="username"
                 type="email"
                 required
                 value={email}
@@ -47,6 +52,7 @@ function Register() {
               <label className="block text-xs text-gray-500 mb-1.5" htmlFor="password">Password</label>
               <input
                 id="password"
+                autoComplete="new-password"
                 type="password"
                 required
                 minLength={8}
@@ -72,7 +78,7 @@ function Register() {
 
           <p className="text-sm text-gray-500 mt-6 text-center">
             Already have an account?{' '}
-            <Link to="/login" className="font-medium text-gray-900 underline hover:text-gray-700">
+            <Link to="/login" state={{ email }} className="font-medium text-gray-900 underline hover:text-gray-700">
               Sign in
             </Link>
           </p>
