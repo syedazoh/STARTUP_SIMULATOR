@@ -83,8 +83,22 @@ TTL index. Each email address (case insensitive) gets five login attempts per
 fixed five-minute window, shared across backend workers. All attempts count,
 including successful logins. Excess attempts return HTTP 429 with `Retry-After`;
 throttled attempts emit a warning without logging passwords or email addresses.
-Login returns HTTP 503 if the throttle store is unavailable, including when the
-simulator uses its in-memory database fallback.
+Login returns HTTP 503 if the shared throttle store is unavailable by default.
+
+For temporary local development **without installing MongoDB**, set these in
+`backend/.env`:
+
+```dotenv
+DEBUG=True
+ALLOW_IN_MEMORY_LOGIN=True
+```
+
+Restart the backend and register an account. When MongoDB is unavailable, this
+explicit opt-in uses a bounded in-memory login budget with the same five-attempt
+limit. It only works with `DEBUG=True` and one backend process. Accounts,
+sessions, and business records are temporary and disappear on backend restart
+or auto-reload; register again afterward. MongoDB remains required in production,
+and a failure in an actual MongoDB throttle store still blocks login.
 
 **Frontend**
 ```bash

@@ -13,6 +13,7 @@ def setup_test_master_key(monkeypatch):
     """Ensure tests run with a valid, generated test credential master key
     rather than the published default master key."""
     monkeypatch.setattr(settings, "credential_master_key", _TEST_FERNET_KEY)
+    monkeypatch.setattr(settings, "allow_in_memory_login", False)
     _master_fernet.cache_clear()
     yield
     _master_fernet.cache_clear()

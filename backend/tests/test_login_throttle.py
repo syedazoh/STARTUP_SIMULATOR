@@ -131,8 +131,78 @@ def test_storage_failure_blocks_login(client, db, monkeypatch, operation):
 
 
 def test_in_memory_fallback_cannot_bypass_throttle(monkeypatch):
+    monkeypatch.setattr(login_throttle.settings, "allow_in_memory_login", False)
     verify = Mock()
     monkeypatch.setattr(auth, "verify_password", verify)
     with make_client(InMemoryDatabase()) as client:
         assert login(client).status_code == 503
     verify.assert_not_called()
+
+
+@pytest.fixture
+def local_login(monkeypatch):
+    monkeypatch.setattr(login_throttle.settings, "debug", True)
+    monkeypatch.setattr(login_throttle.settings, "allow_in_memory_login", True)
+    monkeypatch.setattr(login_throttle.time, "time", lambda: 4102444800)
+    return InMemoryDatabase()
+
+
+def test_opted_in_local_login_refresh_and_logout(local_login):
+    with make_client(local_login) as client:
+        assert client.post("/api/auth/register", json={
+            "email": "local@example.com", "password": "supersecret123",
+        }).status_code == 201
+        response = login(client, email="local@example.com", password="supersecret123")
+        assert response.status_code == 200
+        headers = {"Authorization": f"Bearer {response.json()['access_token']}"}
+        assert client.get("/api/auth/me", headers=headers).status_code == 200
+        origin = {"Origin": "http://localhost:5173", "X-Requested-With": "XMLHttpRequest"}
+        assert client.post("/api/auth/refresh", headers=origin).status_code == 200
+        assert client.post("/api/auth/logout", headers=origin).status_code == 204
+        assert client.get("/api/auth/me", headers=headers).status_code == 401
+
+
+def test_local_budget_case_isolation_expiry_and_database_reset(local_login, monkeypatch):
+    with make_client(local_login) as client:
+        for _ in range(5):
+            assert login(client, email="LOCAL@example.com").status_code == 401
+        response = login(client, email="local@example.com")
+        assert response.status_code == 429
+        assert response.headers["Retry-After"] == "300"
+        assert login(client, email="other@example.com").status_code == 401
+        with make_client(InMemoryDatabase()) as fresh_client:
+            assert login(fresh_client, email="local@example.com").status_code == 401
+        monkeypatch.setattr(login_throttle.time, "time", lambda: 4102445100)
+        assert login(client, email="local@example.com").status_code == 401
+
+
+def test_local_budget_is_atomic_across_threads(local_login):
+    from concurrent.futures import ThreadPoolExecutor
+
+    def attempt(_):
+        try:
+            asyncio.run(login_throttle.check_login_attempt(local_login, "local@example.com"))
+            return 200
+        except HTTPException as exc:
+            return exc.status_code
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(attempt, range(20)))
+    assert results.count(200) == 5
+    assert results.count(429) == 15
+
+
+def test_local_budget_has_a_capacity_limit(local_login, monkeypatch):
+    monkeypatch.setattr(login_throttle, "MAX_LOCAL_ACCOUNTS", 1)
+    asyncio.run(login_throttle.check_login_attempt(local_login, "local@example.com"))
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(login_throttle.check_login_attempt(local_login, "other@example.com"))
+    assert exc.value.status_code == 503
+    monkeypatch.setattr(login_throttle.time, "time", lambda: 4102445100)
+    asyncio.run(login_throttle.check_login_attempt(local_login, "other@example.com"))
+
+
+def test_production_rejects_local_login_even_when_opted_in(local_login, monkeypatch):
+    monkeypatch.setattr(login_throttle.settings, "debug", False)
+    with make_client(local_login) as client:
+        assert login(client).status_code == 503

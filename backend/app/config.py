@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     app_name: str = "Startup Simulator"
     app_version: str = "0.1.0"
     debug: bool = True
+    # Explicit local-only opt-in; ignored when debug=False.
+    allow_in_memory_login: bool = False
 
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "startup_simulator"
