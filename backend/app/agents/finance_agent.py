@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, TypedDict
 from langgraph.graph import END, StateGraph
 
 from ..core.llm import get_groq_llm
-from ..core.llm_errors import report_llm_failure
+from ..core.llm_errors import LLMCallFailed, report_llm_failure
 from ..rag import get_decision_memory_store
 from .base_agent import BaseAgent
 from .schemas import FinanceDecision
@@ -148,6 +148,8 @@ class FinanceAgent(BaseAgent):
             decision = await self._structured_llm.ainvoke(prompt)
         except Exception as exc:
             report_llm_failure("finance_decision", exc)
+            if isinstance(exc, LLMCallFailed):
+                attempt = MAX_LLM_ATTEMPTS
             decision = None
 
         return {**state, "attempt": attempt, "decision": decision}

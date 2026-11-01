@@ -14,6 +14,7 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
   useEffect(() => {
     setMessages([])
     setLastTask(null)
+    setError(null)
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}/chat`)
       .then((res) => setMessages(res.data.messages))
@@ -37,6 +38,9 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
       })
       setMessages(response.data.thread.messages)
       setLastTask(response.data.task)
+      if (response.data.ai_error) {
+        setError(response.data.thread.messages.at(-1)?.content || 'The AI response is unavailable. Please try again later.')
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Message failed to send')
     } finally {

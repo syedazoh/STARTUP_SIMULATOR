@@ -293,6 +293,7 @@ class CEOAgent(BaseAgent):
             failed = report["status"] in {"failed", "denied", "rejected"}
             return {
                 "assessment": f"Execution outcome recorded. {failure.message}",
+                "ai_error": failure.code,
                 "next_action": "owner_attention" if failed else "continue",
                 "recommendation": "Review the recorded result before adjusting the plan.",
             }

@@ -42,7 +42,9 @@ class InMemoryCursor:
         if sort_field is not None:
             self._docs = sorted(
                 self._docs,
-                key=lambda d: d.get(sort_field),
+                # Mongo treats missing fields like null for sorting. Keep
+                # manual events (tick=None) without comparing None to numbers.
+                key=lambda d: (d.get(sort_field) is not None, d.get(sort_field)),
                 reverse=(sort_dir == -1),
             )
 

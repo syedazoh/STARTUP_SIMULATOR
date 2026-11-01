@@ -18,27 +18,38 @@ function DecisionLog() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT)
+  const [runsError, setRunsError] = useState(null)
 
   useEffect(() => {
-    apiClient.get(`/api/businesses/${businessId}/simulation-runs`)
-      .then((res) => setRuns(res.data))
-      .catch(() => {})
+    let active = true
+    setRuns([])
+    setSelectedRunId(null)
+    setEntries([])
+    setRunsError(null)
+    apiClient.get(`/api/businesses/${businessId}/simulation/simulation-runs`)
+      .then((res) => { if (active) setRuns(res.data) })
+      .catch(() => { if (active) setRunsError('Simulation history could not be loaded.') })
+    return () => { active = false }
   }, [businessId])
 
   useEffect(() => {
+    let active = true
     setLoading(true)
     setError(null)
     setVisibleCount(INITIAL_VISIBLE_COUNT)
     const url = `/api/businesses/${businessId}/simulation/decision-log${selectedRunId ? `?run_id=${selectedRunId}` : ''}`
     apiClient.get(url)
       .then((res) => {
+        if (!active) return
         setEntries(res.data)
         setLoading(false)
       })
       .catch((err) => {
+        if (!active) return
         setError(err.response?.data?.detail || 'Failed to load decision log')
         setLoading(false)
       })
+    return () => { active = false }
   }, [businessId, selectedRunId])
 
   const eventTypeColors = {
@@ -69,10 +80,12 @@ function DecisionLog() {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
+      {runsError && <p role="alert" className="text-red-500 mb-3">{runsError}</p>}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Decision Log</h3>
         {runs.length > 0 && (
           <select
+            aria-label="Simulation run"
             value={selectedRunId || ''}
             onChange={(e) => setSelectedRunId(e.target.value || null)}
             className="border rounded px-3 py-1 text-sm"
@@ -94,7 +107,7 @@ function DecisionLog() {
           {entries.slice(0, visibleCount).map((entry, i) => (
             <div key={i} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-medium text-gray-500">Tick {entry.tick}</span>
+                <span className="text-xs font-medium text-gray-500">{entry.tick == null ? 'Manual event' : `Tick ${entry.tick}`}</span>
                 <span
                   className="px-2 py-0.5 rounded text-xs font-medium text-white"
                   style={{ backgroundColor: eventTypeColors[entry.event_type] || STATUS.good }}

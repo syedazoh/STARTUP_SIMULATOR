@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     groq_api_key: Optional[str] = None
     groq_model: str = "openai/gpt-oss-120b"
+    ai_min_request_interval_seconds: float = Field(default=2.0, ge=0, le=60, allow_inf_nan=False)
 
     secret_key: str = _DEFAULT_SECRET_KEY
     access_token_expire_minutes: int = Field(default=15, ge=1, le=60)
