@@ -56,7 +56,7 @@ const STEP_META = {
   },
   5: {
     title: 'Finance and operations context',
-    subtitle: 'Optional. Set spending guardrails and support expectations.',
+    subtitle: 'Optional. Record advisory planning budgets and support expectations. Spending limits are configured separately.',
   },
   6: {
     title: 'Review and finish',
@@ -110,31 +110,28 @@ function Setup() {
 
   const handleNext = async (e) => {
     e.preventDefault()
-    if (step < 2 || businessId) {
-      setStep((s) => s + 1)
-      return
-    }
-    const result = await dispatch(
-      createBusiness({
+    setStep((s) => s + 1)
+  }
+
+  const handleFinish = async (e) => {
+    e.preventDefault()
+    let savedId = businessId
+    if (!savedId) {
+      const created = await dispatch(createBusiness({
         company_name: business.companyName,
         industry: business.industry,
         starting_budget: business.startingBudget,
         starting_customer_base: business.startingCustomerBase,
         starting_headcount: business.startingHeadcount,
         starting_resources: business.startingResources,
-      }),
-    )
-    if (createBusiness.fulfilled.match(result)) {
-      setBusinessId(result.payload.id)
-      setStep((s) => s + 1)
+      }))
+      if (!createBusiness.fulfilled.match(created)) return
+      savedId = created.payload.id
+      setBusinessId(savedId)
     }
-  }
-
-  const handleFinish = async (e) => {
-    e.preventDefault()
-    const result = await dispatch(saveBusinessProfile({ businessId, profile: toProfilePayload(profile) }))
+    const result = await dispatch(saveBusinessProfile({ businessId: savedId, profile: toProfilePayload(profile) }))
     if (saveBusinessProfile.fulfilled.match(result)) {
-      goToDashboard()
+      navigate(`/b/${savedId}/dashboard`)
     }
   }
 
@@ -421,7 +418,7 @@ function Setup() {
     }
   }
 
-  const isCreating = step === 2 && businessStatus === 'loading'
+  const isCreating = businessStatus === 'loading'
   const isFinishing = step === 6 && profileStatus === 'loading'
 
   return (
@@ -468,12 +465,14 @@ function Setup() {
         <form onSubmit={step === 6 ? handleFinish : handleNext}>
           {renderStep()}
 
-          {(step === 2 || step === 6) && <ErrorBanner message={step === 2 ? businessError : profileError} />}
+          {step === 6 && <ErrorBanner message={businessError || profileError} />}
+          {businessId && profileError && <p role="status" className="text-sm">Your business was created. Retry Finish setup to save its profile, or open its dashboard.</p>}
 
           <div className="flex gap-3 mt-8">
             {step > 1 ? (
               <button
                 type="button"
+                disabled={isCreating || isFinishing || (Boolean(businessId) && step <= 3)}
                 onClick={() => setStep((s) => s - 1)}
                 className="flex-1 py-2 rounded text-sm font-medium border text-gray-600"
               >
@@ -500,7 +499,7 @@ function Setup() {
             </button>
           </div>
 
-          {step > 2 && step < 6 && (
+          {businessId && (
             <div className="text-center mt-4">
               <button
                 type="button"

@@ -1,7 +1,9 @@
 """Autonomous tick loop that feeds synthetic events through the AgentManager"""
+
 import asyncio
 import random
 import time
+import logging
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
 
@@ -45,10 +47,16 @@ class SimulationEngine:
         max_retained_records: int = MAX_RETAINED_RECORDS,
         submit_event: Optional[Callable] = None,
         credit_revenue: Optional[Callable] = None,
+        summary_factory: Optional[Callable] = None,
+        on_finish: Optional[Callable] = None,
     ):
         self.agent_manager = agent_manager
         self.submit_event = submit_event
         self.credit_revenue = credit_revenue
+        self.summary_factory = summary_factory
+        self.on_finish = on_finish
+        self.terminal_status = None
+        self.error_code = None
         self.on_decision = on_decision
         self.on_complete = on_complete
         self.max_retained_records = max_retained_records
@@ -74,11 +82,15 @@ class SimulationEngine:
             await self._inject_revenue()
 
         agent_statuses = await self.agent_manager.get_all_agents_status()
-        event_type, data = generate_event(weights=event_weights, agent_statuses=agent_statuses)
+        event_type, data = generate_event(
+            weights=event_weights, agent_statuses=agent_statuses
+        )
         if self.submit_event is not None:
             await self.submit_event(event_type, data)
         else:
-            await self.agent_manager.process_event(event_type, data, source="simulation")
+            await self.agent_manager.process_event(
+                event_type, data, source="simulation"
+            )
 
         self.tick_count += 1
         record = {
@@ -97,9 +109,13 @@ class SimulationEngine:
 
     async def run(self, config: Optional[SimulationConfig] = None) -> None:
         config = config or SimulationConfig()
-        max_duration = min(config.duration_seconds, MAX_SERVER_DURATION_SECONDS) if config.duration_seconds else None
+        max_duration = (
+            min(config.duration_seconds, MAX_SERVER_DURATION_SECONDS)
+            if config.duration_seconds
+            else None
+        )
         deadline = time.monotonic() + max_duration if max_duration is not None else None
-        
+
         # Enforce a finite tick limit even if requested as unlimited
         if config.ticks is not None:
             effective_ticks = min(config.ticks, MAX_SERVER_TICKS)
@@ -111,6 +127,7 @@ class SimulationEngine:
         weights = config.resolved_weights()
 
         self.is_running = True
+        self.terminal_status = "completed"
         try:
             while self.is_running:
                 if effective_ticks is not None and self.tick_count >= effective_ticks:
@@ -127,20 +144,49 @@ class SimulationEngine:
                 if self.is_running:
                     interval = random.uniform(config.min_interval, config.max_interval)
                     await asyncio.sleep(interval)
+        except asyncio.CancelledError:
+            self.terminal_status = "stopped"
+            raise
+        except Exception:
+            self.terminal_status = "failed"
+            self.error_code = "simulation_tick_failed"
+            raise
         finally:
             self.is_running = False
             self.is_paused = False
             self._resume_event.set()
-            await self._complete()
+            summary = None
+            try:
+                summary = await self._complete()
+            except Exception:
+                self.error_code = "simulation_summary_failed"
+            finally:
+                if self.on_finish is not None:
+                    try:
+                        await self.on_finish(
+                            self.terminal_status, summary, self.error_code
+                        )
+                    except Exception:
+                        self.terminal_status = "failed"
+                        self.error_code = "simulation_finalization_failed"
+                        raise
 
-    async def _complete(self) -> None:
+    async def _complete(self) -> Any:
         ceo = self.agent_manager.agents.get("ceo")
-        if ceo is None or not hasattr(ceo, "summarize_run"):
+        if self.summary_factory is not None:
+            summary = await self.summary_factory()
+        elif ceo is not None and hasattr(ceo, "summarize_run"):
+            summary = await ceo.summarize_run(self.decision_log)
+        else:
             return
-        summary = await ceo.summarize_run(self.decision_log)
         result = self.on_complete(summary)
         if asyncio.iscoroutine(result):
             await result
+        return summary
+
+    @property
+    def is_active(self):
+        return self.is_running or (self._task is not None and not self._task.done())
 
     def start(self, config: Optional[SimulationConfig] = None) -> None:
         if self._task is not None and not self._task.done():
@@ -148,11 +194,21 @@ class SimulationEngine:
         self._resume_event.set()
         self.is_paused = False
         self._task = asyncio.create_task(self.run(config=config))
+        self._task.add_done_callback(self._observe_background_result)
+
+    @staticmethod
+    def _observe_background_result(task):
+        if not task.cancelled() and task.exception() is not None:
+            logging.getLogger(__name__).error(
+                "Simulation failed; inspect its persisted status"
+            )
 
     async def stop(self) -> None:
         # Cancel outright rather than relying only on the is_running flag: if the
         # task hasn't started executing yet, run()'s own `self.is_running = True`
         # would otherwise stomp a stop() that raced ahead of it.
+        if self.is_active:
+            self.terminal_status = "stopped"
         self.is_running = False
         self._resume_event.set()  # unblock a paused loop so it can observe is_running=False and exit
         if self._task is not None and not self._task.done():
@@ -179,4 +235,6 @@ class SimulationEngine:
             "is_paused": self.is_paused,
             "tick_count": self.tick_count,
             "decision_log_size": len(self.decision_log),
+            "terminal_status": self.terminal_status if not self.is_running else None,
+            "error_code": self.error_code,
         }

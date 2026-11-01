@@ -8,7 +8,7 @@ import apiClient from '../../api/client'
 const ACTIONABLE_STATUSES = new Set(['pending_approval', 'needs_changes', 'awaiting_asset', 'pending_ceo_review', 'needs_revision', 'ceo_reviewing'])
 
 export const fetchPendingTasks = createAsyncThunk('tasks/fetchPending', async (businessId) => {
-  const response = await apiClient.get(`/api/businesses/${businessId}/tasks`)
+  const response = await apiClient.get(`/api/businesses/${businessId}/tasks`, { params: { actionable: true } })
   return response.data.filter((task) => ACTIONABLE_STATUSES.has(task.status))
 })
 

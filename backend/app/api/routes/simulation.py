@@ -12,6 +12,7 @@ from ...models.business_schemas import BusinessOut
 from ...models.schemas import SimulationStatusOut
 from ...services.persistence import record_decision, snapshot_agents
 from ...services.tasks import create_task
+from ...services.run_summary import summarize_tasks
 from ...models.action_schemas import ACTION_CONTRACTS
 from ...simulation import SimulationConfig, SimulationEngine
 
@@ -32,6 +33,11 @@ async def start_simulation(
     request: Request,
     business: BusinessOut = Depends(get_owned_business),
 ):
+    async with request.app.state.agent_registry.simulation_start_lock:
+        return await _start_simulation(payload, request, business)
+
+
+async def _start_simulation(payload, request, business):
     if payload.min_interval < MIN_SIMULATION_INTERVAL:
         raise HTTPException(
             status_code=400,
@@ -57,8 +63,22 @@ async def start_simulation(
     registry = request.app.state.agent_registry
     runtime = await registry.get_or_create(business)
 
-    if runtime.simulation_engine is not None and runtime.simulation_engine.is_running:
+    if runtime.simulation_engine is not None and runtime.simulation_engine.is_active:
         raise HTTPException(status_code=409, detail="Simulation already running")
+
+    if "ceo" not in runtime.agent_manager.agents:
+        raise HTTPException(
+            status_code=422, detail="Enable the CEO before running a simulation"
+        )
+    weights = {
+        kind: weight if ACTION_CONTRACTS[kind][0] in runtime.agent_manager.agents else 0
+        for kind, weight in payload.resolved_weights().items()
+    }
+    if sum(weights.values()) <= 0:
+        raise HTTPException(
+            status_code=422, detail="No enabled department has a positive event weight"
+        )
+    payload = payload.model_copy(update={"event_weights": weights})
 
     db = request.app.state.db
     running_count = await db["simulation_runs"].count_documents({"status": "running"})
@@ -99,27 +119,26 @@ async def start_simulation(
         )
         await snapshot_agents(db, business.id, runtime.agent_manager, run_id=run_id)
 
-    async def on_complete(summary):
+    async def on_finish(status, summary, error_code):
         now = datetime.now(timezone.utc)
-        await db["run_summaries"].insert_one(
-            {
-                "business_id": business.id,
-                "run_id": run_id,
-                "headline": summary.headline,
-                "key_decisions": summary.key_decisions,
-                "risks": summary.risks,
-                "recommendation": summary.recommendation,
-                "created_at": now,
-            }
-        )
-        # Marks the run "completed" whenever run() ends for any reason (tick limit
-        # reached, or stop() cancelling it); stop_simulation() below overwrites this
-        # with "stopped" for the user-initiated case, so the final status still
-        # distinguishes "ran to completion" from "stopped early".
+        # Persist terminal state before optional report storage so a narrative
+        # failure cannot turn a failed tick into a completed run.
         await db["simulation_runs"].update_one(
             {"business_id": business.id, "run_id": run_id},
-            {"$set": {"status": "completed", "ended_at": now}},
+            {"$set": {"status": status, "ended_at": now, "error_code": error_code}},
         )
+        if summary is not None:
+            await db["run_summaries"].insert_one(
+                {
+                    "business_id": business.id,
+                    "run_id": run_id,
+                    "headline": summary.headline,
+                    "key_decisions": summary.key_decisions,
+                    "risks": summary.risks,
+                    "recommendation": summary.recommendation,
+                    "created_at": now,
+                }
+            )
 
     async def submit_event(event_type, data):
         await create_task(
@@ -145,7 +164,8 @@ async def start_simulation(
     engine = SimulationEngine(
         runtime.agent_manager,
         on_decision=on_decision,
-        on_complete=on_complete,
+        on_finish=on_finish,
+        summary_factory=lambda: summarize_tasks(db, business.id, run_id),
         submit_event=submit_event,
         credit_revenue=credit_revenue,
     )

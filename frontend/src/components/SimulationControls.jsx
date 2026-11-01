@@ -11,7 +11,7 @@ import { STATUS } from '../theme/palette'
 
 function SimulationControls({ businessId }) {
   const dispatch = useDispatch()
-  const { isRunning, isPaused, tickCount, decisionLogSize, runId, error } = useSelector(
+  const { isRunning, isPaused, tickCount, decisionLogSize, runId, error, terminalStatus } = useSelector(
     (state) => state.simulation,
   )
   const [ticks, setTicks] = useState(20)
@@ -35,7 +35,7 @@ function SimulationControls({ businessId }) {
   const handlePause = () => dispatch(pauseSimulation(businessId))
   const handleResume = () => dispatch(resumeSimulation(businessId))
 
-  const statusLabel = !isRunning ? 'Idle' : isPaused ? 'Paused' : 'Running'
+  const statusLabel = !isRunning ? (terminalStatus || 'Idle') : isPaused ? 'Paused' : 'Running'
   const statusColor = !isRunning ? undefined : isPaused ? STATUS.warning : STATUS.good
 
   return (
@@ -138,7 +138,7 @@ function SimulationControls({ businessId }) {
           Status: <span className="font-medium" style={{ color: statusColor }}>{statusLabel}</span>
         </span>
         <span className="mr-4">Ticks: {tickCount}</span>
-        <span className="mr-4">Decisions: {decisionLogSize}</span>
+        <span className="mr-4">Recorded proposals: {decisionLogSize}</span>
         {runId && <span className="text-xs text-gray-400">run: {runId.slice(0, 8)}</span>}
       </div>
       {error && <div className="w-full"><ErrorBanner message={error} /></div>}

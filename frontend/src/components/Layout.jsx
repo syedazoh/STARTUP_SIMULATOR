@@ -1,7 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux'
+import { useLayoutEffect } from 'react'
 import { Link, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { logout } from '../store/slices/authSlice'
-import { clearBusinesses } from '../store/slices/businessSlice'
+import { clearBusinesses, setActiveBusiness } from '../store/slices/businessSlice'
 import BusinessSwitcher from './BusinessSwitcher'
 import { STATUS } from '../theme/palette'
 
@@ -17,6 +18,7 @@ function Layout() {
   const { businessId } = useParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  useLayoutEffect(() => { dispatch(setActiveBusiness(businessId)) }, [dispatch, businessId])
   const logoutError = useSelector((state) => state.auth.error)
   const isAdmin = useSelector((state) => state.auth.user?.role === 'admin')
 
@@ -98,7 +100,7 @@ function Layout() {
       </aside>
 
       <div className="flex-1 min-w-0">
-        <Outlet />
+        <Outlet key={businessId} />
       </div>
     </div>
   )

@@ -19,6 +19,7 @@ from fastapi import (
     Request,
     UploadFile,
     status,
+    Query,
 )
 
 from ..deps import get_owned_business, get_owned_task
@@ -27,7 +28,7 @@ from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
 from ...models.task_schemas import TaskDecisionIn, TaskOut, TaskRevisionIn, to_task_out
 from ...services.audit import record_audit
-from ...services.media_assets import upload_asset
+from ...services.media_assets import MAX_UPLOAD_BYTES, upload_asset
 from ...services.tasks import execute_task, review_task
 
 router = APIRouter(prefix="/api/businesses/{business_id}/tasks", tags=["tasks"])
@@ -47,6 +48,8 @@ async def list_tasks(
     task_status: Optional[str] = None,
     agent: Optional[str] = None,
     source: Optional[str] = None,
+    actionable: bool = False,
+    limit: int = Query(default=200, ge=1, le=200),
 ):
     query = {"business_id": business.id}
     if agent is not None:
@@ -57,8 +60,19 @@ async def list_tasks(
         query["source"] = source
     if task_status is not None:
         query["status"] = task_status
+    elif actionable:
+        query["status"] = {
+            "$in": [
+                "pending_approval",
+                "needs_changes",
+                "awaiting_asset",
+                "pending_ceo_review",
+                "needs_revision",
+                "ceo_reviewing",
+            ]
+        }
     cursor = request.app.state.db["tasks"].find(query).sort("created_at", -1)
-    docs = await cursor.to_list(length=200)
+    docs = await cursor.to_list(length=limit)
     return [to_task_out(d) for d in docs]
 
 
@@ -220,14 +234,24 @@ async def upload_task_asset(
             detail=f"Task is {task['status']}, not awaiting an asset",
         )
 
-    content = await file.read()
+    content = bytearray()
+    try:
+        while chunk := await file.read(64 * 1024):
+            content.extend(chunk)
+            if len(content) > MAX_UPLOAD_BYTES:
+                raise HTTPException(
+                    status_code=413, detail="Image exceeds the 10 MiB limit"
+                )
+    finally:
+        await file.close()
     doc = await upload_asset(
         request.app.state.db,
         task["business_id"],
         task,
         file.filename,
-        content,
+        bytes(content),
         media_type,
+        file.content_type,
     )
     return _to_media_asset_out(doc)
 

@@ -15,10 +15,7 @@ async def ensure_unique_index(collection, field: str) -> None:
     create_index = getattr(collection, "create_index", None)
     if create_index is None:
         return
-    try:
-        await create_index(field, unique=True)
-    except Exception:
-        pass
+    await create_index(field, unique=True)
 
 
 async def ensure_index(collection, keys: Union[str, list]) -> None:
@@ -29,10 +26,7 @@ async def ensure_index(collection, keys: Union[str, list]) -> None:
     create_index = getattr(collection, "create_index", None)
     if create_index is None:
         return
-    try:
-        await create_index(keys)
-    except Exception:
-        pass
+    await create_index(keys)
 
 
 async def ensure_ttl_index(collection, field: str, expire_after_seconds: int) -> None:
@@ -43,7 +37,4 @@ async def ensure_ttl_index(collection, field: str, expire_after_seconds: int) ->
     create_index = getattr(collection, "create_index", None)
     if create_index is None:
         return
-    try:
-        await create_index(field, expireAfterSeconds=expire_after_seconds)
-    except Exception:
-        pass
+    await create_index(field, expireAfterSeconds=expire_after_seconds)

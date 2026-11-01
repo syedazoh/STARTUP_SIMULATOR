@@ -15,7 +15,8 @@ python-jose[cryptography]==3.5.0
 cryptography==50.0.0
 bcrypt==5.0.0
 email-validator==2.3.0
-python-multipart==0.0.20
+python-multipart==0.0.33
+Pillow==13.0.0
 pytest==9.0.3
 pytest-asyncio==1.4.0
 httpx==0.28.1

@@ -11,19 +11,23 @@ const VERDICT_COLOR = {
 
 function AssetUploadCard({ businessId, task }) {
   const dispatch = useDispatch()
-  const [mediaType, setMediaType] = useState('image')
+  const mediaType = 'image'
   const [file, setFile] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [lastReview, setLastReview] = useState(null)
+  const [error, setError] = useState('')
 
   const handleUpload = async (e) => {
     e.preventDefault()
     if (!file) return
     setUploading(true)
+    setError('')
     const result = await dispatch(uploadTaskAsset({ taskId: task.id, mediaType, file }))
     if (uploadTaskAsset.fulfilled.match(result)) {
       setLastReview(result.payload.agent_review)
       setFile(null)
+    } else {
+      setError('Upload rejected. Use a valid JPEG, PNG or WebP image up to 10 MiB, then retry.')
     }
     setUploading(false)
     dispatch(fetchPendingTasks(businessId))
@@ -31,6 +35,8 @@ function AssetUploadCard({ businessId, task }) {
 
   return (
     <div className="space-y-2">
+      <p className="text-xs text-gray-600">JPEG, PNG or WebP image, up to 10 MiB. Technical validation does not assess brand suitability. Video upload is not available yet.</p>
+      {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
       {lastReview && (
         <div className="text-xs rounded border-l-2 pl-2 py-1" style={{ borderColor: VERDICT_COLOR[lastReview.verdict] }}>
           <span className="font-medium" style={{ color: VERDICT_COLOR[lastReview.verdict] }}>
@@ -40,16 +46,10 @@ function AssetUploadCard({ businessId, task }) {
         </div>
       )}
       <form onSubmit={handleUpload} className="flex items-center gap-2">
-        <select
-          value={mediaType}
-          onChange={(e) => setMediaType(e.target.value)}
-          className="border rounded px-2 py-1 text-xs"
-        >
-          <option value="image">Image</option>
-          <option value="video">Video</option>
-        </select>
         <input
           type="file"
+          aria-label="Upload task image"
+          accept="image/jpeg,image/png,image/webp"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
           className="flex-1 text-xs"
         />

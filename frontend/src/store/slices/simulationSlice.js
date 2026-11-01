@@ -54,6 +54,7 @@ const simulationSlice = createSlice({
     runId: null,
     summary: null,
     error: null,
+    terminalStatus: null,
   },
   reducers: {
     clearSummary: (state) => {
@@ -67,6 +68,7 @@ const simulationSlice = createSlice({
       state.runId = null
       state.summary = null
       state.error = null
+      state.terminalStatus = null
     },
   },
   extraReducers: (builder) => {
@@ -77,12 +79,16 @@ const simulationSlice = createSlice({
         state.tickCount = action.payload.tick_count
         state.decisionLogSize = action.payload.decision_log_size
         state.runId = action.payload.run_id
+        state.terminalStatus = action.payload.terminal_status
+        state.error = action.payload.error_code || null
       })
       .addCase(startSimulation.fulfilled, (state, action) => {
         state.isRunning = true
         state.isPaused = false
         state.runId = action.payload.run_id
         state.summary = null
+        state.error = null
+        state.terminalStatus = null
       })
       .addCase(startSimulation.rejected, (state, action) => {
         state.error = action.error.message

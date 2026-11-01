@@ -58,6 +58,9 @@ class AgentRegistry:
         # the first in self._runtimes, stranding whichever caller kept a
         # reference to the discarded one.
         self._creation_lock = asyncio.Lock()
+        # Current agent runtimes are single-process. Serialize run admission
+        # across businesses so count/check/insert cannot race within that process.
+        self.simulation_start_lock = asyncio.Lock()
 
     async def get_or_create(self, business: BusinessOut) -> BusinessRuntime:
         if business.id in self._runtimes:
@@ -135,6 +138,12 @@ class AgentRegistry:
                 agent.set_policy(policy)
 
     async def close(self):
+        engines = [
+            r.simulation_engine
+            for r in self._runtimes.values()
+            if r.simulation_engine is not None
+        ]
+        await asyncio.gather(*(e.stop() for e in engines), return_exceptions=True)
         jobs = {
             job for runtime in self._runtimes.values() for job in runtime.review_jobs
         }

@@ -1,75 +1,148 @@
-"""Media asset upload + automated agent review (the requires_asset task path).
+"""Bounded technical image validation and conditional task attachment.
 
-Uploaded files are saved to local disk under UPLOAD_DIR — fine for this
-single-process dev setup, but swap for real object storage (S3 or similar)
-before this handles real user uploads in prod, since local disk won't
-survive a redeploy or scale past one instance.
-
-_review_asset is a placeholder standing in for a real brand-fit/content
-review model: Phase 4 ships the upload -> review -> task-transition wiring;
-the review itself is a deterministic stub so the demo doesn't depend on an
-external vision API.
+This is not a brand assessment. Video awaits a bounded decoder/provider flow.
 """
+
+import hashlib
+import io
 import os
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict
 from uuid import uuid4
 
+from fastapi import HTTPException
+from PIL import Image, UnidentifiedImageError
+from pymongo import ReturnDocument
+from starlette.concurrency import run_in_threadpool
+
 UPLOAD_DIR = Path(__file__).resolve().parents[2] / "uploads"
-VALID_MEDIA_TYPES = {"image", "video"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+MAX_IMAGE_PIXELS = 20_000_000
+FORMATS = {
+    "JPEG": ({".jpg", ".jpeg"}, "image/jpeg"),
+    "PNG": ({".png"}, "image/png"),
+    "WEBP": ({".webp"}, "image/webp"),
+}
 
 
 def _safe_filename(filename: str) -> str:
-    """Strips any directory component from a client-supplied filename.
-
-    filename comes straight from the multipart upload and is otherwise used
-    to build a disk path (see upload_asset below) — without this, a filename
-    like "../../etc/passthrough.png" would let the upload escape UPLOAD_DIR.
-    """
-    name = os.path.basename((filename or "").replace("\\", "/"))
-    if not name or name in {".", ".."}:
-        return "upload"
-    return name
+    return os.path.basename((filename or "").replace("\\", "/")) or "upload"
 
 
-def _review_asset(filename: str, media_type: str) -> Dict[str, str]:
-    if media_type not in VALID_MEDIA_TYPES:
-        return {"verdict": "reshoot_requested", "notes": f"Unsupported media type: {media_type}"}
-    if not filename:
-        return {"verdict": "reshoot_requested", "notes": "No filename supplied — please re-upload."}
-    return {"verdict": "approved", "notes": "Looks on-brand and ready to post."}
+def _validate_image(content, filename, media_type, content_type):
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="Image exceeds the 10 MiB limit")
+    if media_type != "image":
+        raise HTTPException(
+            status_code=422,
+            detail="Only validated images are supported; video review is not available",
+        )
+    if not content:
+        raise HTTPException(status_code=422, detail="Upload an image with content")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(content)) as image:
+                fmt, size = image.format, image.size
+                if fmt not in FORMATS or size[0] * size[1] > MAX_IMAGE_PIXELS:
+                    raise ValueError("unsupported format or dimensions")
+                if getattr(image, "n_frames", 1) != 1:
+                    raise ValueError("animated images are not supported")
+                image.verify()
+            with Image.open(io.BytesIO(content)) as image:
+                image.load()
+        extensions, detected_type = FORMATS[fmt]
+        if Path(_safe_filename(filename)).suffix.lower() not in extensions:
+            raise ValueError("filename does not match image format")
+        if content_type and content_type != detected_type:
+            raise ValueError("declared type does not match image format")
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+        Image.DecompressionBombError,
+        Image.DecompressionBombWarning,
+    ) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail="Upload a valid, non-animated JPEG, PNG or WebP image within 20 million pixels",
+        ) from exc
+    return {"content_type": detected_type, "width": size[0], "height": size[1]}
 
 
 async def upload_asset(
-    db, business_id: str, task: Dict[str, Any], filename: str, content: bytes, media_type: str
+    db,
+    business_id: str,
+    task: Dict[str, Any],
+    filename: str,
+    content: bytes,
+    media_type: str,
+    content_type=None,
 ) -> Dict[str, Any]:
+    metadata = await run_in_threadpool(
+        _validate_image, content, filename, media_type, content_type
+    )
     asset_id = str(uuid4())
     business_dir = UPLOAD_DIR / business_id
-    business_dir.mkdir(parents=True, exist_ok=True)
-    file_ref = str(business_dir / f"{asset_id}_{_safe_filename(filename)}")
-    with open(file_ref, "wb") as f:
-        f.write(content)
-
-    review = _review_asset(filename, media_type)
+    # Keep client filenames out of storage keys (also avoids overlong paths).
+    file_path = (
+        business_dir / f"{asset_id}{Path(_safe_filename(filename)).suffix.lower()}"
+    )
+    review = {
+        "verdict": "approved",
+        "basis": "technical_validation",
+        "notes": "Image content validated. Brand suitability has not been assessed; owner approval is still required.",
+    }
     doc = {
         "asset_id": asset_id,
         "business_id": business_id,
         "task_id": task["task_id"],
         "uploaded_by": "owner",
-        "file_ref": file_ref,
+        "file_ref": str(file_path),
         "media_type": media_type,
+        "sha256": hashlib.sha256(content).hexdigest(),
+        "size_bytes": len(content),
+        **metadata,
         "agent_review": review,
         "uploaded_at": datetime.now(timezone.utc),
     }
-    await db["media_assets"].insert_one(doc)
-
-    # Only an approved review clears the task to move into the normal
-    # approval queue; a rejection or reshoot request sends it back to
-    # awaiting_asset so the owner can upload again.
-    next_status = "pending_approval" if review["verdict"] == "approved" else "awaiting_asset"
-    await db["tasks"].update_one(
-        {"task_id": task["task_id"]},
-        {"$set": {"asset_id": asset_id, "status": next_status}},
-    )
+    business_dir.mkdir(parents=True, exist_ok=True)
+    cas_started = False
+    attachment_rejected = False
+    try:
+        await run_in_threadpool(file_path.write_bytes, content)
+        await db["media_assets"].insert_one(doc)
+        cas_started = True
+        claimed = await db["tasks"].find_one_and_update(
+            {
+                "task_id": task["task_id"],
+                "business_id": business_id,
+                "status": "awaiting_asset",
+                "ceo_authorized": True,
+                "asset_id": task.get("asset_id"),
+            },
+            {
+                "$set": {
+                    "asset_id": asset_id,
+                    "asset_sha256": doc["sha256"],
+                    "status": "pending_approval",
+                }
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if claimed is None:
+            attachment_rejected = True
+            raise HTTPException(
+                status_code=409,
+                detail="Task changed during upload; refresh before trying again",
+            )
+    except BaseException:
+        # A network/cancellation failure during CAS has an unknown outcome.
+        # Preserve its evidence rather than deleting an asset the task may own.
+        if not cas_started or attachment_rejected:
+            file_path.unlink(missing_ok=True)
+            await db["media_assets"].delete_one({"asset_id": asset_id})
+        raise
     return doc

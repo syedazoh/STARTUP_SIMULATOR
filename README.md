@@ -14,12 +14,13 @@ See [CEO supervision and session guide](docs/CEO_SUPERVISION_AND_SESSIONS.md) fo
 
 ### Backend (FastAPI - Python)
 
-The backend consists of four autonomous agents:
+The backend has four department agents and a CEO supervisor:
 
 1. **Finance Agent** - Manages budgets, revenue tracking, expense management
 2. **Marketing Agent** - Handles campaigns, market analysis, customer engagement  
 3. **HR Agent** - Manages recruitment, payroll, team performance
 4. **Operations Agent** - Oversees supply chain, resource allocation, process optimization
+5. **CEO Agent** - Proposes department assignments, authorizes work and reviews execution evidence
 
 ### Key Components
 
@@ -38,8 +39,8 @@ The backend consists of four autonomous agents:
 
 - Docker containerization (Backend, Frontend)
 - Docker Compose for local development
-- PostgreSQL for data persistence
-- Redis for caching
+- MongoDB for business records, tasks, financial state and reports
+- ChromaDB for retrieval of previous decision summaries
 - GitHub Actions CI/CD workflows
 
 ## Getting Started
@@ -114,6 +115,10 @@ npm test
 ```
 
 ## Development Roadmap
+
+Track review findings and validation in [Implementation checklist](docs/IMPLEMENTATION_CHECKLIST.md).
+The current backend supports one process. Stored decision retrieval does not train
+the language model. Periodic simulation income is demo income, not validated sales forecasting.
 
 - **Weeks 1-6**: Planning & Analysis
 - **Weeks 7-10**: UI/UX Design
