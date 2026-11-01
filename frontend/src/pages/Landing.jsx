@@ -6,28 +6,28 @@ const AGENTS = [
   {
     key: 'finance',
     label: 'Finance Agent',
-    description: 'Manages budgets, revenue tracking, expense management, and financial forecasting',
+    description: 'Manages budgets, revenue tracking, expense management, and simulated budget decisions',
     icon: '💰',
     color: '#10B981'
   },
   {
     key: 'marketing',
     label: 'Marketing Agent',
-    description: 'Handles campaigns, market analysis, customer engagement, and brand strategy',
+    description: 'Handles campaign budget proposals and simulated customer and brand metrics',
     icon: '📈',
     color: '#3B82F6'
   },
   {
     key: 'hr',
     label: 'HR Agent',
-    description: 'Manages recruitment, payroll, team performance, and employee satisfaction',
+    description: 'Handles simulated recruitment and tracks headcount and team morale',
     icon: '👥',
     color: '#8B5CF6'
   },
   {
     key: 'operations',
     label: 'Operations Agent',
-    description: 'Oversees supply chain, resource allocation, process optimization, and logistics',
+    description: 'Handles simulated resource requests and operational efficiency metrics',
     icon: '⚙️',
     color: '#F59E0B'
   },
@@ -48,12 +48,12 @@ const FEATURES = [
   },
   {
     title: 'Real-time Decision Making',
-    description: 'Watch agents make decisions in real-time based on business context, market conditions, and internal metrics.',
+    description: 'Watch agents make decisions in real-time using business requests, generated scenarios, and internal metrics.',
     icon: '⚡'
   },
   {
-    title: 'Memory & Learning',
-    description: 'Agents maintain persistent memory across simulation runs, learning from past decisions and outcomes.',
+    title: 'Decision Memory',
+    description: 'Agents maintain persistent memory across simulation runs, retrieving earlier decision summaries as context. The model is not retrained.',
     icon: '🧠'
   },
   {
@@ -68,7 +68,7 @@ const FEATURES = [
   },
   {
     title: 'Simulation Controls',
-    description: 'Run, pause, step through, or fast-forward simulation ticks. Configure scenarios and inject events.',
+    description: 'Start, pause, resume, or stop a bounded simulation run and review its generated requests.',
     icon: '🎮'
   }
 ]
@@ -95,7 +95,7 @@ function Landing() {
               </h2>
               <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 Experience the future of business management with autonomous AI agents that collaborate,
-                compete, and learn to run a virtual startup. Build, simulate, and optimize — all without writing code.
+                coordinate decisions for a virtual startup. Build, simulate, and optimize — all without writing code.
               </p>
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
@@ -165,7 +165,7 @@ function Landing() {
                 Ready to Build Your AI Startup?
               </h2>
               <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-                Join thousands of users exploring the intersection of AI and business. Create your first
+                Explore the intersection of AI and business. Create your first
                 simulation in minutes — no credit card required.
               </p>
               <Link

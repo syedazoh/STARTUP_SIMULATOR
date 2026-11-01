@@ -11,7 +11,7 @@ import { STATUS } from '../theme/palette'
 
 function SimulationControls({ businessId }) {
   const dispatch = useDispatch()
-  const { isRunning, isPaused, tickCount, decisionLogSize, runId, error } = useSelector(
+  const { isRunning, isPaused, tickCount, decisionLogSize, runId, error, terminalStatus } = useSelector(
     (state) => state.simulation,
   )
   const [ticks, setTicks] = useState(20)
@@ -35,7 +35,7 @@ function SimulationControls({ businessId }) {
   const handlePause = () => dispatch(pauseSimulation(businessId))
   const handleResume = () => dispatch(resumeSimulation(businessId))
 
-  const statusLabel = !isRunning ? 'Idle' : isPaused ? 'Paused' : 'Running'
+  const statusLabel = !isRunning ? (terminalStatus || 'Idle') : isPaused ? 'Paused' : 'Running'
   const statusColor = !isRunning ? undefined : isPaused ? STATUS.warning : STATUS.good
 
   return (
@@ -46,10 +46,11 @@ function SimulationControls({ businessId }) {
           id="ticks"
           type="number"
           min="1"
+          max="1000"
           value={ticks}
           onChange={(e) => setTicks(e.target.value)}
           disabled={isRunning}
-          placeholder="unlimited"
+          placeholder="1000 max"
           className="border rounded px-2 py-1 w-24 text-sm disabled:bg-gray-100"
         />
       </div>
@@ -58,7 +59,8 @@ function SimulationControls({ businessId }) {
         <input
           id="duration"
           type="number"
-          min="0"
+          min="0.1"
+          step="0.1"
           value={durationSeconds}
           onChange={(e) => setDurationSeconds(e.target.value)}
           disabled={isRunning}
@@ -71,7 +73,7 @@ function SimulationControls({ businessId }) {
         <input
           id="min-interval"
           type="number"
-          min="0"
+          min="0.1"
           step="0.1"
           value={minInterval}
           onChange={(e) => setMinInterval(e.target.value)}
@@ -84,7 +86,7 @@ function SimulationControls({ businessId }) {
         <input
           id="max-interval"
           type="number"
-          min="0"
+          min="0.1"
           step="0.1"
           value={maxInterval}
           onChange={(e) => setMaxInterval(e.target.value)}
@@ -138,7 +140,7 @@ function SimulationControls({ businessId }) {
           Status: <span className="font-medium" style={{ color: statusColor }}>{statusLabel}</span>
         </span>
         <span className="mr-4">Ticks: {tickCount}</span>
-        <span className="mr-4">Decisions: {decisionLogSize}</span>
+        <span className="mr-4">Recorded proposals: {decisionLogSize}</span>
         {runId && <span className="text-xs text-gray-400">run: {runId.slice(0, 8)}</span>}
       </div>
       {error && <div className="w-full"><ErrorBanner message={error} /></div>}

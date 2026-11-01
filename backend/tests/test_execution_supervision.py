@@ -178,26 +178,16 @@ def test_legacy_stateless_token_requires_new_login(client):
     )
 
 
-def test_fallback_database_can_login_and_clear_failed_attempts(client, monkeypatch):
+def test_fallback_database_fails_closed_without_shared_login_budget(client):
     from app.database.mongodb import InMemoryDatabase
 
     app.state.db = InMemoryDatabase()
-    headers = account(client)
-    assert client.get("/api/auth/me", headers=headers).status_code == 200
-    assert (
-        client.post(
-            "/api/auth/login",
-            json={"email": "regression@example.com", "password": "bad"},
-        ).status_code
-        == 401
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "regression@example.com", "password": "supersecret123"},
     )
-    assert (
-        client.post(
-            "/api/auth/login",
-            json={"email": "regression@example.com", "password": "supersecret123"},
-        ).status_code
-        == 200
-    )
+    assert response.status_code == 503
+    assert "access_token" not in response.json()
 
 
 def test_event_api_cannot_bypass_owner_approval(client):

@@ -3,6 +3,7 @@ import apiClient from '../api/client'
 import { STATUS } from '../theme/palette'
 
 function AgentModeForm({ businessId, agentKey }) {
+  const unit = { finance: 'USD', marketing: 'USD', hr: 'people', operations: 'resource units' }[agentKey]
   const [mode, setMode] = useState({ mode: 'manual', autoApproveMax: '' })
   const [status, setStatus] = useState('idle')
 
@@ -51,7 +52,8 @@ function AgentModeForm({ businessId, agentKey }) {
         </div>
         {mode.mode === 'auto' && (
           <div>
-            <label className="block text-xs text-gray-500 mb-1">Auto-execute if under ($)</label>
+            <label className="block text-xs text-gray-500 mb-1">Auto-execute up to ({unit})</label>
+            {['hr', 'operations'].includes(agentKey) && <p className="text-xs text-gray-500">This is a quantity limit. Available funds are checked separately; use manual mode when you need to approve the total cost.</p>}
             <input
               type="number"
               value={mode.autoApproveMax}

@@ -143,3 +143,47 @@ class TestSimulationRoutes:
             f"/api/businesses/{business_id}/simulation/runs/does-not-exist/summary", headers=headers
         )
         assert response.status_code == 404
+
+
+class TestSimulationResourceLimits:
+    @pytest.mark.parametrize("payload", [
+        {"ticks": 1001}, {"ticks": -1},
+        {"min_interval": 0, "max_interval": 0},
+        {"min_interval": 0.05}, {"max_interval": 0.05},
+        {"min_interval": 2, "max_interval": 1},
+        {"duration_seconds": "Infinity"}, {"min_interval": "NaN"},
+    ])
+    def test_invalid_limits_do_not_schedule_work(self, client, monkeypatch, payload):
+        from unittest.mock import Mock
+        from app.simulation import SimulationEngine
+
+        start = Mock()
+        monkeypatch.setattr(SimulationEngine, "start", start)
+        headers = _auth_headers(client, "limits@example.com")
+        business_id = _create_business(client, headers)
+        base = f"/api/businesses/{business_id}/simulation"
+
+        response = client.post(f"{base}/start", json=payload, headers=headers)
+
+        assert response.status_code == 422
+        start.assert_not_called()
+        assert client.get(f"{base}/simulation-runs", headers=headers).json() == []
+
+    @pytest.mark.parametrize("payload", [{}, {"ticks": None, "duration_seconds": None}])
+    def test_unspecified_limits_bound_persisted_work(self, client, monkeypatch, payload):
+        from unittest.mock import Mock
+        from app.simulation import SimulationEngine
+        from app.simulation.config import MAX_SIMULATION_TICKS
+
+        start = Mock()
+        monkeypatch.setattr(SimulationEngine, "start", start)
+        headers = _auth_headers(client, "default-limit@example.com")
+        business_id = _create_business(client, headers)
+        base = f"/api/businesses/{business_id}/simulation"
+        response = client.post(f"{base}/start", json=payload, headers=headers)
+        assert response.status_code == 200
+        start.assert_called_once()
+        assert start.call_args.kwargs["config"].ticks == MAX_SIMULATION_TICKS
+        runs = client.get(f"{base}/simulation-runs", headers=headers).json()
+        assert len(runs) == 1
+        assert runs[0]["config"]["ticks"] == MAX_SIMULATION_TICKS

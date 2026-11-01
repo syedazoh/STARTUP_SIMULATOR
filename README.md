@@ -14,12 +14,13 @@ See [CEO supervision and session guide](docs/CEO_SUPERVISION_AND_SESSIONS.md) fo
 
 ### Backend (FastAPI - Python)
 
-The backend consists of four autonomous agents:
+The backend has four department agents and a CEO supervisor:
 
 1. **Finance Agent** - Manages budgets, revenue tracking, expense management
 2. **Marketing Agent** - Handles campaigns, market analysis, customer engagement  
 3. **HR Agent** - Manages recruitment, payroll, team performance
 4. **Operations Agent** - Oversees supply chain, resource allocation, process optimization
+5. **CEO Agent** - Proposes department assignments, authorizes work and reviews execution evidence
 
 ### Key Components
 
@@ -38,8 +39,8 @@ The backend consists of four autonomous agents:
 
 - Docker containerization (Backend, Frontend)
 - Docker Compose for local development
-- PostgreSQL for data persistence
-- Redis for caching
+- MongoDB for business records, tasks, financial state and reports
+- ChromaDB for retrieval of previous decision summaries
 - GitHub Actions CI/CD workflows
 
 ## Getting Started
@@ -76,6 +77,14 @@ cd backend
 uvicorn app.main:app --reload
 ```
 API will be available at `http://localhost:8000`
+
+Login requires MongoDB, including permission to create the `login_attempts`
+TTL index. Each email address (case insensitive) gets five login attempts per
+fixed five-minute window, shared across backend workers. All attempts count,
+including successful logins. Excess attempts return HTTP 429 with `Retry-After`;
+throttled attempts emit a warning without logging passwords or email addresses.
+Login returns HTTP 503 if the throttle store is unavailable, including when the
+simulator uses its in-memory database fallback.
 
 **Frontend**
 ```bash
@@ -114,6 +123,10 @@ npm test
 ```
 
 ## Development Roadmap
+
+Track review findings and validation in [Implementation checklist](docs/IMPLEMENTATION_CHECKLIST.md).
+The current backend supports one process. Stored decision retrieval does not train
+the language model. Periodic simulation income is demo income, not validated sales forecasting.
 
 - **Weeks 1-6**: Planning & Analysis
 - **Weeks 7-10**: UI/UX Design

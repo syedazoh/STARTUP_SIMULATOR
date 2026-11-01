@@ -86,22 +86,23 @@ class TestLogin:
         # 6th attempt should be blocked by throttling before verifying password
         blocked = client.post("/api/auth/login", json={"email": email, "password": "supersecret123"})
         assert blocked.status_code == 429
-        assert "Too many failed login attempts" in blocked.json()["detail"]
+        assert "Too many login attempts" in blocked.json()["detail"]
 
-    def test_successful_login_clears_failed_attempts(self, client):
+    def test_successful_login_preserves_attempt_budget(self, client):
         email = "resetlockout@example.com"
         client.post("/api/auth/register", json={"email": email, "password": "supersecret123"})
         # 3 failed attempts
         for _ in range(3):
             client.post("/api/auth/login", json={"email": email, "password": "wrongpassword"})
 
-        # Successful login resets the counter
+        # Successful login also consumes an attempt
         success = client.post("/api/auth/login", json={"email": email, "password": "supersecret123"})
         assert success.status_code == 200
 
-        # Should be able to make more attempts without immediate lockout
+        # The fifth attempt is allowed; the sixth is blocked
         res = client.post("/api/auth/login", json={"email": email, "password": "wrongpassword"})
         assert res.status_code == 401
+        assert client.post("/api/auth/login", json={"email": email, "password": "wrongpassword"}).status_code == 429
 
 
 class TestMe:

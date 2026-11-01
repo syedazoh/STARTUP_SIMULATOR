@@ -39,6 +39,9 @@
 	# browser's requests same-origin, so the frontend needs no cross-origin
 	# credentialed CORS in production.
 	handle /api/* {
+		request_body {
+			max_size 12MB
+		}
 		reverse_proxy backend:8000
 	}
 
