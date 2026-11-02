@@ -16,7 +16,7 @@ async function loadJSX(path, overrides = {}) {
   await module.link((specifier) => {
     let exports = overrides[specifier]
     if (!exports) {
-      if (specifier === 'react') exports = { default: React, useEffect: () => {} }
+      if (specifier === 'react') exports = { default: React, useEffect: () => {}, useState: (initial) => [initial, () => {}], useMemo: (factory) => factory(), useRef: (initial) => ({ current: initial }) }
       else if (specifier === 'react-router-dom') exports = router
       else if (specifier === 'react-redux') exports = { useDispatch: () => () => {}, useSelector: () => ({}) }
       else if (specifier.endsWith('/palette')) exports = { STATUS: { good: 'green' } }
