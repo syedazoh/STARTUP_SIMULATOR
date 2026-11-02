@@ -1,109 +1,36 @@
+import { useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useLayoutEffect } from 'react'
-import { Link, Outlet, useNavigate, useParams } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { logout } from '../store/slices/authSlice'
 import { clearBusinesses, setActiveBusiness } from '../store/slices/businessSlice'
 import BusinessSwitcher from './BusinessSwitcher'
-import { STATUS } from '../theme/palette'
+import './layout.css'
 
-const AGENT_LINKS = [
-  { key: 'finance', label: 'Finance' },
-  { key: 'marketing', label: 'Marketing' },
-  { key: 'hr', label: 'HR' },
-  { key: 'operations', label: 'Operations' },
-  { key: 'ceo', label: 'CEO' },
-]
-
-function Layout() {
-  const { businessId } = useParams()
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  useLayoutEffect(() => { dispatch(setActiveBusiness(businessId)) }, [dispatch, businessId])
-  const logoutError = useSelector((state) => state.auth.error)
-  const isAdmin = useSelector((state) => state.auth.user?.role === 'admin')
-
-  const handleLogout = async () => {
-    const result = await dispatch(logout())
-    if (!logout.fulfilled.match(result)) return
-    dispatch(clearBusinesses())
-    navigate('/login')
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="px-4 py-5 border-b border-gray-100">
-          <h1 className="text-lg font-bold text-gray-900">Startup Simulator</h1>
-        </div>
-
-        <div className="px-4 py-3 border-b border-gray-100">
-          <BusinessSwitcher />
-        </div>
-
-        <nav className="flex-1 px-2 py-3 space-y-1">
-          <Link
-            to={`/b/${businessId}/dashboard`}
-            className="block px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            Dashboard
-          </Link>
-          <p className="px-3 pt-3 pb-1 text-xs font-semibold text-gray-400 uppercase">Agents</p>
-          {AGENT_LINKS.map((agent) => (
-            <Link
-              key={agent.key}
-              to={`/b/${businessId}/agents/${agent.key}`}
-              className="block px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-            >
-              {agent.label}
-            </Link>
-          ))}
-          <Link
-            to={`/b/${businessId}/profile`}
-            className="block px-3 py-2 mt-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100 border-t border-gray-100 pt-3"
-          >
-            Business Profile
-          </Link>
-          <Link
-            to={`/b/${businessId}/memory-inspector`}
-            className="block px-3 py-2 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            Memory Inspector
-          </Link>
-          <Link
-            to={`/b/${businessId}/decision-log`}
-            className="block px-3 py-2 mt-1 rounded text-sm font-medium text-gray-700 hover:bg-gray-100"
-          >
-            Decision Log
-          </Link>
-        </nav>
-
-        <div className="px-4 py-4 border-t border-gray-100 space-y-2">
-          {isAdmin && (
-            <Link
-              to="/admin"
-              title="Admin access is granted by the platform operator directly in the database — it isn't self-service."
-              className="block text-sm font-medium text-gray-500 hover:text-gray-700"
-            >
-              Admin →
-            </Link>
-          )}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="w-full text-sm font-medium py-2 rounded hover:bg-gray-50"
-            style={{ color: STATUS.critical }}
-          >
-            Log out
-          </button>
-          {logoutError && <p role="alert" className="text-xs text-red-600">{logoutError}</p>}
-        </div>
-      </aside>
-
-      <div className="flex-1 min-w-0">
-        <Outlet key={businessId} />
-      </div>
-    </div>
-  )
+const agentLinks=[['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],['hr','HR'],['operations','Operations']]
+const primary=[['dashboard','◫','Command Center'],['boardroom','◉','3D Boardroom'],['decision-log','☷','Decision History'],['memory-inspector','◇','Agent Memory'],['profile','▤','Business Profile']]
+export default function Layout(){
+ const { businessId }=useParams()
+ const dispatch=useDispatch()
+ const navigate=useNavigate()
+ const [open,setOpen]=useState(false)
+ const logoutError=useSelector(s=>s.auth.error)
+ const isAdmin=useSelector(s=>s.auth.user?.role==='admin')
+ useLayoutEffect(()=>{dispatch(setActiveBusiness(businessId));setOpen(false)},[businessId,dispatch])
+ const doLogout=async()=>{const result=await dispatch(logout());if(!logout.fulfilled.match(result))return;dispatch(clearBusinesses());navigate('/login')}
+ return <div className="hq-app-shell">
+   <button className="hq-mobile-trigger" aria-expanded={open} aria-controls="hq-nav" onClick={()=>setOpen(!open)} type="button">{open?'Close menu':'☰ Menu'}</button>
+   {open&&<button className="hq-mobile-scrim" onClick={()=>setOpen(false)} aria-label="Close navigation" type="button"/>}
+   <aside id="hq-nav" className={'hq-sidebar '+(open?'hq-sidebar-open':'')}>
+     <Link to={`/b/${businessId}/dashboard`} className="hq-brand" onClick={()=>setOpen(false)}><span>✦</span><div><strong>Startup Simulator</strong><small>EXECUTIVE HEADQUARTERS</small></div></Link>
+     <div className="hq-switcher"><BusinessSwitcher/></div>
+     <nav aria-label="Workspace navigation">
+       <small className="hq-nav-heading">WORKSPACE</small>
+       {primary.map(([route,icon,label])=><NavLink key={route} to={`/b/${businessId}/${route}`} end={route==='dashboard'} className={({isActive})=>'hq-nav-link '+(isActive?'active':'')} onClick={()=>setOpen(false)}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
+       <small className="hq-nav-heading hq-nav-agents">EXECUTIVE AGENTS</small>
+       {agentLinks.map(([key,label])=><NavLink key={key} to={`/b/${businessId}/agents/${key}`} className={({isActive})=>'hq-nav-link '+(isActive?'active':'')} onClick={()=>setOpen(false)}><span aria-hidden="true" className={'hq-agent-dot hq-'+key}/>{label}</NavLink>)}
+     </nav>
+     <div className="hq-sidebar-footer">{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>
+   </aside>
+   <div className="hq-workspace"><Outlet key={businessId}/></div>
+ </div>
 }
-
-export default Layout
