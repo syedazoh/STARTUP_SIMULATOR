@@ -1,13 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  --brand-emerald: #1f6b57;
+  --brand-emerald-dark: #205b49;
+  --brand-champagne: #e9d8b7;
+  --brand-lavender: #a88bc7;
+  --brand-ivory: #f8f5ef;
+  --brand-text: #24352f;
+  --brand-muted: #66716b;
 }
-
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--brand-ivory); color: var(--brand-text); font-family: Inter, system-ui, sans-serif; }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 3px solid #a88bc7; outline-offset: 3px; }
+h1,h2,h3 { font-family: 'Plus Jakarta Sans',Inter,system-ui,sans-serif; }
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* Extend the established shell to legacy authenticated forms without changing their behavior. */
+.hq-app-shell .bg-gray-50 { background-color: #f8f5ef; }
+.hq-app-shell .bg-white { background-color: #fffdfa; }
+.hq-app-shell .text-gray-900 { color: #24352f; }
+.hq-app-shell .text-gray-700 { color: #465d4f; }
+.hq-app-shell .border-gray-200 { border-color: #dce4dc; }
+.public-app .bg-gray-50 { background: linear-gradient(145deg,#f8f5ef,#ecf0e8); }
+.public-app .bg-white { background-color: #fffdfa; }
+.public-app .text-gray-900 { color: #24352f; }
+.public-app form input:focus { border-color: #1f6b57!important; box-shadow: 0 0 0 2px #cce0d5; }
