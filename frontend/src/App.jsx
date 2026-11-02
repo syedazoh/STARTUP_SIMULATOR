@@ -15,6 +15,7 @@ import Register from './pages/Register'
 import Setup from './pages/Setup'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
+import Boardroom from './pages/Boardroom'
 import AgentDetail from './pages/AgentDetail'
 import BusinessProfile from './pages/BusinessProfile'
 import MemoryInspector from './pages/MemoryInspector'
@@ -58,7 +59,7 @@ function App() {
             <Route path="/app" element={<HomeRedirect />} />
             <Route element={<Layout />}>
               <Route path="/b/:businessId/dashboard" element={<Dashboard />} />
-              <Route path="/b/:businessId/boardroom" element={<Dashboard initialBoardroom />} />
+              <Route path="/b/:businessId/boardroom" element={<Boardroom />} />
               <Route path="/b/:businessId/agents/:agentKey" element={<AgentDetail />} />
               <Route path="/b/:businessId/profile" element={<BusinessProfile />} />
               <Route path="/b/:businessId/memory-inspector" element={<MemoryInspector />} />
