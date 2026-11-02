@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, OrbitControls, RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
+import { getLatestMessage } from './eventRoutes'
 
 export const EXECUTIVES = [
   { id: 'ceo', label: 'CEO', color: '#c69d59', position: [0, 0, -2.4] },
@@ -97,14 +98,14 @@ function Scene({ statuses, selected, onSelect, message }) {
 export default function Boardroom3D({ statuses = {}, events = [], onSelect, selected }) {
   const [reducedMotion, setReducedMotion] = useState(false)
   const [beam, setBeam] = useState(null)
+  const seenEvent = useRef(null)
   const [mode, setMode] = useState('3d')
-  const lastSeen = useMemo(() => events?.[events.length - 1], [events])
+  const lastSeen = useMemo(() => getLatestMessage(events), [events])
   useEffect(() => {
     if (!lastSeen) return
-    const sender = lastSeen.sender || lastSeen.data?.sender || lastSeen.source
-    const receiver = lastSeen.receiver || lastSeen.data?.receiver
-    const id = lastSeen.event_id
-    if (!positionOf(sender) || !positionOf(receiver) || !id) return
+    const { sender, receiver, id } = lastSeen
+    if (!positionOf(sender) || !positionOf(receiver) || !id || seenEvent.current === id) return
+    seenEvent.current = id
     setBeam({ id, sender, receiver })
     const timeout = setTimeout(() => setBeam((current) => current?.id === id ? null : current), 2800)
     return () => clearTimeout(timeout)
