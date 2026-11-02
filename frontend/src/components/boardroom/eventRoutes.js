@@ -6,7 +6,7 @@ export function normalizeAgent(value) {
   const id = value.toLowerCase()
   if (AGENTS.has(id)) return id
   const prefix = id.split('_')[0]
-  if (AGENTS.has(prefix) && (/^\\d+$/.test(id.slice(prefix.length + 1)) || id === prefix + '_agent')) return prefix
+  if (AGENTS.has(prefix) && (/^[0-9]+$/.test(id.slice(prefix.length + 1)) || id === prefix + '_agent')) return prefix
   return null
 }
 const ROUTES = {
