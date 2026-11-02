@@ -62,7 +62,6 @@ function CommunicationBeam({ sender, receiver }) {
     )
   }, [start, end, sender, receiver])
   if (!points) return null
-  const path = points.getPoints(40)
   return <group>
     <mesh>
       <tubeGeometry args={[points, 40, 0.025, 6, false]} />
@@ -99,12 +98,14 @@ export default function Boardroom3D({ statuses = {}, events = [], onSelect, sele
   const [reducedMotion, setReducedMotion] = useState(false)
   const [beam, setBeam] = useState(null)
   const seenEvent = useRef(null)
+  const initialized = useRef(false)
   const [mode, setMode] = useState('3d')
   const lastSeen = useMemo(() => getLatestMessage(events), [events])
   useEffect(() => {
     if (!lastSeen) return
     const { sender, receiver, id } = lastSeen
     if (!positionOf(sender) || !positionOf(receiver) || !id || seenEvent.current === id) return
+    if (!initialized.current) { initialized.current = true; seenEvent.current = id; return }
     seenEvent.current = id
     setBeam({ id, sender, receiver })
     const timeout = setTimeout(() => setBeam((current) => current?.id === id ? null : current), 2800)
