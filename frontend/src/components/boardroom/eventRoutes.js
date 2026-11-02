@@ -1,6 +1,14 @@
 // The current EventBus publishes a source and event type, not a generic receiver.
 // Only route established agent interactions; never animate unsupported claims.
 const AGENTS = new Set(['ceo', 'finance', 'marketing', 'hr', 'operations'])
+export function normalizeAgent(value) {
+  if (typeof value !== 'string') return null
+  const id = value.toLowerCase()
+  if (AGENTS.has(id)) return id
+  const prefix = id.split('_')[0]
+  if (AGENTS.has(prefix) && (/^\\d+$/.test(id.slice(prefix.length + 1)) || id === prefix + '_agent')) return prefix
+  return null
+}
 const ROUTES = {
   budget_request: { sender: 'marketing', receiver: 'finance' },
   budget_negotiation: { sender: 'finance', receiver: 'marketing' },
@@ -16,8 +24,8 @@ export function resolveMessage(event) {
       : ROUTES[event.event_type]
   if (!explicit) return null
   // Routes derived from event type are valid only with the expected agent source.
-  if (!event.sender && !event.data?.sender && event.source !== explicit.sender) return null
-  const { sender, receiver } = explicit
+  if (!event.sender && !event.data?.sender && normalizeAgent(event.source) !== explicit.sender) return null
+  const sender = normalizeAgent(explicit.sender), receiver = normalizeAgent(explicit.receiver)
   if (!AGENTS.has(sender) || !AGENTS.has(receiver) || sender === receiver) return null
   return { id: event.event_id, sender, receiver, type: event.event_type }
 }
