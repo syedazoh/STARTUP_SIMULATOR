@@ -27,3 +27,9 @@ test('latest event is not assumed to be a conversation', () => {
   ]
   assert.equal(getLatestMessage(events).id,'e1')
 })
+
+test('normalizes real Python agent instance IDs', () => {
+  assert.equal(resolveMessage({ event_id:'e6', source:'marketing_001', event_type:'budget_request', data:{} }).sender,'marketing')
+  assert.equal(resolveMessage({ event_id:'e7', source:'finance_001', event_type:'arbitration_request', data:{} }).receiver,'ceo')
+  assert.equal(resolveMessage({ event_id:'e8', source:'ceo_agent', event_type:'arbitration_result', data:{} }).sender,'ceo')
+})
