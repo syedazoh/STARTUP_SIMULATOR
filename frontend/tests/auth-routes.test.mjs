@@ -20,6 +20,7 @@ async function loadJSX(path, overrides = {}) {
       else if (specifier === 'react-router-dom') exports = router
       else if (specifier === 'react-redux') exports = { useDispatch: () => () => {}, useSelector: () => ({}) }
       else if (specifier.endsWith('/palette')) exports = { STATUS: { good: 'green' } }
+      else if (specifier.endsWith('/boardroom/Boardroom3D')) exports = { default: function BoardroomStub() { return null }, EXECUTIVES: [] }
       else if (specifier.endsWith('/api/client')) exports = { clearAccessToken() {}, setOnToken() {}, setOnUnauthorized() {} }
       else if (specifier.endsWith('/authSlice')) exports = { clearAuth() {}, tokenRefreshed() {} }
       else exports = { default: function Stub() { return null } }
