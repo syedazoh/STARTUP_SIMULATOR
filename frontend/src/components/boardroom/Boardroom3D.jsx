@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Html, OrbitControls, RoundedBox } from '@react-three/drei'
 import * as THREE from 'three'
@@ -49,8 +49,9 @@ function Person({ agent, active, selected, onSelect }) {
 
 function CommunicationBeam({ sender, receiver }) {
   const start = positionOf(sender), end = positionOf(receiver)
-  const [phase, setPhase] = useState(0)
-  useFrame((_, delta) => setPhase((value) => (value + delta * 0.55) % 1))
+  const orb = useRef()
+  const phase = useRef(0)
+  useFrame((_, delta) => { phase.current = (phase.current + delta * 0.55) % 1; if (orb.current && points) orb.current.position.copy(points.getPoint(phase.current)) })
   const points = useMemo(() => {
     if (!start || !end || sender === receiver) return null
     return new THREE.QuadraticBezierCurve3(
@@ -66,7 +67,7 @@ function CommunicationBeam({ sender, receiver }) {
       <tubeGeometry args={[points, 40, 0.025, 6, false]} />
       <meshBasicMaterial color="#a88bc7" transparent opacity={0.72} />
     </mesh>
-    <mesh position={points.getPoint(phase).toArray()}>
+    <mesh ref={orb} position={points.getPoint(0).toArray()}>
       <sphereGeometry args={[0.11, 12, 12]} />
       <meshBasicMaterial color="#ead2ff" />
     </mesh>
@@ -100,7 +101,7 @@ export default function Boardroom3D({ statuses = {}, events = [], onSelect, sele
   const lastSeen = useMemo(() => events?.[events.length - 1], [events])
   useEffect(() => {
     if (!lastSeen) return
-    const sender = lastSeen.sender || lastSeen.source || lastSeen.data?.sender
+    const sender = lastSeen.sender || lastSeen.data?.sender || lastSeen.source
     const receiver = lastSeen.receiver || lastSeen.data?.receiver
     const id = lastSeen.event_id
     if (!positionOf(sender) || !positionOf(receiver) || !id) return
