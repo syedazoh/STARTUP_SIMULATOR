@@ -10,6 +10,9 @@
     "test": "node --experimental-vm-modules --test tests/*.test.mjs"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "three": "^0.170.0",
     "@reduxjs/toolkit": "^1.9.7",
     "autoprefixer": "^10.4.17",
     "axios": "^1.21.0",
