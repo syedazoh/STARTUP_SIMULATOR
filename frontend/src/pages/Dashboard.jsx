@@ -37,7 +37,7 @@ export default function Dashboard(){
  const [metricError,setMetricError]=useState(false)
  const [showControls,setShowControls]=useState(true)
  const wasRunning=useRef(false)
- useEffect(()=>{dispatch(resetSimulationState());wasRunning.current=false;setSelected('ceo');setFinanceHistory([]);setMarketingHistory([])},[businessId,dispatch])
+ useEffect(()=>{dispatch(resetSimulationState());wasRunning.current=false;setFinanceHistory([]);setMarketingHistory([])},[businessId,dispatch])
  useVisiblePolling(()=>{
    dispatch(fetchAgents(businessId))
    dispatch(fetchSimulationStatus(businessId))
