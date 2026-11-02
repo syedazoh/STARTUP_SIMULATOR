@@ -58,6 +58,7 @@ function App() {
             <Route path="/app" element={<HomeRedirect />} />
             <Route element={<Layout />}>
               <Route path="/b/:businessId/dashboard" element={<Dashboard />} />
+              <Route path="/b/:businessId/boardroom" element={<Dashboard initialBoardroom />} />
               <Route path="/b/:businessId/agents/:agentKey" element={<AgentDetail />} />
               <Route path="/b/:businessId/profile" element={<BusinessProfile />} />
               <Route path="/b/:businessId/memory-inspector" element={<MemoryInspector />} />
