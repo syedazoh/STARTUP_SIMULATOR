@@ -86,7 +86,7 @@ export default function Dashboard(){
      <div className="hq-action-column">
        <section className="hq-review-section"><div className="hq-section-header"><div><span className="hq-kicker">NEXT ACTION</span><h2>Approvals & tasks</h2></div><Link to={`/b/${businessId}/decision-log`}>Decision history ↗</Link></div><TaskQueue businessId={businessId}/></section>
        <section className="hq-mini-agents"><div className="hq-section-header"><h2>Executive roster</h2></div>
-         {EXECUTIVES.map(agent=><button type="button" key={agent.id} onClick={()=>{}} className=""><span className="hq-roster-dot" style={{background:ACCENTS[agent.id]}}/>{agent.label}<small>{statuses?.[agent.id]?'Available in backend':'No snapshot'}</small></button>)}
+         {EXECUTIVES.map(agent=><Link key={agent.id} to={`/b/${businessId}/agents/${agent.id}`} className="hq-roster-link"><span className="hq-roster-dot" style={{background:ACCENTS[agent.id]}}/>{agent.label}<small>{statuses?.[agent.id]?'Available in backend':'No snapshot'}</small></Link>)}
        </section>
      </div>
    </div>
