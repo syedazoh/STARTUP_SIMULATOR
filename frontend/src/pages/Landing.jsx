@@ -1,246 +1,74 @@
+import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { STATUS } from '../theme/palette'
+import Boardroom3D, { EXECUTIVES } from '../components/boardroom/Boardroom3D'
+import '../components/boardroom/boardroom.css'
+import './landing.css'
 
-const AGENTS = [
-  {
-    key: 'finance',
-    label: 'Finance Agent',
-    description: 'Manages budgets, revenue tracking, expense management, and simulated budget decisions',
-    icon: '💰',
-    color: '#10B981'
-  },
-  {
-    key: 'marketing',
-    label: 'Marketing Agent',
-    description: 'Handles campaign budget proposals and simulated customer and brand metrics',
-    icon: '📈',
-    color: '#3B82F6'
-  },
-  {
-    key: 'hr',
-    label: 'HR Agent',
-    description: 'Handles simulated recruitment and tracks headcount and team morale',
-    icon: '👥',
-    color: '#8B5CF6'
-  },
-  {
-    key: 'operations',
-    label: 'Operations Agent',
-    description: 'Handles simulated resource requests and operational efficiency metrics',
-    icon: '⚙️',
-    color: '#F59E0B'
-  },
-  {
-    key: 'ceo',
-    label: 'CEO Agent',
-    description: 'Strategic decision-making, cross-department coordination, and long-term vision',
-    icon: '🎯',
-    color: '#EF4444'
-  }
-]
-
-const FEATURES = [
-  {
-    title: 'Multi-Agent Simulation',
-    description: 'Five autonomous AI agents collaborate and compete to run a virtual startup, each with specialized expertise.',
-    icon: '🤖'
-  },
-  {
-    title: 'Real-time Decision Making',
-    description: 'Watch agents make decisions in real-time using business requests, generated scenarios, and internal metrics.',
-    icon: '⚡'
-  },
-  {
-    title: 'Decision Memory',
-    description: 'Agents maintain persistent memory across simulation runs, retrieving earlier decision summaries as context. The model is not retrained.',
-    icon: '🧠'
-  },
-  {
-    title: 'Business Context Injection',
-    description: 'Define your brand voice, product details, marketing strategy, and financial parameters to guide agent behavior.',
-    icon: '📋'
-  },
-  {
-    title: 'Interactive Dashboard',
-    description: 'Monitor agent performance, view decision feeds, track metrics, and intervene with custom policies.',
-    icon: '📊'
-  },
-  {
-    title: 'Simulation Controls',
-    description: 'Start, pause, resume, or stop a bounded simulation run and review its generated requests.',
-    icon: '🎮'
-  }
-]
-
-function Landing() {
-  const token = useSelector((state) => state.auth.token)
-  if (token) return <Navigate to="/app" replace />
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20">
-        <section className="relative overflow-hidden py-20 sm:py-32">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight">
-                AI-Powered Business{' '}
-                <span className="relative">
-                  <span className="relative z-10">Simulation</span>
-                  <span
-                    className="absolute bottom-2 left-0 right-0 h-4"
-                    style={{ backgroundColor: `${STATUS.good}33` }}
-                  />
-                </span>
-              </h2>
-              <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Experience the future of business management with autonomous AI agents that collaborate,
-                coordinate decisions for a virtual startup. Build, simulate, and optimize — all without writing code.
-              </p>
-              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  to="/register"
-                  className="w-full sm:w-auto px-8 py-3.5 text-base font-semibold text-white rounded-xl transition-all hover:shadow-lg"
-                  style={{ backgroundColor: STATUS.good }}
-                >
-                  Start Your Free Simulation
-                </Link>
-                <Link
-                  to="/login"
-                  className="w-full sm:w-auto px-8 py-3.5 text-base font-semibold text-gray-700 rounded-xl border border-gray-300 transition-all hover:bg-gray-50"
-                >
-                  Sign In to Dashboard
-                </Link>
-              </div>
-            </div>
-
-            <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-              {AGENTS.map((agent) => (
-                <div
-                  key={agent.key}
-                  className="group p-6 rounded-2xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-xl transition-all duration-300"
-                >
-                  <div
-                    className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl mb-4 transition-transform group-hover:scale-110"
-                    style={{ backgroundColor: `${agent.color}15` }}
-                  >
-                    {agent.icon}
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{agent.label}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{agent.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 sm:py-28 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">Why Startup Simulator?</h2>
-              <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
-                Built for entrepreneurs, students, and AI enthusiasts to understand how autonomous agents
-                can transform business operations.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {FEATURES.map((feature, index) => (
-                <div
-                  key={index}
-                  className="p-6 rounded-2xl bg-white border border-gray-100 hover:shadow-lg transition-shadow"
-                >
-                  <div className="text-3xl mb-4">{feature.icon}</div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-20 sm:py-28">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gray-900 rounded-3xl p-8 sm:p-12 lg:p-16 text-center">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                Ready to Build Your AI Startup?
-              </h2>
-              <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
-                Explore the intersection of AI and business. Create your first
-                simulation in minutes — no credit card required.
-              </p>
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 px-8 py-3.5 text-base font-semibold text-gray-900 rounded-xl transition-all hover:shadow-xl"
-                style={{ backgroundColor: STATUS.good }}
-              >
-                Create Free Account
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Tech Stack</h3>
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500">
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">React 18</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">Redux Toolkit</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">Tailwind CSS</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">FastAPI</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">MongoDB</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">LangGraph</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">Groq LLM</span>
-              <span className="px-3 py-1 rounded-full bg-white border border-gray-200">Docker</span>
-            </div>
-          </div>
-        </section>
-
-        <footer className="border-t border-gray-100 bg-white py-12 mt-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Startup Simulator</h4>
-              <p className="text-sm text-gray-600">
-                Multi-agent AI-powered business simulation platform for learning and experimentation.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Agents</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>Finance Agent</li>
-                <li>Marketing Agent</li>
-                <li>HR Agent</li>
-                <li>Operations Agent</li>
-                <li>CEO Agent</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Resources</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>Documentation</li>
-                <li>API Reference</li>
-                <li>Community Forum</li>
-                <li>GitHub Repository</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li>Privacy Policy</li>
-                <li>Terms of Service</li>
-                <li>Cookie Policy</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-100 text-center text-sm text-gray-500">
-            <p>© 2024 Startup Simulator. Built with ❤️ for the AI community.</p>
-          </div>
-        </footer>
-      </main>
-    </div>
-  )
+const DESCRIPTIONS = {
+  ceo: 'Leads the executive team, reviews proposals and resolves conflicting business priorities.',
+  finance: 'Balances resources, evaluates spending and advises on financial decisions.',
+  marketing: 'Plans campaigns, evaluates customer growth and initiates budget requests.',
+  hr: 'Coordinates hiring, headcount and team morale for the simulated startup.',
+  operations: 'Handles resource requests, delivery capacity and operational performance.',
 }
+const FEATURES = [
+  { title: 'Real agent collaboration', icon: '↗', copy: 'Trace requests and decisions between your five autonomous agents.' },
+  { title: 'A visible decision process', icon: '◎', copy: 'Inspect CEO reviews, explanations, approvals and the tasks that follow.' },
+  { title: 'Business outcomes', icon: '▥', copy: 'See metrics and task progress sourced from the Python simulator.' },
+]
 
-export default Landing
+export default function Landing() {
+  const token = useSelector((state) => state.auth.token)
+  const [selected, setSelected] = useState('ceo')
+  if (token) return <Navigate to="/app" replace />
+  return <main className="marketing-site">
+    <section className="marketing-hero" id="home">
+      <div className="hero-copy">
+        <span className="eyebrow">WELCOME TO THE AI EXECUTIVE HEADQUARTERS</span>
+        <h1>Your startup.<br/><em>Five intelligent minds.</em><br/>One command center.</h1>
+        <p>Create a virtual company and observe autonomous AI executives plan, collaborate, and make decisions with measurable business outcomes.</p>
+        <div className="hero-actions">
+          <Link to="/register" className="button-primary">Create your startup <span aria-hidden="true">↗</span></Link>
+          <a href="#team" className="button-outline">Meet the executives</a>
+        </div>
+        <div className="hero-proof"><span>01 / CREATE</span><span>02 / COLLABORATE</span><span>03 / EVALUATE</span></div>
+      </div>
+      <div className="hero-world">
+        <div className="world-caption"><span className="live-dot"/> Interactive 3D preview <small>Illustration only — login to see real events</small></div>
+        <Boardroom3D selected={selected} onSelect={setSelected} />
+        <div className="hero-world-agent"><span>EXECUTIVE PROFILE</span><strong>{EXECUTIVES.find(a=>a.id===selected)?.label}</strong><p>{DESCRIPTIONS[selected]}</p></div>
+      </div>
+    </section>
+    <section className="marketing-section team-section" id="team">
+      <div className="section-heading"><span className="eyebrow">THE LEADERSHIP TEAM</span><h2>Five roles. <em>One shared mission.</em></h2><p>Each executive has a distinct responsibility and a place in your 3D boardroom.</p></div>
+      <div className="executive-grid">
+        {EXECUTIVES.map(agent=><button type="button" key={agent.id} className={'executive-card '+(selected===agent.id?'executive-card-active':'')} onClick={()=>{setSelected(agent.id);document.getElementById('home')?.scrollIntoView({behavior:'smooth'})}}>
+          <span className="executive-card-orbit" style={{background:agent.color}}><span className="executive-card-initial">{agent.label.charAt(0)}</span></span>
+          <strong>{agent.label} Agent</strong><p>{DESCRIPTIONS[agent.id]}</p><span className="card-link">Meet agent ↗</span>
+        </button>)}
+      </div>
+    </section>
+    <section className="marketing-section steps-section" id="how-it-works">
+      <div className="section-heading"><span className="eyebrow">FROM IDEA TO EXECUTION</span><h2>See every decision <em>take shape.</em></h2></div>
+      <div className="steps-grid">
+        {[
+          ['01','Set the scene','Describe your startup, business goals and operating context.'],
+          ['02','Bring the team together','Your executive agents receive tasks and analyze business conditions.'],
+          ['03','Watch decisions travel','Messages, CEO reviews and next steps appear in your Command Center.'],
+          ['04','Measure the outcome','Follow actual simulation metrics and inspect decision history.'],
+        ].map(([n,t,c])=><article key={n} className="step-card"><span>{n}</span><h3>{t}</h3><p>{c}</p></article>)}
+      </div>
+    </section>
+    <section className="marketing-section feature-section" id="features">
+      <div className="section-heading"><span className="eyebrow">A DIFFERENT KIND OF DASHBOARD</span><h2>Intelligence you can <em>actually inspect.</em></h2></div>
+      <div className="feature-grid">{FEATURES.map(f=><article key={f.title} className="feature-tile"><span className="feature-icon">{f.icon}</span><h3>{f.title}</h3><p>{f.copy}</p></article>)}</div>
+      <div className="product-preview">
+        <div><span className="eyebrow">INSIDE THE COMMAND CENTER</span><h3>From agent conversation to business action.</h3><p>Switch between the 3D boardroom, task approvals and event history. The interface reads your simulator’s results instead of inventing activity.</p><Link to="/register" className="button-outline">Explore the experience ↗</Link></div>
+        <div className="preview-card"><div className="preview-bar"><span>● ● ●</span><span>COMMAND CENTER</span></div><div className="preview-stat-row"><div><small>Executive agents</small><strong>5</strong></div><div><small>Event history</small><strong>Traceable</strong></div></div><div className="preview-message"><span>MARKETING</span> Proposal submitted <b>→ FINANCE</b></div><div className="preview-message"><span>FINANCE</span> Budget review <b>→ CEO</b></div><div className="preview-message"><span>CEO</span> Decision recorded <b>✓</b></div><small className="preview-disclaimer">Illustrative workflow, not live simulator data.</small></div>
+      </div>
+    </section>
+    <section className="marketing-cta"><span className="eyebrow">THE NEXT MOVE IS YOURS</span><h2>A new way to experience business leadership.</h2><p>Build a virtual startup, guide your executive team and learn from every decision.</p><Link className="button-champagne" to="/register">Launch your simulation ↗</Link></section>
+    <footer className="marketing-footer"><span>Autonomous Startup Simulator</span><span>Five agents · One shared workspace</span><Link to="/login">Sign in</Link></footer>
+  </main>
+}
