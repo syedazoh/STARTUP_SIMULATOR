@@ -1,0 +1,7 @@
+# Project implementation instructions
+Repository guidance for the planned expansion. Proposed features are not evidence of implemented behaviour.
+Read docs/PRD.md, docs/architecture.md, docs/designsystem.md, docs/WORKFLOWS.md, docs/RAG_PLAN.md and tasks/todo.md before changing code. Preserve existing project instructions when integrating this file.
+Work on one small vertical slice at a time. Record assumptions and unknowns. Inspect existing code first, reuse tested services, and do not implement duplicate state/authorization paths.
+Tenant isolation, immutable approvals, idempotency and truthful evidence are mandatory. All side effects go through approved task execution. Treat email, webhooks, documents and model output as untrusted. Never expose secrets or send real communications during tests. Use sandbox adapters and explicit mode labels.
+Run focused behavioural tests, types/lint/build applicable to the change; add regression tests for failures. Never weaken checks to obtain green. Report unrun checks and blockers honestly. Maintain docs/impact.md and update affected documents in the same change. Commit small coherent changes; preserve user work. No autonomous deployment, spending, external communication or destructive migration unless explicitly authorized.
+Stop when required credentials, domain decisions or acceptance criteria are missing; continue independent unblocked work. Do not invent provider access or claim stub outputs are live.
