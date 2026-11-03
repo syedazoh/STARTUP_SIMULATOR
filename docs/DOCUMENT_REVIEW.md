@@ -1,11 +1,11 @@
 # Documentation review — 3 November 2026
 
-No existing document was deleted or changed. Recommendations below require owner decision before removal or archival.
+The owner approved deletion of the three superseded documents below on 3 November 2026. They were removed from the current tree; Git history retains their previous versions.
 
 |Existing file|Finding|Recommendation|
-|../TODO.md|Completed one-off vulnerability/import repair checklist; zero-vulnerability wording and historical versions should not serve as a current security verdict.|Candidate for archive or deletion after owner approval; retain relevant historical evidence.|
-|../COMPLETE_PROJECT_BLUEPRINT.md|Calls itself the standalone execution spec but mixes old plans and implemented behaviour; includes Next.js/WS and older RAG/model descriptions.|Archive after approval, or mark historical and link the new PRD/architecture.|
-|../FRONTEND_DESIGN_SYSTEM.md|Charcoal/cyan cyber-minimalism conflicts with proposed Emerald/Champagne/Lavender direction.|Archive after owner confirms replacement; new designsystem.md is a proposed direction, not a completed token specification.|
+|../TODO.md|Completed one-off vulnerability/import repair checklist; zero-vulnerability wording and historical versions should not serve as a current security verdict.|Deleted with owner approval; historical content remains in Git.|
+|../COMPLETE_PROJECT_BLUEPRINT.md|Calls itself the standalone execution spec but mixes old plans and implemented behaviour; includes Next.js/WS and older RAG/model descriptions.|Deleted with owner approval; historical content remains in Git.|
+|../FRONTEND_DESIGN_SYSTEM.md|Charcoal/cyan cyber-minimalism conflicts with proposed Emerald/Champagne/Lavender direction.|Deleted with owner approval; historical content remains in Git.|
 |../TECH_STACK.md|Useful inventory, but includes ambiguous embeddings/test runner descriptions and realtime claims that need implementation verification.|Keep and revise in a separate documentation update; do not delete.|
 |../TASKS.md|Historical implementation decisions and validation evidence.|Keep. New tasks/todo.md is prospective work, not its replacement.|
 |IMPLEMENTATION_CHECKLIST.md|Unfinished reliability/security findings and detailed evidence.|Keep and reconcile during T01; do not discard unchecked work.|

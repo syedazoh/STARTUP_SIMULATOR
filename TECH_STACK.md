@@ -9,7 +9,7 @@ Every technology used in the project, layer by layer, with what it's for and why
 | Technology | Purpose |
 |---|---|
 | **React + Vite** | SPA frontend with React Router; Vite provides development serving and production builds. |
-| **Tailwind CSS** | Utility-first styling, implements the design system tokens directly as config (colors, spacing, radius from `FRONTEND_DESIGN_SYSTEM.md`). |
+| **Tailwind CSS** | Utility-first styling. See `docs/designsystem.md` for the proposed visual direction; inspect frontend theme/config files for currently implemented tokens. |
 | **Framer Motion** | All UI animation — page transitions, modal entry, terminal line animation, task-resolve micro-interaction. |
 | **Recharts** | Dashboard charts — dual-axis revenue/burn line chart, sentiment timeline, Finance agent's budget pie chart. |
 | **Lucide Icons** | Icon set — consistent stroke-based icons across nav, buttons, status indicators. |
