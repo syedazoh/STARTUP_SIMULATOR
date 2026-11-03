@@ -20,6 +20,10 @@ async def get_current_user(
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
+    if request.headers.get("x-auth-provider") == "supabase":
+        from ..services.supabase_auth import resolve_user
+        return await resolve_user(request.app.state.db, credentials.credentials)
+
     claims = decode_access_claims(credentials.credentials)
     user_id = claims.get("sub") if claims else None
     if user_id is None or not claims.get("sid"):

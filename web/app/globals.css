@@ -1,0 +1,154 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #faf7f0;
+  color: #153c33;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 5%;
+  border-bottom: 1px solid #d6ded5;
+  font-size: 13px;
+}
+header a {
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+a {
+  color: #235f50;
+}
+main {
+  max-width: 1040px;
+  margin: auto;
+  padding: 48px 24px;
+}
+.hero {
+  padding: 48px 0;
+  max-width: 720px;
+}
+.hero h1 {
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 1.12;
+  letter-spacing: -2px;
+  margin: 16px 0 24px;
+}
+.hero p {
+  max-width: 560px;
+}
+.compact {
+  padding: 12px 0 32px;
+}
+.compact h1 {
+  font-size: 44px;
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.card {
+  background: #fffdf8;
+  border: 1px solid #d6ded5;
+  border-radius: 16px;
+  padding: 32px;
+  margin: 0 auto 24px;
+  max-width: 640px;
+}
+.card h1 {
+  font-size: 32px;
+  line-height: 1.2;
+}
+form {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0;
+}
+label {
+  font-weight: 600;
+  font-size: 14px;
+}
+input {
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #84968d;
+  border-radius: 8px;
+  width: 100%;
+  background: white;
+  color: #153c33;
+}
+button,
+.button {
+  background: #184f40;
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 13px 22px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  min-height: 48px;
+}
+button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.secondary {
+  background: #e9e2f2;
+  color: #3e3157;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 28px 0;
+}
+.error {
+  background: #fff0ec;
+  border-left: 4px solid #9d3325;
+  padding: 16px;
+  color: #7b261d;
+}
+.notice {
+  background: #e9e2f2;
+  padding: 16px;
+  color: #3e3157;
+}
+:focus-visible {
+  outline: 3px solid #77569a;
+  outline-offset: 4px;
+}
+small {
+  color: #596960;
+}
+summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+li {
+  padding: 12px 0;
+  border-bottom: 1px solid #e0e6df;
+}
+@media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    gap: 8px;
+  }
+  main {
+    padding: 24px 16px;
+  }
+  .card {
+    padding: 24px;
+  }
+  .hero {
+    padding: 24px 0;
+  }
+}

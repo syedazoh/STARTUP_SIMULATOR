@@ -53,7 +53,7 @@ async def login(payload: UserLogin, request: Request, response: Response):
     email = payload.email.lower()
     await check_login_attempt(db, email)
     user_doc = await find_one(db["users"], {"email": email})
-    if user_doc is None or not verify_password(payload.password, user_doc["hashed_password"]):
+    if user_doc is None or not verify_password(payload.password, user_doc.get("hashed_password", "")):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     session_id, refresh = await create_session(db, user_doc["user_id"])
@@ -93,3 +93,20 @@ async def logout(request: Request, response: Response):
         if claims and claims.get("sid"):
             await revoke_session(db, claims["sid"])
     clear_refresh_cookie(response)
+
+
+from pydantic import BaseModel, Field
+
+class SupabaseLink(BaseModel):
+    access_token: str = Field(min_length=20, max_length=16384)
+
+@router.post("/link-supabase", response_model=UserOut)
+async def link_supabase(payload: SupabaseLink, request: Request,
+                        user: UserOut = Depends(get_current_user)):
+    # Linking requires an existing native session AND independently verified
+    # Supabase identity. Never derive ownership from matching email alone.
+    if request.headers.get("x-auth-provider") == "supabase":
+        raise HTTPException(status_code=400, detail="Use your existing account session to link")
+    from ...services.supabase_auth import link_identity
+    await link_identity(request.app.state.db, user, payload.access_token)
+    return user

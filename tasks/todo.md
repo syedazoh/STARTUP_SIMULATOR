@@ -322,3 +322,6 @@ Likely area: backend/app/ and corresponding frontend feature/tests; identify exa
 
 ## Existing backlog preservation
 Read docs/IMPLEMENTATION_CHECKLIST.md before implementation. Its unfinished R01–R24 findings remain active; map them to these tasks during T01 and preserve their evidence. TASKS.md is historical change history, not this new task list. Existing code/tests determine current behaviour; these proposed milestones do not imply features are absent or complete.
+
+## Authentication migration progress — 3 November 2026
+T03/T04/T06: initial additive Next.js/Supabase flow and explicit existing-account linking implemented. Full tasks remain unchecked pending live provider validation, frontend migration and real Atlas acceptance. Owner-only isolation reused; multi-member roles (T05) remain planned. See docs/SUPABASE_AUTH_SETUP.md for setup and test boundaries.
