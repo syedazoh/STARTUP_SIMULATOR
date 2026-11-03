@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     # Explicit local-only opt-in; ignored when debug=False.
     allow_in_memory_login: bool = False
 
+    supabase_url: Optional[str] = None
+    supabase_publishable_key: Optional[str] = None
+
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "startup_simulator"
 
