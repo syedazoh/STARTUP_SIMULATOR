@@ -326,7 +326,7 @@ T03/T04/T06: initial additive Next.js/Supabase flow and explicit existing-accoun
 ## 4–5 November 2026 foundation verification
 - [x] Add two-owner API isolation tests: private business lists, forbidden cross-owner reads/task mutations, ignored forged owner IDs, invalid sessions.
 - [x] Add real-Mongo application-lifespan restart test and MongoDB CI service; random isolated database with cleanup, no application .env database used.
-- [ ] Record successful real-Mongo CI run (see impact log for current evidence).
+- [x] Real-Mongo CI passed: backend run 42050642823, 407 tests passed including the restart test; Docker run 42050642667 passed real container restart/session/snapshot checks.
 - [ ] Manual browser acceptance: sign in with a second registered email; original business must not appear and copied original business API URL must be forbidden. Sign back into original account.
 - [ ] Manual local restart: note original business/task IDs, restart backend, sign in again and confirm IDs/status are preserved on Atlas.
 Full multi-member RBAC, abrupt process termination recovery, provider acceptance and deployment remain separate milestones.

@@ -70,3 +70,6 @@ MONGODB_INTEGRATION_URL=mongodb://127.0.0.1:27018 python -m pytest tests/integra
 docker stop simulator-test-mongo
 ```
 Use the backend virtual environment. Environment-variable syntax above is for Git Bash/Linux. This test opens two separate application lifespans and real database connections; it does not kill a process or restart the Mongo server. Supabase identity verification is controlled at the provider boundary; it is not a live Supabase test. It checks persisted identity link, encryption key, ownership, business and pending task plus session revocation across lifespans. The test creates/drops only its random nov45_test_ database and never reads the application .env URI.
+
+## Recorded automated evidence
+Commit 2307fa4efb473efe53100c918e81aeab99a5c4ab: [backend CI](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/42050642823) passed all 407 tests in 133.91s, including the real-Mongo linked-account restart test. [Docker CI](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/42050642667) passed HTTP wiring and real backend-container restart persistence/session checks. Local targeted suite: 43 passed; wider offline run: 392 passed, one real-Mongo skip and two embedding-dependent files excluded locally. Remote CI covers those local gaps. Manual acceptance above remains separate from automated evidence.
