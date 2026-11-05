@@ -1,20 +1,17 @@
 # Implementation tasks
-All tasks are proposed and unchecked. Suggested sequence; no completion dates are assumed. Each item must be split further if implementation exceeds about five files.
+Progress is recorded with evidence below. Unchecked items remain planned. Each item must be split further if implementation exceeds about five files.
 
 ## Foundation
 ### T01: Inventory routes, schemas, providers and existing tests
-- [ ] Implement and document this capability through its API and UI/worker path where relevant.
-- [ ] Acceptance: normal case succeeds with persisted evidence; unauthorized/invalid case fails without side effects; retry/reload preserves consistent state.
-- [ ] Verification: focused backend or frontend tests plus applicable build/type checks; record actual commands and results in docs/impact.md. Integration tasks also require sandbox provider contract tests.
-Dependencies: baseline repository inspection.
-Likely area: frontend/ and backend/app/api/; identify exact files during preflight. Scope: S/M target, subdivide before changes if larger.
+- [x] Review current implementation, ownership boundaries and provider/test coverage.
+- [x] Map all R01–R24 findings to the implementation backlog without removing unfinished work.
+Evidence: docs/FOUNDATION_REVIEW_NOV_04_05.md; baseline main commit recorded there. Existing authentication UI is an additive preview, not the completed dashboard.
 
 ### T02: Create task/event/approval contracts
-- [ ] Implement and document this capability through its API and UI/worker path where relevant.
-- [ ] Acceptance: normal case succeeds with persisted evidence; unauthorized/invalid case fails without side effects; retry/reload preserves consistent state.
-- [ ] Verification: focused backend or frontend tests plus applicable build/type checks; record actual commands and results in docs/impact.md. Integration tasks also require sandbox provider contract tests.
-Dependencies: T01; reuse earlier foundation contracts.
-Likely area: frontend/ and backend/app/api/; identify exact files during preflight. Scope: S/M target, subdivide before changes if larger.
+- [x] Define and test versioned task, approval and domain event reference schemas.
+- [x] Document provenance, deadlines, proposal fingerprints, approval scope/expiry, state transition guards and idempotency.
+- [x] Preserve current endpoints; explicitly separate reference design from runtime adoption.
+Evidence: backend/app/models/work_contracts.py, backend/tests/test_work_contracts.py and docs/WORK_CONTRACTS.md. Runtime persistence/enforcement stays in T07–T14; T02 completion does not imply those tasks are complete.
 
 ### T03: Bootstrap Next.js login shell
 - [ ] Implement and document this capability through its API and UI/worker path where relevant.
@@ -325,3 +322,11 @@ Read docs/IMPLEMENTATION_CHECKLIST.md before implementation. Its unfinished R01�
 
 ## Authentication migration progress — 3 November 2026
 T03/T04/T06: initial additive Next.js/Supabase flow and explicit existing-account linking implemented. Full tasks remain unchecked pending live provider validation, frontend migration and real Atlas acceptance. Owner-only isolation reused; multi-member roles (T05) remain planned. See docs/SUPABASE_AUTH_SETUP.md for setup and test boundaries.
+
+## 4–5 November 2026 foundation verification
+- [x] Add two-owner API isolation tests: private business lists, forbidden cross-owner reads/task mutations, ignored forged owner IDs, invalid sessions.
+- [x] Add real-Mongo application-lifespan restart test and MongoDB CI service; random isolated database with cleanup, no application .env database used.
+- [ ] Record successful real-Mongo CI run (see impact log for current evidence).
+- [ ] Manual browser acceptance: sign in with a second registered email; original business must not appear and copied original business API URL must be forbidden. Sign back into original account.
+- [ ] Manual local restart: note original business/task IDs, restart backend, sign in again and confirm IDs/status are preserved on Atlas.
+Full multi-member RBAC, abrupt process termination recovery, provider acceptance and deployment remain separate milestones.

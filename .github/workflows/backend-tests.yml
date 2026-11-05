@@ -5,14 +5,28 @@ on:
     branches: [main, develop]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
   pull_request:
     branches: [main, develop]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-tests.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      MONGODB_INTEGRATION_URL: mongodb://127.0.0.1:27017
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
