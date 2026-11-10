@@ -1,0 +1,525 @@
+{
+  "$defs": {
+    "Campaign": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "product_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Product Id",
+          "type": "string"
+        },
+        "goal_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Goal Id",
+          "type": "string"
+        },
+        "launch_date": {
+          "format": "date",
+          "title": "Launch Date",
+          "type": "string"
+        },
+        "duration_days": {
+          "maximum": 365,
+          "minimum": 1,
+          "title": "Duration Days",
+          "type": "integer"
+        },
+        "budget_minor": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000,
+          "title": "Budget Minor",
+          "type": "integer"
+        },
+        "baseline_budget_minor": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Baseline Budget Minor",
+          "type": "integer"
+        },
+        "reach_per_100_minor": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Reach Per 100 Minor",
+          "type": "integer"
+        },
+        "conversion_bps": {
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Conversion Bps",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "product_id",
+        "goal_id",
+        "launch_date",
+        "duration_days",
+        "budget_minor",
+        "baseline_budget_minor",
+        "reach_per_100_minor",
+        "conversion_bps"
+      ],
+      "title": "Campaign",
+      "type": "object"
+    },
+    "Candidate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "role": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Role",
+          "type": "string"
+        },
+        "skills": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Skills",
+          "type": "array"
+        },
+        "available_from": {
+          "format": "date",
+          "title": "Available From",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "applied",
+            "shortlisted",
+            "declined"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "role",
+        "skills",
+        "available_from",
+        "status"
+      ],
+      "title": "Candidate",
+      "type": "object"
+    },
+    "Company": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "starting_capital_minor": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Starting Capital Minor",
+          "type": "integer"
+        },
+        "staffed_units_per_day": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Staffed Units Per Day",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "starting_capital_minor",
+        "staffed_units_per_day"
+      ],
+      "title": "Company",
+      "type": "object"
+    },
+    "Expense": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "category": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Category",
+          "type": "string"
+        },
+        "amount_minor": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Amount Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "category",
+        "amount_minor"
+      ],
+      "title": "Expense",
+      "type": "object"
+    },
+    "Goal": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "due_date": {
+          "format": "date",
+          "title": "Due Date",
+          "type": "string"
+        },
+        "target_units": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Target Units",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "due_date",
+        "target_units"
+      ],
+      "title": "Goal",
+      "type": "object"
+    },
+    "Inventory": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "quantity": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "title": "Quantity",
+          "type": "integer"
+        },
+        "unit_price_minor": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000000000,
+          "title": "Unit Price Minor",
+          "type": "integer"
+        },
+        "unit_cost_minor": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Unit Cost Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "quantity",
+        "unit_price_minor",
+        "unit_cost_minor"
+      ],
+      "title": "Inventory",
+      "type": "object"
+    },
+    "Order": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "product_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Product Id",
+          "type": "string"
+        },
+        "quantity": {
+          "exclusiveMinimum": 0,
+          "maximum": 1000000,
+          "title": "Quantity",
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "fulfilled"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "product_id",
+        "quantity",
+        "status"
+      ],
+      "title": "Order",
+      "type": "object"
+    },
+    "Reference": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "version": {
+          "minimum": 1,
+          "title": "Version",
+          "type": "integer"
+        },
+        "department": {
+          "enum": [
+            "all",
+            "finance",
+            "marketing",
+            "hr",
+            "operations",
+            "ceo"
+          ],
+          "title": "Department",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "version",
+        "department",
+        "text"
+      ],
+      "title": "Reference",
+      "type": "object"
+    },
+    "Sale": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "order_id": {
+          "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+          "title": "Order Id",
+          "type": "string"
+        },
+        "amount_minor": {
+          "maximum": 1000000000000,
+          "minimum": 0,
+          "title": "Amount Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "order_id",
+        "amount_minor"
+      ],
+      "title": "Sale",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "dataset_id": {
+      "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+      "title": "Dataset Id",
+      "type": "string"
+    },
+    "synthetic": {
+      "const": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "currency": {
+      "const": "USD",
+      "title": "Currency",
+      "type": "string"
+    },
+    "as_of": {
+      "format": "date",
+      "title": "As Of",
+      "type": "string"
+    },
+    "company": {
+      "$ref": "#/$defs/Company"
+    },
+    "goals": {
+      "items": {
+        "$ref": "#/$defs/Goal"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Goals",
+      "type": "array"
+    },
+    "inventory": {
+      "items": {
+        "$ref": "#/$defs/Inventory"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Inventory",
+      "type": "array"
+    },
+    "orders": {
+      "items": {
+        "$ref": "#/$defs/Order"
+      },
+      "maxItems": 100,
+      "title": "Orders",
+      "type": "array"
+    },
+    "sales": {
+      "items": {
+        "$ref": "#/$defs/Sale"
+      },
+      "maxItems": 100,
+      "title": "Sales",
+      "type": "array"
+    },
+    "expenses": {
+      "items": {
+        "$ref": "#/$defs/Expense"
+      },
+      "maxItems": 100,
+      "title": "Expenses",
+      "type": "array"
+    },
+    "campaigns": {
+      "items": {
+        "$ref": "#/$defs/Campaign"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Campaigns",
+      "type": "array"
+    },
+    "candidates": {
+      "items": {
+        "$ref": "#/$defs/Candidate"
+      },
+      "maxItems": 100,
+      "title": "Candidates",
+      "type": "array"
+    },
+    "references": {
+      "items": {
+        "$ref": "#/$defs/Reference"
+      },
+      "maxItems": 30,
+      "title": "References",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "synthetic",
+    "currency",
+    "as_of",
+    "company",
+    "goals",
+    "inventory",
+    "orders",
+    "sales",
+    "expenses",
+    "campaigns",
+    "candidates",
+    "references"
+  ],
+  "title": "Dataset",
+  "type": "object"
+}

@@ -81,3 +81,6 @@ web/tsconfig.tsbuildinfo
 # Next.js source helpers are not Python build output.
 !web/lib/
 !web/lib/**
+
+# Local verification environment
+.venv/
