@@ -39,7 +39,15 @@ class ResourceRequestAction(Action):
     unit_cost: float = Field(default=100, ge=0)
 
 
+class DatasetLaunchAction(Action):
+    import_id: str = Field(min_length=1, max_length=80)
+    dataset_digest: str = Field(pattern=r"^[a-f0-9]{64}$")
+    campaign_id: str = Field(pattern=r"^[a-zA-Z0-9_-]{1,80}$")
+    budget_minor: int = Field(strict=True, ge=0, le=10**12)
+
+
 ACTION_CONTRACTS = {
+    "dataset_launch": ("marketing", DatasetLaunchAction),
     "budget_request": ("finance", BudgetRequestAction),
     "campaign_launch": ("marketing", CampaignLaunchAction),
     "instagram_post": ("marketing", InstagramPostAction),

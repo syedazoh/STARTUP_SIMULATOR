@@ -1,0 +1,6 @@
+[
+  {"id": "low-capacity", "staffed_units_per_day": 1, "inventory_quantity": 150, "conversion_bps": 100, "expected_fulfilled": 2},
+  {"id": "low-stock", "staffed_units_per_day": 20, "inventory_quantity": 8, "conversion_bps": 100, "expected_fulfilled": 3},
+  {"id": "no-demand", "staffed_units_per_day": 20, "inventory_quantity": 150, "conversion_bps": 0, "expected_fulfilled": 0},
+  {"id": "high-demand", "staffed_units_per_day": 20, "inventory_quantity": 150, "conversion_bps": 500, "expected_fulfilled": 135}
+]

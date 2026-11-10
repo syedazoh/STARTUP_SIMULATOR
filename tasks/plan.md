@@ -24,3 +24,12 @@ Paid ads, accounting/payment integrations, richer ATS/CRM, independent microserv
 
 ## Existing backlog preservation
 Read docs/IMPLEMENTATION_CHECKLIST.md before implementation. Its unfinished R01–R24 findings remain active; map them to these tasks during T01 and preserve their evidence. TASKS.md is historical change history, not this new task list. Existing code/tests determine current behaviour; these proposed milestones do not imply features are absent or complete.
+
+## Additive dataset simulation — November 10, 2026
+User-authorized scope: one synthetic product-launch scenario. Preserve the broader unfinished plan above.
+1. Versioned schema, sample JSON/CSV and data dictionary.
+2. Atomic snapshot importer with preview, duplicate protection and owner isolation.
+3. Deterministic five-department review, existing owner approval/execution integration, metrics and baseline.
+4. Next.js demo workspace, evidence inspection and archival reset.
+5. Focused/broader regression checks, local-fixture browser acceptance and documentation.
+Design and verification boundaries: docs/DATASET_SIMULATION.md. No production deployment or changes to real financial state.

@@ -81,6 +81,18 @@ async def list_tasks(
 )
 async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
     task, business = owned["task"], owned["business"]
+    if task["action_type"] == "dataset_launch":
+        if task["status"] == "executed":
+            return to_task_out(task)
+        if task["status"] == "approved":
+            return to_task_out(
+                await execute_task(
+                    request.app.state.db,
+                    request.app.state.agent_registry,
+                    business,
+                    task,
+                )
+            )
     if task["status"] not in DECIDABLE_STATUSES:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -96,10 +108,24 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
             raise HTTPException(
                 status_code=409, detail="Task is awaiting CEO authorization"
             )
+    approval_fields = {}
+    approval_filter = {}
+    if task["action_type"] == "dataset_launch":
+        from ...services.demo_launch import validate_approval
+
+        await validate_approval(db, business, task)
+        approval_fields = {
+            "approval_digest": task["proposal_digest"],
+            "approved_by": business.owner_user_id,
+        }
+        approval_filter = {
+            "proposal_digest": task["proposal_digest"],
+            "payload": task["payload"],
+        }
     decided_at = datetime.now(timezone.utc)
     task = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
-        {"$set": {"status": "approved", "decided_at": decided_at}},
+        {"task_id": task["task_id"], "status": task["status"], **approval_filter},
+        {"$set": {"status": "approved", "decided_at": decided_at, **approval_fields}},
         return_document=ReturnDocument.AFTER,
     )
     if task is None:
@@ -154,6 +180,8 @@ async def reject_task(
         target_id=task["task_id"],
         details={"owner_feedback": payload.owner_feedback},
     )
+    if task["action_type"] == "dataset_launch":
+        return to_task_out({**task, **update})
     from ...services.supervision import report_task
 
     runtime = await request.app.state.agent_registry.get_or_create(business)
@@ -275,6 +303,8 @@ async def release_budget(request: Request, owned: dict = Depends(get_owned_task)
     from ...services import ledger
 
     task, business = owned["task"], owned["business"]
+    if task["action_type"] == "dataset_launch":
+        raise HTTPException(409, "Demo has no live budget allocation")
     runtime = await request.app.state.agent_registry.get_or_create(business)
     async with runtime.execution_lock:
         account = await ledger.release_allocation(
@@ -303,6 +333,10 @@ async def revise_task(
     from ...models.action_schemas import validate_action
 
     task, business = owned["task"], owned["business"]
+    if task["action_type"] == "dataset_launch":
+        raise HTTPException(
+            409, "Demo proposals are immutable; reject and propose a different budget"
+        )
     if task["status"] not in {
         "pending_approval",
         "needs_changes",

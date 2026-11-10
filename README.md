@@ -236,3 +236,7 @@ the language model. Periodic simulation income is demo income, not validated sal
 ## License
 
 MIT License
+
+## Synthetic dataset launch demo
+
+The Next.js workspace now links each business to an isolated dataset-driven product-launch demo: preview/import synthetic JSON or CSV, inspect five deterministic department reviews, approve simulated execution, compare results with a fixed baseline and reset only the demo generation. It does not send communications, publish or spend real money. See [setup, rules and verification boundaries](docs/DATASET_SIMULATION.md) and the [sample data dictionary](datasets/product-launch-v1/README.md).

@@ -53,7 +53,8 @@ export default async function Workspace({
           <ul>
             {businesses.map((b) => (
               <li key={b.id}>
-                <strong>{b.company_name}</strong> · {b.industry}
+                <strong>{b.company_name}</strong> · {b.industry} ·{" "}
+                <a href={`/workspace/${b.id}/demo`}>Synthetic launch demo</a>
               </li>
             ))}
           </ul>

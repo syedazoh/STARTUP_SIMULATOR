@@ -330,3 +330,14 @@ T03/T04/T06: initial additive Next.js/Supabase flow and explicit existing-accoun
 - [ ] Manual browser acceptance: sign in with a second registered email; original business must not appear and copied original business API URL must be forbidden. Sign back into original account.
 - [ ] Manual local restart: note original business/task IDs, restart backend, sign in again and confirm IDs/status are preserved on Atlas.
 Full multi-member RBAC, abrupt process termination recovery, provider acceptance and deployment remain separate milestones.
+
+## Dataset-driven simulation — additive work, November 10, 2026
+These checks do not mark any November 4+ daily milestone complete or close the broader T07–T43 roadmap.
+- [x] DS01: Define bounded synthetic-only schema, globally unique record IDs, relationships, sample JSON/CSV and data dictionary.
+- [x] DS02: Add owner-scoped preview/commit importer; atomic snapshot, deterministic duplicate keys, row/field validation and cross-business denial tests.
+- [x] DS03: Use shared structured records and department-filtered reference citations across five deterministic department adapters.
+- [x] DS04: Run one immutable simulated launch through existing task approvals; retain result, baseline, rule version and evidence. Test stale, expired, rejected and repeated decisions.
+- [x] DS05: Add Next.js demo dashboard, explicit simulation labels, preview/confirm import and scoped archival reset.
+- [x] DS06: Run focused tests, fixed baseline evaluation and local-fixture browser acceptance; document results and limitations in docs/impact.md.
+- [ ] DS07: Verify the new flow against configured live Supabase and real MongoDB restart persistence; not established by doubles/local identity fixtures.
+Evidence and acceptance instructions: docs/DATASET_SIMULATION.md; datasets/product-launch-v1/. Regular agents remain unchanged; demo adapters are not represented as live LLM decisions.
