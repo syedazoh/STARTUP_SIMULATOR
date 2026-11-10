@@ -15,6 +15,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 from ..database.utils import find_one
 from ..models.action_schemas import validate_action
 from ..models.business_schemas import BusinessOut
@@ -86,14 +87,35 @@ async def create_task(
         payload = validate_action(agent, action_type, payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="Invalid action payload") from exc
-    runtime = await agent_registry.get_or_create(business)
-    if (
-        agent not in runtime.agent_manager.agents
-        or "ceo" not in runtime.agent_manager.agents
-    ):
-        raise HTTPException(
-            status_code=409, detail="Enable the department and CEO before creating work"
-        )
+    demo = action_type == "dataset_launch"
+    if demo:
+        from .demo_dataset import load_dataset, digest
+
+        doc = await load_dataset(db, business.id, payload["import_id"])
+        if doc["digest"] != payload["dataset_digest"]:
+            raise HTTPException(409, "Dataset digest mismatch")
+        if payload["campaign_id"] not in {c["id"] for c in doc["data"]["campaigns"]}:
+            raise HTTPException(422, "Unknown campaign")
+        if not all(
+            role in business.enabled_agents
+            for role in ("finance", "marketing", "hr", "operations", "ceo")
+        ):
+            raise HTTPException(409, "Enable all five departments")
+        demo_id = digest([business.id, payload])
+        old = await find_one(db["tasks"], {"_id": demo_id, "business_id": business.id})
+        if old:
+            if old["status"] == "pending_ceo_review":
+                return await review_task(db, agent_registry, business, old)
+            return old
+    else:
+        runtime = await agent_registry.get_or_create(business)
+        if (
+            agent not in runtime.agent_manager.agents
+            or "ceo" not in runtime.agent_manager.agents
+        ):
+            raise HTTPException(
+                409, "Enable the department and CEO before creating work"
+            )
     task = {
         "task_id": str(uuid4()),
         "source": source,
@@ -116,7 +138,16 @@ async def create_task(
         "decided_at": None,
         "executed_at": None,
     }
-    await db["tasks"].insert_one(task)
+    if demo:
+        task.update(
+            _id=demo_id, source="dataset_demo", demo_import_id=payload["import_id"]
+        )
+    try:
+        await db["tasks"].insert_one(task)
+    except DuplicateKeyError:
+        if not demo:
+            raise
+        return await find_one(db["tasks"], {"_id": demo_id, "business_id": business.id})
     await record_audit(
         db,
         user_id or business.owner_user_id,
@@ -129,6 +160,10 @@ async def create_task(
 
 
 async def review_task(db, registry, business, task, allow_auto=True):
+    if task["action_type"] == "dataset_launch":
+        from .demo_launch import review
+
+        return await review(db, business, task)
     from .task_authorization import authorize
 
     recovering = task["status"] == "ceo_reviewing"
@@ -235,6 +270,10 @@ async def review_task(db, registry, business, task, allow_auto=True):
 async def execute_task(
     db, agent_registry, business: BusinessOut, task: Dict[str, Any]
 ) -> Dict[str, Any]:
+    if task["action_type"] == "dataset_launch":
+        from .demo_launch import execute
+
+        return await execute(db, business, task)
     from . import ledger
 
     claimed = await db["tasks"].find_one_and_update(

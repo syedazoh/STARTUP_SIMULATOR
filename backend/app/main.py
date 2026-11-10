@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import demo as demo_routes
 from .api.routes import supervision as supervision_routes
 from .api.routes import admin as admin_routes
 from .api.routes import agent_actions as agent_actions_routes
@@ -122,6 +123,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(demo_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(supervision_routes.router)
 app.include_router(admin_routes.router)

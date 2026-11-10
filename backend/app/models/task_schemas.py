@@ -19,6 +19,10 @@ TaskStatus = str
 
 class TaskOut(BaseModel):
     id: str
+    mode: Optional[str] = None
+    revision: Optional[int] = None
+    proposal_digest: Optional[str] = None
+    approval_expires_at: Optional[str] = None
     business_id: str
     agent: str
     source: str = "manual"
@@ -46,6 +50,10 @@ class TaskDecisionIn(BaseModel):
 def to_task_out(doc: Dict[str, Any]) -> TaskOut:
     return TaskOut(
         id=doc["task_id"],
+        mode=doc.get("mode"),
+        revision=doc.get("revision"),
+        proposal_digest=doc.get("proposal_digest"),
+        approval_expires_at=doc.get("approval_expires_at"),
         business_id=doc["business_id"],
         agent=doc["agent"],
         source=doc.get("source", "manual"),

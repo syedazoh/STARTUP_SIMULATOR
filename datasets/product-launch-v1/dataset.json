@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "dataset_id": "sprout-launch-v1",
+  "synthetic": true,
+  "currency": "USD",
+  "as_of": "2026-11-10",
+  "company": {"id": "company-sprout", "name": "Sprout Desk Kits — fictional", "starting_capital_minor": 2000000, "staffed_units_per_day": 20},
+  "goals": [{"id": "goal-launch", "description": "Launch a fictional desk kit and fulfill 50 new orders", "due_date": "2026-11-24", "target_units": 50}],
+  "inventory": [{"id": "product-kit", "name": "Sprout desk kit", "quantity": 150, "unit_price_minor": 5000, "unit_cost_minor": 2000}],
+  "orders": [{"id": "order-001", "date": "2026-11-08", "product_id": "product-kit", "quantity": 10, "status": "fulfilled"}, {"id": "order-002", "date": "2026-11-09", "product_id": "product-kit", "quantity": 5, "status": "pending"}],
+  "sales": [{"id": "sale-001", "date": "2026-11-08", "order_id": "order-001", "amount_minor": 50000}],
+  "expenses": [{"id": "expense-001", "date": "2026-11-09", "category": "Rent", "amount_minor": 100000}],
+  "campaigns": [{"id": "campaign-launch", "name": "Desk kit launch", "product_id": "product-kit", "goal_id": "goal-launch", "launch_date": "2026-11-11", "duration_days": 7, "budget_minor": 100000, "baseline_budget_minor": 25000, "reach_per_100_minor": 10, "conversion_bps": 100}],
+  "candidates": [{"id": "candidate-001", "name": "Fictional Candidate A", "role": "Fulfillment assistant", "skills": ["packing", "order tracking"], "available_from": "2026-11-12", "status": "applied"}],
+  "references": [{"id": "policy-launch", "title": "Synthetic launch policy", "version": 1, "department": "all", "text": "Product launch campaigns require Finance review and explicit owner approval. Candidates are not employees. Forecasts are synthetic assumptions, never actual sales. Keep inventory and fulfillment capacity within available limits."}]
+}
