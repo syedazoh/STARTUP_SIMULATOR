@@ -110,6 +110,8 @@ class Model:
                     return schema(
                         decision="approve", reason="Fixture CEO authorization"
                     )
+                if schema.__name__ == "BudgetRequestAction":
+                    return schema(amount=400, department="General")
                 if schema.__name__ == "CEOPlan":
                     return schema(
                         strategy="Fixture strategy for a supervised product launch",

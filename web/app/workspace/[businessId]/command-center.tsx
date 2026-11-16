@@ -578,6 +578,17 @@ export default function CommandCenter({
                 <summary>Proposal, review and recorded result</summary>
                 <h4>Exact action · {display(task.action_type)}</h4>
                 <Evidence value={task.payload} />
+                {task.revision_error && (
+                  <p role="alert" className="error">
+                    {task.revision_error}
+                  </p>
+                )}
+                {task.previous_payload && (
+                  <>
+                    <h4>Before the last revision</h4>
+                    <Evidence value={task.previous_payload} />
+                  </>
+                )}
                 <h4>CEO review</h4>
                 <Evidence
                   value={task.ceo_review ?? { status: "No review recorded" }}
@@ -682,9 +693,9 @@ export default function CommandCenter({
                   "needs_changes",
                 ].includes(task.status) && (
                   <p className="notice">
-                    This action requires its dedicated workflow. External
-                    publication and media actions cannot be approved from this
-                    command center.
+                    Resolve requested revisions before approval. External
+                    publication and media actions require their dedicated
+                    workflow.
                   </p>
                 )}
             </article>

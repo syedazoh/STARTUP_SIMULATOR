@@ -72,6 +72,14 @@ jobs:
           PYTHON
       - run: node tests/workspace.browser.cjs
         working-directory: web
+      - name: Install and serve the existing Vite UI
+        run: |
+          cd frontend
+          npm ci
+          API_PROXY_TARGET=http://127.0.0.1:8001 npm run dev -- --host 127.0.0.1 > /tmp/legacy-web.log 2>&1 &
+      - name: Check stable polling counters and requested revisions in Vite
+        run: node tests/legacy-reviews.browser.cjs
+        working-directory: web
       - name: Browser evidence and diagnostic logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -81,3 +89,4 @@ jobs:
             /tmp/workspace-screenshots
             /tmp/workspace-api.log
             /tmp/workspace-web.log
+            /tmp/legacy-web.log

@@ -23,6 +23,8 @@ class TaskOut(BaseModel):
     id: str
     mode: Optional[str] = None
     revision: Optional[int] = None
+    previous_payload: Optional[Dict[str, Any]] = None
+    revision_error: Optional[str] = None
     approval_fingerprint: Optional[str] = None
     proposal_digest: Optional[str] = None
     approval_expires_at: Optional[str] = None
@@ -56,6 +58,8 @@ def to_task_out(doc: Dict[str, Any]) -> TaskOut:
         id=doc["task_id"],
         approval_fingerprint=approval_fingerprint(doc),
         mode=doc.get("mode"),
+        previous_payload=doc.get("previous_payload"),
+        revision_error=doc.get("revision_error"),
         revision=doc.get("revision"),
         proposal_digest=doc.get("proposal_digest"),
         approval_expires_at=doc.get("approval_expires_at"),

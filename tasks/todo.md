@@ -351,3 +351,10 @@ Evidence and acceptance instructions: docs/DATASET_SIMULATION.md; datasets/produ
 - [x] Record passing Next.js production browser/build, backend and Docker CI evidence in docs/impact.md (November 16). Display follow-up has its own checks.
 - [ ] User acceptance on local Atlas/Supabase after pulling (docs/NEXT_COMMAND_CENTER.md).
 Full T07/T08 versioning, worker/outbox/MCP, deadline scheduler, advanced RAG, complete frontend migration and deployment remain unchecked. Revised submission target is November 30; the old December 5 plan is superseded for submission. No staged deployment URL has been verified by this slice.
+
+## November 16 — Reported Vite dashboard/revision fixes
+- [x] Trace counter flicker to loading gates during polling; preserve last confirmed snapshots and suppress overlapping requests.
+- [x] Keep request-changes task visible and implement feedback-driven typed revision with an explicit blocked state for unavailable/unchanged output.
+- [x] Require a fresh owner approval after revision, including in auto mode; keep unchanged work blocked and concurrent rejection authoritative.
+- [ ] Record final regression/browser CI evidence for these reported issues.
+The remaining submission work is unchanged: durable jobs/outbox/MCP, advanced RAG, deadlines, deployment and live acceptance. These fixes do not mark the entire plan complete.

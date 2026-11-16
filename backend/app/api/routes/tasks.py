@@ -111,6 +111,10 @@ async def approve_task(
 ):
     task, business = owned["task"], owned["business"]
     preview_filter = _preview_filter(task, payload)
+    if task["status"] == "needs_changes":
+        raise HTTPException(
+            409, "Owner changes are outstanding. Revise the proposal before approval."
+        )
     if task["action_type"] == "dataset_launch":
         if task["status"] == "executed":
             return to_task_out(task)
@@ -242,29 +246,18 @@ async def request_changes(
             detail=f"Task is {task['status']}, not awaiting approval",
         )
 
-    db = request.app.state.db
-    decided_at = datetime.now(timezone.utc)
-    update = {
-        "status": "needs_changes",
-        "owner_feedback": payload.owner_feedback,
-        "decided_at": decided_at,
-    }
-    changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
-        {"$set": update},
-        return_document=ReturnDocument.AFTER,
+    from ...services.task_revision import request_revision
+
+    return to_task_out(
+        await request_revision(
+            request.app.state.db,
+            request.app.state.agent_registry,
+            business,
+            task,
+            payload.owner_feedback,
+            _preview_filter(task, payload),
+        )
     )
-    if changed is None:
-        raise HTTPException(status_code=409, detail="Task was already decided")
-    await record_audit(
-        db,
-        business.owner_user_id,
-        business.id,
-        "task_needs_changes",
-        target_id=task["task_id"],
-        details={"owner_feedback": payload.owner_feedback},
-    )
-    return to_task_out({**task, **update})
 
 
 def _to_media_asset_out(doc: dict) -> MediaAssetOut:
@@ -383,9 +376,18 @@ async def revise_task(
         proposal = validate_action(task["agent"], task["action_type"], payload.payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="Invalid revised proposal") from exc
+    if proposal == task["payload"] and (
+        payload.objective is None or payload.objective == task.get("objective")
+    ):
+        raise HTTPException(422, "Change the proposal before submitting a revision")
     update = {
         "payload": proposal,
         "ceo_authorized": False,
+        "revision_error": None,
+        "revision_request_id": None,
+        "previous_payload": task["payload"],
+        "revision": (task.get("revision") or 0) + 1,
+        "asset_id": None,
         "ceo_review": None,
         "status": "pending_ceo_review",
         "source": "owner_revision",
@@ -407,6 +409,10 @@ async def revise_task(
     )
     return to_task_out(
         await review_task(
-            request.app.state.db, request.app.state.agent_registry, business, changed
+            request.app.state.db,
+            request.app.state.agent_registry,
+            business,
+            changed,
+            allow_auto=False,
         )
     )

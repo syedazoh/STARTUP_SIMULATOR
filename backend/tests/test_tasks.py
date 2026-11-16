@@ -1,5 +1,6 @@
 """Test the task/approval pipeline, wired end-to-end through Finance's
 budget-request endpoint (Phase 2 reference implementation)."""
+
 import pytest
 from fastapi.testclient import TestClient
 from mongomock_motor import AsyncMongoMockClient
@@ -10,14 +11,20 @@ from app.main import app
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(mongodb_module, "AsyncIOMotorClient", lambda *a, **kw: AsyncMongoMockClient())
+    monkeypatch.setattr(
+        mongodb_module, "AsyncIOMotorClient", lambda *a, **kw: AsyncMongoMockClient()
+    )
     with TestClient(app) as test_client:
         yield test_client
 
 
 def _auth_headers(client, email):
-    client.post("/api/auth/register", json={"email": email, "password": "supersecret123"})
-    login = client.post("/api/auth/login", json={"email": email, "password": "supersecret123"})
+    client.post(
+        "/api/auth/register", json={"email": email, "password": "supersecret123"}
+    )
+    login = client.post(
+        "/api/auth/login", json={"email": email, "password": "supersecret123"}
+    )
     return {"Authorization": f"Bearer {login.json()['access_token']}"}
 
 
@@ -28,11 +35,15 @@ def _create_business(client, headers, **overrides):
 
 
 def _budget_pool(client, headers, business_id):
-    return client.get(f"/api/businesses/{business_id}/agents/finance", headers=headers).json()["budget_pool"]
+    return client.get(
+        f"/api/businesses/{business_id}/agents/finance", headers=headers
+    ).json()["budget_pool"]
 
 
 class TestManualModeCreatesTask:
-    def test_budget_request_lands_pending_approval_without_touching_budget(self, client):
+    def test_budget_request_lands_pending_approval_without_touching_budget(
+        self, client
+    ):
         headers = _auth_headers(client, "task1@example.com")
         business_id = _create_business(client, headers)
         starting_pool = _budget_pool(client, headers, business_id)
@@ -58,7 +69,9 @@ class TestManualModeCreatesTask:
         )
 
         response = client.get(
-            f"/api/businesses/{business_id}/tasks", params={"task_status": "pending_approval"}, headers=headers
+            f"/api/businesses/{business_id}/tasks",
+            params={"task_status": "pending_approval"},
+            headers=headers,
         )
         assert response.status_code == 200
         assert len(response.json()) == 1
@@ -114,7 +127,9 @@ class TestReject:
         task_id = create_response.json()["id"]
 
         response = client.post(
-            f"/api/tasks/{task_id}/reject", json={"owner_feedback": "too much"}, headers=headers
+            f"/api/tasks/{task_id}/reject",
+            json={"owner_feedback": "too much"},
+            headers=headers,
         )
         assert response.status_code == 200
         assert response.json()["status"] == "rejected"
@@ -123,7 +138,9 @@ class TestReject:
 
 
 class TestRequestChanges:
-    def test_request_changes_sets_needs_changes_and_is_decidable_again(self, client):
+    def test_request_changes_with_unavailable_ai_requires_revision_before_approval(
+        self, client
+    ):
         headers = _auth_headers(client, "task6@example.com")
         business_id = _create_business(client, headers)
         create_response = client.post(
@@ -142,8 +159,23 @@ class TestRequestChanges:
         assert response.json()["status"] == "needs_changes"
 
         approve_response = client.post(f"/api/tasks/{task_id}/approve", headers=headers)
-        assert approve_response.status_code == 200
-        assert approve_response.json()["status"] == "executed"
+        assert response.json()["revision_error"]
+        assert approve_response.status_code == 409
+
+        revise_response = client.post(
+            f"/api/tasks/{task_id}/revise",
+            json={"payload": {"amount": 400, "department": "Operations"}},
+            headers=headers,
+        )
+        assert revise_response.status_code == 200
+        assert revise_response.json()["payload"]["amount"] == 400
+        assert revise_response.json()["status"] == "pending_approval"
+        assert (
+            client.post(f"/api/tasks/{task_id}/approve", headers=headers).json()[
+                "status"
+            ]
+            == "executed"
+        )
 
 
 class TestAutoMode:
@@ -200,7 +232,9 @@ class TestOwnership:
         task_id = create_response.json()["id"]
 
         intruder_headers = _auth_headers(client, "taskintruder@example.com")
-        response = client.post(f"/api/tasks/{task_id}/approve", headers=intruder_headers)
+        response = client.post(
+            f"/api/tasks/{task_id}/approve", headers=intruder_headers
+        )
         assert response.status_code == 403
 
     def test_approve_requires_auth(self, client):

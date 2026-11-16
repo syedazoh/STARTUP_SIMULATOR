@@ -27,7 +27,7 @@ function TaskCard({ businessId, task }) {
     setBusy(true)
     setError('')
     try { await dispatch(thunk).unwrap() }
-    catch { setError('Could not update the task. Refresh and retry.') }
+    catch (error) { setError(typeof error === 'string' ? error : 'Could not update the task. Refresh and retry.') }
     finally { setBusy(false) }
   }
 
@@ -53,6 +53,9 @@ function TaskCard({ businessId, task }) {
       {task.ceo_review && <p className="text-xs">CEO: {task.ceo_review.reason}</p>}
       {error && <p role="alert" className="text-red-700 text-sm">{error}</p>}
       <p className="text-xs text-gray-500">{formatPayload(task.payload)}</p>
+      {task.revision_error && <p role="alert" className="text-red-700 text-sm">{task.revision_error}</p>}
+      {task.previous_payload && <details className="text-xs"><summary>Before the last revision</summary><p>{formatPayload(task.previous_payload)}</p></details>}
+      {task.status === 'needs_changes' && <p className="text-xs">Revision is blocked or pending. Retry with clear feedback, or edit the proposal on its department page. Original approval is disabled.</p>}
       {task.owner_feedback && (
         <p className="text-xs text-gray-400 italic">Your feedback: "{task.owner_feedback}"</p>
       )}
@@ -69,17 +72,19 @@ function TaskCard({ businessId, task }) {
       ) : (
         <>
           <input
+            aria-label="Requested changes or rejection reason"
+            maxLength={2000}
             value={feedback}
             onChange={(e) => setFeedback(e.target.value)}
-            placeholder="Feedback (for reject / request changes)"
+            placeholder="Describe the specific changes (required for revision)"
             className="w-full border rounded px-2 py-1 text-xs"
           />
 
           <div className="flex gap-2">
             <button
               type="button"
-              disabled={busy}
-              onClick={() => run(approveTask(task.id))}
+              disabled={busy || task.status === 'needs_changes'}
+              onClick={() => run(approveTask({ taskId: task.id, expectedFingerprint: task.approval_fingerprint }))}
               className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
               style={{ backgroundColor: STATUS.good }}
             >
@@ -88,11 +93,11 @@ function TaskCard({ businessId, task }) {
             <button
               type="button"
               disabled={busy}
-              onClick={() => run(requestTaskChanges({ taskId: task.id, ownerFeedback: feedback }))}
+              onClick={() => { if (!feedback.trim()) { setError('Describe the changes you want first.'); return } run(requestTaskChanges({ taskId: task.id, ownerFeedback: feedback, expectedFingerprint: task.approval_fingerprint })) }}
               className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
               style={{ backgroundColor: STATUS.warning }}
             >
-              Request changes
+              {busy ? 'Processing…' : task.status === 'needs_changes' ? 'Retry revision' : 'Request changes'}
             </button>
             <button
               type="button"

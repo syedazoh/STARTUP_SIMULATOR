@@ -12,8 +12,9 @@ export const fetchPendingTasks = createAsyncThunk('tasks/fetchPending', async (b
   return response.data.filter((task) => ACTIONABLE_STATUSES.has(task.status))
 })
 
-export const approveTask = createAsyncThunk('tasks/approve', async (taskId) => {
-  const response = await apiClient.post(`/api/tasks/${taskId}/approve`)
+export const approveTask = createAsyncThunk('tasks/approve', async (task) => {
+  const taskId = typeof task === 'string' ? task : task.taskId
+  const response = await apiClient.post(`/api/tasks/${taskId}/approve`, { expected_fingerprint: typeof task === 'string' ? undefined : task.expectedFingerprint })
   return response.data
 })
 
@@ -24,11 +25,16 @@ export const rejectTask = createAsyncThunk('tasks/reject', async ({ taskId, owne
 
 export const requestTaskChanges = createAsyncThunk(
   'tasks/requestChanges',
-  async ({ taskId, ownerFeedback }) => {
-    const response = await apiClient.post(`/api/tasks/${taskId}/request-changes`, {
-      owner_feedback: ownerFeedback,
-    })
-    return response.data
+  async ({ taskId, ownerFeedback, expectedFingerprint }, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post(`/api/tasks/${taskId}/request-changes`, {
+        owner_feedback: ownerFeedback,
+        expected_fingerprint: expectedFingerprint,
+      })
+      return response.data
+    } catch (error) {
+      return rejectWithValue(typeof error.response?.data?.detail === 'string' ? error.response.data.detail : 'Could not request a revision. Your task may still be processing; refresh before retrying.')
+    }
   },
 )
 
@@ -76,7 +82,13 @@ const tasksSlice = createSlice({
       })
       .addCase(approveTask.fulfilled, (state, action) => removeTask(state, action.payload.id))
       .addCase(rejectTask.fulfilled, (state, action) => removeTask(state, action.payload.id))
-      .addCase(requestTaskChanges.fulfilled, (state, action) => removeTask(state, action.payload.id))
+      .addCase(requestTaskChanges.fulfilled, (state, action) => {
+        const index = state.items.findIndex(task => task.id === action.payload.id)
+        if (ACTIONABLE_STATUSES.has(action.payload.status)) {
+          if (index === -1) state.items.push(action.payload)
+          else state.items[index] = action.payload
+        } else removeTask(state, action.payload.id)
+      })
   },
 })
 

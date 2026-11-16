@@ -28,7 +28,7 @@ test('decisions fail closed for other business, live publishing, stale status or
  assert.throws(()=>requireDecision(task,'b','approve'));
  assert.throws(()=>requireDecision(task,'a','release-budget'));
  for(const action_type of ['instagram_post','reel_request','unknown']) assert.equal(decisionAllowed({...task,action_type}),false);
- for(const status of ['executed','rejected','approved','ceo_reviewing']) assert.throws(()=>requireDecision({...task,status},'a','approve'));
+ for(const status of ['executed','rejected','approved','ceo_reviewing','needs_changes']) assert.throws(()=>requireDecision({...task,status},'a','approve'));
 });
 test('goal is trimmed, bounded and never accepts file input',()=>{
  assert.equal(goalPayload(form({goal:'  Launch a product  '})).goal,'Launch a product');

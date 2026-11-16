@@ -31,6 +31,8 @@ export type Task = {
   approval_fingerprint?: string | null;
   ceo_authorized: boolean;
   owner_feedback?: string | null;
+  revision_error?: string | null;
+  previous_payload?: Record<string, unknown> | null;
   mode?: string | null;
   created_at: string;
   decided_at?: string | null;
@@ -91,8 +93,7 @@ export const safeActions = new Set([
 ]);
 export function decisionAllowed(task: Task) {
   return (
-    safeActions.has(task.action_type) &&
-    ["pending_approval", "needs_changes"].includes(task.status)
+    safeActions.has(task.action_type) && task.status === "pending_approval"
   );
 }
 export function requireDecision(
