@@ -26,7 +26,14 @@ from ..deps import get_owned_business, get_owned_task
 from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
-from ...models.task_schemas import TaskDecisionIn, TaskOut, TaskRevisionIn, to_task_out
+from ...models.task_schemas import (
+    TaskDecisionIn,
+    TaskOut,
+    TaskRevisionIn,
+    to_task_out,
+    approval_fingerprint,
+    APPROVAL_FIELDS,
+)
 from ...services.audit import record_audit
 from ...services.media_assets import MAX_UPLOAD_BYTES, upload_asset
 from ...services.tasks import execute_task, review_task
@@ -39,6 +46,19 @@ DECIDABLE_STATUSES = {"pending_approval", "needs_changes"}
 
 _task_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
 _rate_limited = Depends(rate_limit_dependency(_task_rate_limiter))
+
+
+def _preview_filter(task, payload):
+    if payload is None or payload.expected_fingerprint is None:
+        return {}
+    if approval_fingerprint(task) != payload.expected_fingerprint:
+        raise HTTPException(
+            status_code=409,
+            detail="Proposal changed since your preview. Refresh and review again.",
+        )
+    # Compare material fields again in the atomic decision, closing the gap
+    # between initial lookup/CEO review and the write. Status has its own guard.
+    return {field: task.get(field) for field in APPROVAL_FIELDS if field != "status"}
 
 
 @router.get("", response_model=List[TaskOut])
@@ -76,11 +96,21 @@ async def list_tasks(
     return [to_task_out(d) for d in docs]
 
 
+@task_actions_router.get("/{task_id}", response_model=TaskOut)
+async def get_task(owned: dict = Depends(get_owned_task)):
+    return to_task_out(owned["task"])
+
+
 @task_actions_router.post(
     "/{task_id}/approve", response_model=TaskOut, dependencies=[_rate_limited]
 )
-async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
+async def approve_task(
+    request: Request,
+    owned: dict = Depends(get_owned_task),
+    payload: Optional[TaskDecisionIn] = None,
+):
     task, business = owned["task"], owned["business"]
+    preview_filter = _preview_filter(task, payload)
     if task["action_type"] == "dataset_launch":
         if task["status"] == "executed":
             return to_task_out(task)
@@ -109,7 +139,7 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
                 status_code=409, detail="Task is awaiting CEO authorization"
             )
     approval_fields = {}
-    approval_filter = {}
+    approval_filter = dict(preview_filter)
     if task["action_type"] == "dataset_launch":
         from ...services.demo_launch import validate_approval
 
@@ -118,10 +148,12 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
             "approval_digest": task["proposal_digest"],
             "approved_by": business.owner_user_id,
         }
-        approval_filter = {
-            "proposal_digest": task["proposal_digest"],
-            "payload": task["payload"],
-        }
+        approval_filter.update(
+            {
+                "proposal_digest": task["proposal_digest"],
+                "payload": task["payload"],
+            }
+        )
     decided_at = datetime.now(timezone.utc)
     task = await db["tasks"].find_one_and_update(
         {"task_id": task["task_id"], "status": task["status"], **approval_filter},
@@ -149,6 +181,7 @@ async def reject_task(
     payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)
 ):
     task, business = owned["task"], owned["business"]
+    preview_filter = _preview_filter(task, payload)
     if task["status"] not in DECIDABLE_STATUSES | {
         "pending_ceo_review",
         "needs_revision",
@@ -166,7 +199,7 @@ async def reject_task(
         "decided_at": decided_at,
     }
     changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
+        {"task_id": task["task_id"], "status": task["status"], **preview_filter},
         {"$set": update},
         return_document=ReturnDocument.AFTER,
     )

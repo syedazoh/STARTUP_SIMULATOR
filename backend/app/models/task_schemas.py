@@ -6,6 +6,8 @@ across agents is what lets Marketing/HR/Operations reuse the same pipeline
 later instead of each growing its own approve/deny plumbing.
 """
 
+import hashlib
+import json
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -21,6 +23,7 @@ class TaskOut(BaseModel):
     id: str
     mode: Optional[str] = None
     revision: Optional[int] = None
+    approval_fingerprint: Optional[str] = None
     proposal_digest: Optional[str] = None
     approval_expires_at: Optional[str] = None
     business_id: str
@@ -45,11 +48,13 @@ class TaskOut(BaseModel):
 
 class TaskDecisionIn(BaseModel):
     owner_feedback: Optional[str] = Field(default=None, max_length=2000)
+    expected_fingerprint: Optional[str] = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
 
 def to_task_out(doc: Dict[str, Any]) -> TaskOut:
     return TaskOut(
         id=doc["task_id"],
+        approval_fingerprint=approval_fingerprint(doc),
         mode=doc.get("mode"),
         revision=doc.get("revision"),
         proposal_digest=doc.get("proposal_digest"),
@@ -78,3 +83,38 @@ def to_task_out(doc: Dict[str, Any]) -> TaskOut:
 class TaskRevisionIn(BaseModel):
     payload: Dict[str, Any]
     objective: Optional[str] = Field(default=None, min_length=1, max_length=1000)
+
+
+# Exact proposal fields guarded for opt-in command-center decisions. This is
+# additive preview binding, not the planned immutable task-version migration.
+APPROVAL_FIELDS = (
+    "business_id",
+    "task_id",
+    "agent",
+    "action_type",
+    "payload",
+    "status",
+    "objective",
+    "success_criteria",
+    "source",
+    "plan_id",
+    "requires_asset",
+    "asset_id",
+    "mode",
+    "revision",
+    "proposal_digest",
+    "approval_expires_at",
+)
+
+
+def approval_fingerprint(doc: Dict[str, Any]) -> str:
+    proposal = {field: doc.get(field) for field in APPROVAL_FIELDS}
+    return hashlib.sha256(
+        json.dumps(
+            proposal,
+            sort_keys=True,
+            separators=(",", ":"),
+            default=str,
+            allow_nan=False,
+        ).encode()
+    ).hexdigest()
