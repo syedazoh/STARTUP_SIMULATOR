@@ -232,6 +232,7 @@ async def review_task(db, registry, business, task, allow_auto=True):
         mode = await _get_mode(db, business.id, task["agent"])
         auto = (
             allow_auto
+            and task.get("source") != "owner_revision"
             and decision != "escalate"
             and mode["mode"] == "auto"
             and _within_auto_threshold(

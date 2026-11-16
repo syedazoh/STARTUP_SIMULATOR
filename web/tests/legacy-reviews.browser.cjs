@@ -48,11 +48,21 @@ const assert = require("node:assert/strict");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(`**/b/${business}/dashboard`);
+  await page.waitForURL(`**/b/${business}/dashboard`).catch(async (error) => {
+    console.log(
+      "Disposable login diagnostic:",
+      page.url(),
+      await page.locator("body").innerText(),
+    );
+    throw error;
+  });
   await page.goto(`http://127.0.0.1:5173/b/${business}/dashboard`);
   const agentCount = page.locator(".hq-kpi").nth(1).locator("strong");
   await page.waitForFunction(() =>
-    document.querySelectorAll(".hq-kpi strong")[1]?.textContent.includes("5"),
+    document
+      .querySelectorAll(".hq-kpi strong")[1]
+      ?.textContent.trim()
+      .startsWith("5"),
   );
   await page.waitForFunction(
     () =>

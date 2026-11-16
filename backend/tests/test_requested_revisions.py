@@ -218,3 +218,37 @@ def test_manual_revision_cannot_resubmit_the_unchanged_proposal(accounts):
         json={"payload": task["payload"]},
     )
     assert response.status_code == 422
+
+
+def test_later_ceo_retry_cannot_auto_execute_an_owner_revision(accounts, monkeypatch):
+    import asyncio
+
+    client, h, b, _ = accounts
+    task = propose(accounts)
+    client.put(
+        f"/api/businesses/{b}/agents/finance/mode",
+        headers=h["alice"],
+        json={"mode": "auto", "auto_thresholds": {"auto_approve_max": 10000}},
+    )
+
+    async def generate(current, feedback):
+        return {"amount": 400.0, "department": "General"}
+
+    monkeypatch.setattr("app.services.task_revision.generate_revision", generate)
+    response = client.post(
+        f"/api/tasks/{task['id']}/request-changes",
+        headers=h["alice"],
+        json={"owner_feedback": "Lower to 400"},
+    )
+    assert response.json()["status"] == "pending_approval"
+    # An interrupted/unavailable CEO review can be retried in a later request.
+    asyncio.run(
+        client.app.state.db["tasks"].update_one(
+            {"task_id": task["id"]},
+            {"$set": {"status": "pending_ceo_review", "ceo_authorized": False}},
+        )
+    )
+    retried = client.post(f"/api/tasks/{task['id']}/ceo-review", headers=h["alice"])
+    assert retried.status_code == 200
+    assert retried.json()["status"] == "pending_approval"
+    assert retried.json()["executed_at"] is None

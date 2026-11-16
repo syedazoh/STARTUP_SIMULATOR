@@ -22,6 +22,7 @@ import app.core.llm as llm
 
 mongo.AsyncIOMotorClient = lambda *a, **k: AsyncMongoMockClient()
 settings.chroma_persist_dir = "/tmp/simulator-browser-chroma"
+settings.allowed_origins = [*settings.allowed_origins, "http://127.0.0.1:5173"]
 provider = FastAPI()
 
 
