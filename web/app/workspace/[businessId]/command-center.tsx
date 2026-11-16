@@ -12,6 +12,7 @@ import {
   labels,
   decisionAllowed,
   safeActions,
+  utcInstant,
   type Business,
   type Department,
   type Operator,
@@ -19,8 +20,12 @@ import {
   type Workspace,
 } from "../../../lib/workspace-contracts";
 const display = (v: string) => v.replaceAll("_", " ");
-const timestamp = (value: string) =>
-  new Date(value).toLocaleString("en-GB", { timeZone: "UTC" }) + " UTC";
+const timestamp = (value: string) => {
+  const date = utcInstant(value);
+  return date
+    ? date.toLocaleString("en-GB", { timeZone: "UTC" }) + " UTC"
+    : "Not recorded";
+};
 const numeric = (value: number) =>
   new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(value);
 function Evidence({ value }: { value: unknown }) {
@@ -567,7 +572,7 @@ export default function CommandCenter({
                 <dt>Success criteria</dt>
                 <dd>{task.success_criteria || "Not recorded"}</dd>
                 <dt>Deadline</dt>
-                <dd>Not recorded in the current task API</dd>
+                <dd>No deadline recorded</dd>
               </dl>
               <details>
                 <summary>Proposal, review and recorded result</summary>

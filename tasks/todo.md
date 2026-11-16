@@ -348,6 +348,6 @@ Evidence and acceptance instructions: docs/DATASET_SIMULATION.md; datasets/produ
 - [x] Connect department state/proposals, CEO draft review/activation, internal owner decisions, finance summary and saved reports to existing authorized APIs.
 - [x] Show source/plan/CEO/owner/result distinctions and partial errors; keep unknown deadlines explicit.
 - [x] Add opt-in atomic approval-preview binding and cross-owner/stale/concurrent-edit regression checks.
-- [ ] Record final CI/browser evidence for this slice in docs/impact.md.
+- [x] Record passing Next.js production browser/build, backend and Docker CI evidence in docs/impact.md (November 16). Display follow-up has its own checks.
 - [ ] User acceptance on local Atlas/Supabase after pulling (docs/NEXT_COMMAND_CENTER.md).
 Full T07/T08 versioning, worker/outbox/MCP, deadline scheduler, advanced RAG, complete frontend migration and deployment remain unchecked. Revised submission target is November 30; the old December 5 plan is superseded for submission. No staged deployment URL has been verified by this slice.

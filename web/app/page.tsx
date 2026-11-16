@@ -9,8 +9,8 @@ export default function Home() {
         One shared workspace.
       </h1>
       <p>
-        Connect your identity and keep your business records as we build your
-        team of five AI departments.
+        Plan work with five AI departments, review proposals and keep the
+        results in your business workspace.
       </p>
       <div className="actions">
         <Link className="button" href="/login">
@@ -21,8 +21,8 @@ export default function Home() {
         </Link>
       </div>
       <p>
-        Authentication is the first migration milestone. Department screens
-        remain in the existing application.
+        Create your business, delegate a plan and review simulated outcomes
+        before connecting real services.
       </p>
     </section>
   );

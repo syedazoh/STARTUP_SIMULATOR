@@ -200,3 +200,13 @@ export function goalPayload(form: FormData) {
     throw new Error("Describe the goal in at least 5 characters.");
   return { goal };
 }
+
+// Motor can serialize UTC database dates without an offset. Do not interpret
+// these server timestamps as the viewer's local timezone.
+export function utcInstant(value: string) {
+  const normalized = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value)
+    ? value
+    : `${value}Z`;
+  const date = new Date(normalized);
+  return Number.isNaN(date.valueOf()) ? null : date;
+}

@@ -11,7 +11,7 @@ export default function Layout({
       <body>
         <header>
           <a href="/">STARTUP SIMULATOR</a>
-          <span>Owner workspace · Authentication preview</span>
+          <span>Owner workspace · Supervised simulation</span>
         </header>
         <main>{children}</main>
       </body>

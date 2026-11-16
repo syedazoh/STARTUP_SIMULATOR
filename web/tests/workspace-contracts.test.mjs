@@ -46,3 +46,11 @@ test('API errors distinguish identity, dependency and validation failures withou
  const error=apiError(422,{detail:[{loc:['body','goal'],msg:'Too short',input:'SECRET'}]},'/api/businesses/a/ceo/plans');
  assert.match(error,/goal.*Too short/); assert.doesNotMatch(error,/SECRET/);
 });
+
+
+test('database timestamps without offsets are interpreted as UTC, not viewer local time', async()=>{
+ const {utcInstant}=await import('../lib/workspace-contracts.ts');
+ assert.equal(utcInstant('2026-11-16T12:00:00').toISOString(),'2026-11-16T12:00:00.000Z');
+ assert.equal(utcInstant('2026-11-16T17:00:00+05:00').toISOString(),'2026-11-16T12:00:00.000Z');
+ assert.equal(utcInstant('not-a-date'),null);
+});
