@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import { backend } from "../../lib/backend";
 import { logout, linkAccount } from "../actions";
+import CreateBusiness from "./create-business";
 import { Submit } from "../../components/submit";
 export const dynamic = "force-dynamic";
 type Business = { id: string; company_name: string; industry: string };
@@ -53,18 +54,19 @@ export default async function Workspace({
           <ul>
             {businesses.map((b) => (
               <li key={b.id}>
-                <strong>{b.company_name}</strong> · {b.industry} ·{" "}
+                <a href={`/workspace/${b.id}`}>
+                  <strong>{b.company_name}</strong>
+                </a>{" "}
+                · {b.industry} ·{" "}
                 <a href={`/workspace/${b.id}/demo`}>Synthetic launch demo</a>
               </li>
             ))}
           </ul>
         ) : (
-          <p>
-            No businesses yet. Business creation and department screens are the
-            next migration slice.
-          </p>
+          <p>No businesses yet. Create your first workspace below.</p>
         )}
       </section>
+      {!issue && <CreateBusiness />}
       <details className="card">
         <summary>Link existing account</summary>
         <p>
