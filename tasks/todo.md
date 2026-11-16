@@ -356,5 +356,5 @@ Full T07/T08 versioning, worker/outbox/MCP, deadline scheduler, advanced RAG, co
 - [x] Trace counter flicker to loading gates during polling; preserve last confirmed snapshots and suppress overlapping requests.
 - [x] Keep request-changes task visible and implement feedback-driven typed revision with an explicit blocked state for unavailable/unchanged output.
 - [x] Require a fresh owner approval after revision, including in auto mode; keep unchanged work blocked and concurrent rejection authoritative.
-- [ ] Record final regression/browser CI evidence for these reported issues.
+- [x] Record passing backend, Next/Vite browser, frontend and Docker CI evidence in docs/impact.md; live local/provider acceptance remains separate.
 The remaining submission work is unchanged: durable jobs/outbox/MCP, advanced RAG, deadlines, deployment and live acceptance. These fixes do not mark the entire plan complete.
