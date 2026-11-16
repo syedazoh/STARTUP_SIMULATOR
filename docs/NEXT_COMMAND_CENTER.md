@@ -47,3 +47,6 @@ CI's `workspace-browser` job starts `backend/tests/workspace_browser_fixture.py`
 
 ## Still separate work
 Durable workers/Redis, deadline scheduling, runtime immutable task versions for all action types, MCP service, improved document RAG, email/calendar integration, full Vite feature migration, staging/production deployment, backup/restore and evaluation/report submission. No external integration or deployment was performed by this slice.
+
+## Recorded verification
+Source commit 99275a2: [production Next.js/browser CI passed](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/43922899975), including 7 command/error/time tests, types, build, audit and the full browser fixture workflow. Backend source is unchanged from [443 passing backend tests](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/43921820111) and [passing Docker restart checks](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/43921820151). See impact.md for the distinction between real Mongo CI, disposable browser doubles and manual/live provider acceptance.

@@ -68,3 +68,5 @@ Remote verification of dfe172de330ee64f05ddf1bd33d213055152390b: [Next.js CI](ht
 
 Final display follow-up: UTC interpretation for database timestamps lacking an offset (instead of viewer-local interpretation), and updated landing/header/deadline text to match this partial migration. Seven Node tests and strict types passed; production build recorded below. No backend logic changed in the display follow-up.
 Backend CI count: **443 passed in 131.70s**, including the configured real-Mongo test; no skips. Final display follow-up production build also passed. User's live provider/local Atlas and deployed environment acceptance are still open.
+
+Final source commit 99275a209a08b3ecd89626a0097e984f63b131f7: [Next.js run 43922899975](https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/43922899975) passed all build/type/audit/7 command tests and the production Chromium workflow again after the UTC/copy follow-up. Backend source is unchanged from the 443-test/Docker success above. This final evidence-only update changes no runtime code. Manual live Supabase/Atlas and deployment acceptance remain open.
