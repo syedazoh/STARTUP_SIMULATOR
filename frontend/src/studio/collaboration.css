@@ -20,11 +20,11 @@
   cursor: pointer;
 }
 .collaboration-strip strong {
-  font-size: 13px;
+  font-size:14px;
   font-weight: 650;
 }
 .collaboration-strip span {
-  font-size: 12px;
+  font-size:14px;
   line-height: 1.5;
   overflow-wrap: anywhere;
 }

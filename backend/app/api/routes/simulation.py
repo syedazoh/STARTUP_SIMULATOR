@@ -273,17 +273,12 @@ async def get_decision_log(
     business: BusinessOut = Depends(get_owned_business),
     limit: int = 500,
     run_id: Optional[str] = None,
+    recent: bool = False,
 ):
     """Get decision log entries for a business, optionally filtered by run_id."""
-    db = request.app.state.db
-    query = {"business_id": business.id}
-    if run_id:
-        query["simulation_run_id"] = run_id
-    cursor = db["decision_logs"].find(query).sort("tick", 1).limit(limit)
-    docs = await cursor.to_list(length=limit)
-    for doc in docs:
-        doc["_id"] = str(doc["_id"])
-    return docs
+    from ...services.decision_history import read_decision_history
+
+    return await read_decision_history(request.app.state.db, business.id, limit, run_id, recent)
 
 
 @router.get("/simulation-runs")

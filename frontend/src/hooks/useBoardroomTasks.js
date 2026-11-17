@@ -3,7 +3,7 @@ import apiClient from "../api/client";
 
 // The approval queue omits work after execution. The floor needs full task snapshots.
 const EMPTY = { items: [], ready: false, error: null };
-export default function useBoardroomTasks(businessId) {
+export default function useBoardroomTasks(businessId, resource = "tasks", limit = 200) {
   const [snapshot, setSnapshot] = useState({ ...EMPTY, businessId });
   useEffect(() => {
     let active = true,
@@ -14,8 +14,8 @@ export default function useBoardroomTasks(businessId) {
       inFlight = true;
       try {
         const response = await apiClient.get(
-          `/api/businesses/${encodeURIComponent(businessId)}/tasks`,
-          { params: { limit: 200 }, signal: controller.signal },
+          `/api/businesses/${encodeURIComponent(businessId)}/${resource}`,
+          { params: { limit, ...(resource === "simulation/decision-log" ? { recent: true } : {}) }, signal: controller.signal },
         );
         if (active)
           setSnapshot({
@@ -45,6 +45,6 @@ export default function useBoardroomTasks(businessId) {
       clearInterval(timer);
       document.removeEventListener("visibilitychange", refresh);
     };
-  }, [businessId]);
+  }, [businessId, resource, limit]);
   return snapshot.businessId === businessId ? snapshot : EMPTY;
 }

@@ -443,7 +443,7 @@ function Setup() {
                     {n}
                   </div>
                   <span
-                    className={`text-[10px] mt-1 ${active ? 'text-gray-900 font-medium' : 'text-gray-400'}`}
+                    className={`text-sm mt-1 ${active ? 'text-gray-900 font-medium' : 'text-gray-400'}`}
                   >
                     {stepLabel}
                   </span>

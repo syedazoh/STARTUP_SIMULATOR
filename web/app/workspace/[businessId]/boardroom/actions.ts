@@ -8,9 +8,12 @@ export async function loadStudio(businessId: string): Promise<Snapshot> {
     backend(`${base}/tasks?limit=200`),
     backend(`${base}/agents`),
     backend(`${base}/events?limit=100`),
+    backend(`${base}/simulation/decision-log?limit=500&recent=true`),
   ]);
-  const labels = ["Tasks", "Agent status", "Activity"];
+  const labels = ["Tasks", "Agent status", "Activity", "Decision log"];
   return {
+    decisions: results[3].status === "fulfilled" ? results[3].value : [],
+    decisionsReady: results[3].status === "fulfilled",
     tasks: results[0].status === "fulfilled" ? results[0].value : [],
     statuses: results[1].status === "fulfilled" ? results[1].value : {},
     events: results[2].status === "fulfilled" ? results[2].value : [],

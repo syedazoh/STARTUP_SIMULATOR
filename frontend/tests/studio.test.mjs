@@ -144,3 +144,7 @@ test("participant roles name the actual counterpart without claiming task accept
     collaborationRoles(null, "sending").every((a) => a.direction === "idle"),
   );
 });
+
+test("revision requests travel from owner to department, not in reverse", () => {
+ assert.equal(taskTransfer({...pending,status:"needs_changes"},pending).sender,"owner");
+});

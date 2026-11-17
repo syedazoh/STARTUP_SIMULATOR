@@ -384,3 +384,5 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 - [x] Make boardroom task transfers visibly directional with bright lines, arrowheads, document packets and readable route cards; queue every observed assignment and demonstrate CEO → Finance budget delegation using disposable browser fixtures.
 
 - [x] Extend collaboration visuals to all five executives: sender/receiver participant roles, full launch-meeting preview, every new routed event in snapshot order, and regression coverage for all twenty explicit department pairs.
+
+- [x] Connect decision-log observations and task states to both boardroom timelines; add selected-avatar-only scene filtering and restore full room on All events. Apply readable text sizes across both apps and verify mobile wrapping, backend history isolation and decision-driven signals.

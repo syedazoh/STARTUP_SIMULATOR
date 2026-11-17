@@ -1,6 +1,7 @@
 import type { Task as WorkspaceTask } from "../../lib/workspace-contracts";
 
 export type Task = WorkspaceTask & {
+  updated_at?: string;
   revision?: number;
   proposal_digest?: string;
   approval_expires_at?: string;
@@ -15,6 +16,8 @@ export type StudioEvent = {
   data?: Record<string, unknown>;
 };
 export type Snapshot = {
+  decisions?: (StudioEvent & {_id?: string; id?: string})[];
+  decisionsReady?: boolean;
   tasks: Task[];
   statuses: Record<string, Record<string, unknown>>;
   events: StudioEvent[];

@@ -4,6 +4,7 @@ import {
   resolveMessage,
   getLatestMessage,
   observedMessages,
+  decisionEvents,
 } from "../src/components/boardroom/eventRoutes.js";
 
 test("routes marketing budget request to finance without inventing message data", () => {
@@ -213,4 +214,13 @@ test("business UUID and Mongo agent instance sources normalize without accepting
     }),
     null,
   );
+});
+
+test("decision log routes explicit coordination but never replays task results as assignments", () => {
+ const rows = decisionEvents([{_id:"d1",event_type:"budget_request",source:"ceo",data:{task_id:"t1"}}, {_id:"d2",event_type:"coordination",sender:"hr",receiver:"finance",data:{message:"Review hiring cost"}}]);
+ assert.equal(resolveMessage(rows[0]), null);
+ assert.equal(resolveMessage(rows[1]).receiver, "finance");
+ assert.equal(rows[1].event_id, "decision:d2");
+ assert.deepEqual(observedMessages(null,rows),[]);
+ assert.equal(observedMessages(new Set(),rows).length,1);
 });

@@ -38,10 +38,10 @@
       "lineHeight": 1.6
     },
     "studio-body": {
-      "fontSize": "13px"
+      "fontSize": "14px"
     },
     "label": {
-      "fontSize": "12px",
+      "fontSize": "14px",
       "fontWeight": 650
     }
   },
@@ -170,3 +170,8 @@ Source of truth: `web/app/globals.css`, `web/components/studio/studio.css`, `fro
 
 ### Boardroom readability update — November 17, 2026
 Projected HTML labels identify departments only; the floating owner/approval-desk badge is omitted from public and authenticated views. The physical owner station and approval authority remain separate from the CEO. Department labels use 13px desktop / 12px mobile text with solid dark backgrounds and light foregrounds. Task statuses use 13px, titles 15px and identifiers 12px; the legacy inspector body uses 15px high-contrast metadata. Shared collision boxes account for the larger labels. The legacy inspector stacks below the scene at widths up to 1450px.
+
+## Project-wide reading baseline and agent focus
+Body and form text use a 16px baseline; authored compact text has a 14px floor across the public, authentication and operational surfaces. Legacy text-sm uses 15px and text-xs uses 14px. Metadata retains hierarchy through color, weight and spacing. Chart ticks/tooltips are 14px. Mobile studio rosters wrap into three columns.
+
+The timeline filter controls scene scope: All events shows all executive avatars; the selected department shows its avatar alone with a centered camera. Other mesh groups and labels are hidden; the full floor restores on All events. Communication routes remain in readable records during solo viewing. Decision-log signals are backed by real route evidence, with a separate initial-history baseline.

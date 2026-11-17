@@ -7,11 +7,26 @@
 .immersive-room-header p,.room-conversation-heading p,.immersive-room-detail .room-spotlight-heading p,.immersive-room-detail .room-empty,.room-event p{font-size:15px!important;color:#ddcfe8!important;line-height:1.75}
 .immersive-room-controls,.immersive-room-detail h3,.immersive-room-roster button,.room-open-agent,.room-filters button{font-size:14px!important}
 .immersive-room-detail h3{color:#f5edf9!important;line-height:1.6}
-.immersive-room-detail .room-tasks article span{font-size:13px;color:#e0bfff;font-weight:600;line-height:1.6}
+.immersive-room-detail .room-tasks article span{font-size:14px;color:#e0bfff;font-weight:600;line-height:1.6}
 .immersive-room-detail .room-tasks article strong{font-size:15px;color:#fff4ff;line-height:1.6}
-.immersive-room-detail .room-tasks article small{display:block;font-size:12px;color:#d7c4e5;line-height:1.7;overflow-wrap:anywhere}
+.immersive-room-detail .room-tasks article small{display:block;font-size:14px;color:#d7c4e5;line-height:1.7;overflow-wrap:anywhere}
 .immersive-room-detail .room-facts>div,.room-event strong,.room-event details{font-size:14px;color:#e7d8f0}
-.immersive-room-detail .room-facts dt,.room-event time{color:#d4bfe2!important;font-size:13px}
+.immersive-room-detail .room-facts dt,.room-event time{color:#d4bfe2!important;font-size:14px}
 .immersive-room-detail .room-facts dd{color:#fff4ff;margin:0}
 .immersive-room-detail,.immersive-room-stage,.room-conversation{min-width:0}.room-spotlight-heading>div{min-width:0}
 @media(max-width:1450px){.immersive-room-layout{grid-template-columns:1fr}.immersive-room-detail{max-height:none}}
+
+/* Reading baseline across public pages, forms, navigation and operational tables. */
+body{font-size:16px;line-height:1.65}
+.text-xs{font-size:14px!important;line-height:1.55!important}.text-sm{font-size:15px!important;line-height:1.6!important}
+.hq-app-shell :is(.text-gray-400,.text-gray-500,.text-gray-600),.public-app :is(.text-gray-400,.text-gray-500,.text-gray-600){color:#d4c3e1!important}
+.hq-sidebar :is(a,button,select){font-size:15px!important}
+.hq-app-shell :is(input,select,textarea),.public-app :is(input,select,textarea){font-size:16px}
+:where(p,td,dd,pre){overflow-wrap:anywhere}
+[hidden]{display:none!important}
+/* Keep custom timeline surfaces consistent with the dark reading palette. */
+.room-event,.hq-event{background:#241a2e!important;color:#f0e5f7!important}
+.room-event strong,.room-event summary{color:#f0e5f7!important}
+.room-event-marker{background:#46305b;color:#ecd9ff}
+.immersive-room-controls a{background:#2b1c39!important;border-color:#8b6da3!important;color:#f0e1fc!important}
+.immersive-room-controls>span{color:#d4c3e1}

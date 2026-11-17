@@ -272,6 +272,7 @@ export function createStudio(
       phase: Math.random() * Math.PI * 2,
     });
   }
+  let solo = null;
   let selected = "ceo",
     transfer = null,
     ended = false,
@@ -309,11 +310,13 @@ export function createStudio(
     if (!width || !height) return;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    const distance = camera.aspect < 1 ? 21 : immersive ? 14.5 : 17;
+    const focused = AGENTS.find(a => a.id === solo);
+    lookAt.set(focused?.position[0] || 0, focused ? 1.1 : 0.75, focused?.position[2] || 0);
+    const distance = solo ? (camera.aspect < 1 ? 10 : 8) : camera.aspect < 1 ? 21 : immersive ? 14.5 : 17;
     camera.position.set(
-      Math.sin(0.65 + yaw) * distance,
+      lookAt.x + Math.sin(0.65 + yaw) * distance,
       distance * 0.65,
-      Math.cos(0.65 + yaw) * distance,
+      lookAt.z + Math.cos(0.65 + yaw) * distance,
     );
     camera.lookAt(lookAt);
     camera.updateProjectionMatrix();
@@ -460,7 +463,7 @@ export function createStudio(
       }
       // Retain the last recorded route until the next handoff or explicit clear.
     }
-    if (follow && !reducedMotion) {
+    if (follow && !reducedMotion && !solo) {
       const target = transfer
         ? transfer.curve.getPoint(0.5)
         : new THREE.Vector3(0, 1, 0);
@@ -468,6 +471,7 @@ export function createStudio(
       camera.position.lerp(cameraPoint, 0.025);
       camera.lookAt(target);
     }
+    if (transfer) transfer.group.visible = !solo;
     renderer.render(scene, camera);
     projects();
   }
@@ -524,6 +528,13 @@ export function createStudio(
   resize();
   if (!reducedMotion) animation = requestAnimationFrame(loop);
   return {
+    showOnly(id) {
+      solo = AGENTS.some(a => a.id === id) ? id : null;
+      for (const [key, value] of agents) value.group.visible = !solo || key === solo;
+      owner.visible = !solo;
+      ownerRing.visible = !solo;
+      resize();
+    },
     select(id) {
       selected = id;
       render(performance.now());

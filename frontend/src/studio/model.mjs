@@ -84,6 +84,10 @@ export function taskTransfer(task, previous) {
   };
   if (!previous && task.source === "ceo" && task.plan_id && receiver !== "ceo")
     return { ...base, sender: "ceo", receiver, label: "Task assigned" };
+  if (task.status === "needs_changes" && previous)
+    return {...base, sender: "owner", receiver, label: "Owner requested changes"};
+  if (previous?.status === "pending_ceo_review" && ["approved", "auto_approved"].includes(task.status) && task.ceo_authorized)
+    return {...base, sender: "ceo", receiver, label: "CEO reviewed"};
   if (isPending(task))
     return {
       ...base,

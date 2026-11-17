@@ -8,11 +8,14 @@ import {
   collaborationRoles,
 } from "../../studio/model.mjs";
 import { createStudio } from "../../studio/scene.mjs";
-import { observedMessages } from "./eventRoutes";
+import { observedMessages, decisionEvents } from "./eventRoutes";
 import "./boardroom.css";
 
 export const EXECUTIVES = AGENTS;
 export default function Boardroom3D({
+  focusAgent = null,
+  decisions = [],
+  decisionsReady = false,
   statuses = {},
   events = [],
   tasks = [],
@@ -35,6 +38,7 @@ export default function Boardroom3D({
   const queue = useRef([]),
     previewing = useRef(false);
   previewing.current = preview;
+  const seenDecisions = useRef(null);
   const previous = useRef(null),
     seen = useRef(null);
   useEffect(() => {
@@ -67,6 +71,14 @@ export default function Boardroom3D({
   useEffect(() => {
     engine.current?.select(selected);
   }, [selected, mode]);
+  useEffect(() => { engine.current?.showOnly(focusAgent) }, [focusAgent, mode]);
+  useEffect(() => {
+    if (!decisionsReady) return;
+    const rows = decisionEvents(decisions);
+    queue.current.push(...observedMessages(seenDecisions.current, rows));
+    queue.current = queue.current.slice(-32);
+    seenDecisions.current = new Set(rows.map(e => e.event_id));
+  }, [decisions, decisionsReady]);
   useEffect(() => {
     if (!ready) return;
     const changes = observedChanges(previous.current, tasks);
@@ -157,7 +169,8 @@ export default function Boardroom3D({
             <div className="boardroom-projected-labels" ref={labels}>
               {AGENTS.map((a) => (
                 <button
-                  data-agent={a.id}
+                  hidden={!!focusAgent && focusAgent !== a.id}
+                data-agent={a.id}
                   data-direction={
                     handoff?.sender === a.id
                       ? "sending"

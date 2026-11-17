@@ -30,6 +30,14 @@ async def agents(bid:str):return {r:{'agent_id':r,'decision_count':i+2,'status':
 async def get_tasks(bid:str):return tasks
 @app.get('/api/businesses/{bid}/events')
 async def get_events(bid:str):return events
+decisions=[]
+@app.get('/api/businesses/{bid}/simulation/decision-log')
+async def decision_log(bid:str):return decisions
+@app.post('/__fixture__/decision-coordination')
+async def decision_coordination():
+ decisions.append({'_id':'coordination-decision','event_type':'coordination','sender':'hr','receiver':'finance','source':'hr','timestamp':now(),'data':{'message':'Review staffing budget from decision log','synthetic':True}})
+ return {'synthetic':True}
+
 @app.get('/api/tasks/{tid}')
 async def get_task(tid:str):return next(t for t in tasks if t['id']==tid)
 @app.post('/api/tasks/{tid}/{decision}')

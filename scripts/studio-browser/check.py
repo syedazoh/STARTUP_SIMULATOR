@@ -68,6 +68,15 @@ with sync_playwright() as p:
   expect(page.locator('.collaboration-strip [data-direction="sending"]')).to_contain_text(sender,ignore_case=True)
   expect(page.locator('.collaboration-strip [data-direction="receiving"]')).to_contain_text(receiver,ignore_case=True)
  page.screenshot(path=str(root/'all-agent-handoffs.png'),full_page=True)
+ # Persisted decision-log coordination also reaches the scene.
+ response=httpx.post('http://127.0.0.1:8012/__fixture__/decision-coordination');assert response.status_code==200
+ expect(page.locator('.scene-transfer-card')).to_contain_text('Review staffing budget from decision log',timeout=15000)
+ page.get_by_role('button',name='HR only',exact=True).click()
+ expect(page.locator('.scene-labels button:visible')).to_have_count(1)
+ expect(page.locator('.scene-labels button:visible')).to_have_attribute('data-agent','hr')
+ page.screenshot(path=str(root/'single-agent-focus.png'),full_page=True)
+ page.get_by_role('button',name='All events',exact=True).click()
+ expect(page.locator('.scene-labels button:visible')).to_have_count(5)
  # Real decisions require opening exact payload; no preview action can approve.
  page.locator('.studio-task summary').click();expect(page.get_by_text('Product launch',exact=False).first).to_be_visible()
  page.get_by_role('button',name='Approve action',exact=True).click()

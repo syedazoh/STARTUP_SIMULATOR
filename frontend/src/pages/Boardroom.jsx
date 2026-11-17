@@ -7,7 +7,7 @@ import useBoardroomTasks from '../hooks/useBoardroomTasks'
 import { fetchSimulationStatus } from '../store/slices/simulationSlice'
 import useVisiblePolling from '../hooks/useVisiblePolling'
 import Boardroom3D, { EXECUTIVES } from '../components/boardroom/Boardroom3D'
-import { resolveMessage } from '../components/boardroom/eventRoutes'
+import { resolveMessage, decisionEvents } from '../components/boardroom/eventRoutes'
 import '../components/boardroom/boardroom.css'
 import './boardroom-page.css'
 
@@ -26,6 +26,7 @@ export default function Boardroom() {
   const eventStatus = useSelector(state => state.events.loadStatus)
   const eventError = useSelector(state => state.events.error)
   const taskSnapshot = useBoardroomTasks(businessId)
+  const decisionSnapshot = useBoardroomTasks(businessId, "simulation/decision-log", 500)
   const tasks = taskSnapshot.items
   const { isRunning, isPaused, tickCount } = useSelector(state => state.simulation)
   const [selected, setSelected] = useState('ceo')
@@ -38,7 +39,7 @@ export default function Boardroom() {
   }, 1800, [dispatch, businessId])
   const selectedAgent = EXECUTIVES.find(agent => agent.id === selected) || EXECUTIVES[0]
   const assignedTasks = tasks.filter(task => agentMatch(task, selected))
-  const communication = [...events].reverse().map(event => ({ event, route: resolveMessage(event) }))
+  const communication = [...events, ...decisionEvents(decisionSnapshot.items), ...tasks.map(t=>({event_id:`task:${t.id}:${t.status}`,event_type:t.status,source:t.agent,timestamp:t.updated_at||t.created_at,data:{message:`${t.objective||t.action_type} · ${titleCase(t.status)}`,task_id:t.id}}))].sort((a,b)=>(Date.parse(b.timestamp)||0)-(Date.parse(a.timestamp)||0)).map(event => ({ event, route: resolveMessage(event) }))
     .filter(({ event, route }) => filter === 'all' || (route ? route.sender === selected || route.receiver === selected : event.source === selected || String(event.source || '').startsWith(selected + '_')))
     .slice(0, 30)
   return <main className="immersive-room">
@@ -49,7 +50,7 @@ export default function Boardroom() {
     <div className="immersive-room-layout">
       <div className="immersive-room-stage">
         {taskSnapshot.error && <p role="alert" className="room-empty">{taskSnapshot.error}</p>}
-        <Boardroom3D key={businessId} tasks={tasks} ready={taskSnapshot.ready} eventsReady={eventStatus==='succeeded'} selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
+        <Boardroom3D focusAgent={filter==='selected'?selected:null} decisions={decisionSnapshot.items} decisionsReady={decisionSnapshot.ready} key={businessId} tasks={tasks} ready={taskSnapshot.ready} eventsReady={eventStatus==='succeeded'} selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
         <div className="immersive-room-roster" aria-label="Select executive">
           {EXECUTIVES.map(agent => <button key={agent.id} type="button" aria-pressed={selected === agent.id} className={selected === agent.id ? 'active' : ''} onClick={() => {setSelected(agent.id);setFilter('selected')}}>
             <span className="room-avatar" style={{background:agent.color}}>{agent.label.charAt(0)}</span><strong>{agent.label}</strong>
@@ -69,6 +70,7 @@ export default function Boardroom() {
     </div>
     <section className="room-conversation">
       <div className="room-conversation-heading"><div><span className="hq-kicker">SIMULATOR RECORDS</span><h2>Communication & activity timeline</h2><p>Events are retrieved from the backend. A directional arrow appears only when a known agent-to-agent route exists.</p></div><div className="room-filters"><button type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>All events</button><button type="button" aria-pressed={filter==='selected'} onClick={()=>setFilter('selected')}>{selectedAgent.label} only</button></div></div>
+      {decisionSnapshot.error && <p role="alert" className="room-empty">Decision log could not refresh.</p>}
       {eventError && <p role="alert" className="room-empty">Could not refresh events: {eventError}</p>}
       {eventStatus === 'loading' && events.length === 0 && <p className="room-empty">Loading backend events…</p>}
       {communication.length === 0 && eventStatus !== 'loading' && <p className="room-empty">No matching events have been recorded. Start a simulation from the Command Center.</p>}

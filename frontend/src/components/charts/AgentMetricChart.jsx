@@ -23,20 +23,20 @@ function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
             <CartesianGrid stroke={INK.gridline} vertical={false} />
             <XAxis
               dataKey="tick"
-              tick={{ fontSize: 11, fill: INK.muted }}
+              tick={{ fontSize: 14, fill: INK.muted }}
               stroke={INK.baseline}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: INK.muted }}
+              tick={{ fontSize: 14, fill: INK.muted }}
               stroke={INK.baseline}
               tickLine={false}
-              width={48}
+              width={64}
               tickFormatter={valueFormatter}
             />
             <Tooltip
               formatter={(value) => (valueFormatter ? valueFormatter(value) : value)}
-              contentStyle={{ fontSize: 12, borderRadius: 8 }}
+              contentStyle={{ fontSize: 14, borderRadius: 8 }}
             />
             <Line
               type="monotone"

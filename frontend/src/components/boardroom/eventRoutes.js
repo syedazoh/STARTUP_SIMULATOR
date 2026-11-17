@@ -86,3 +86,12 @@ export function observedMessages(previous, events) {
     ];
   });
 }
+
+// Persisted decisions retain their own IDs. A task result alone is not a message.
+export function decisionEvents(records) {
+  return records.filter(row => row._id || row.id).map(row => ({
+    ...row, event_id: `decision:${row._id || row.id}`,
+    // Task-backed decisions already have task transitions; avoid inventing another assignment.
+    source: row.data?.task_id && !row.sender && !row.data?.sender ? 'decision_log' : row.source,
+  }));
+}

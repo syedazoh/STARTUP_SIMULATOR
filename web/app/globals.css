@@ -124,7 +124,7 @@ small {
 }
 .site-header > span {
   color: var(--muted);
-  font-size: 12px;
+  font-size:14px;
 }
 .site-main {
   max-width: 1160px;
@@ -271,7 +271,7 @@ li {
   overflow: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: 13px;
+  font-size:14px;
 }
 .demo-workspace code {
   overflow-wrap: anywhere;
@@ -286,7 +286,7 @@ li {
   gap: 16px;
 }
 .demo-metrics dt {
-  font-size: 13px;
+  font-size:14px;
   color: var(--muted);
 }
 .demo-metrics dd {
@@ -374,7 +374,7 @@ li {
 }
 .metric span {
   display: block;
-  font-size: 13px;
+  font-size:14px;
 }
 .metric strong {
   display: block;
@@ -398,7 +398,7 @@ li {
   padding: 16px;
   background: var(--raised);
   border-radius: 8px;
-  font-size: 13px;
+  font-size:14px;
 }
 .command-center h1,
 .command-center h3,
@@ -423,7 +423,7 @@ li {
   color: var(--text);
   border-radius: 20px;
   padding: 4px 12px;
-  font-size: 13px;
+  font-size:14px;
 }
 .task-meta {
   display: grid;
@@ -501,3 +501,10 @@ textarea {
   background: #110e17;
   color: var(--text);
 }
+
+/* Shared reading baseline; component sizes retain heading hierarchy. */
+body{font-size:16px;line-height:1.65}
+small{font-size:14px;line-height:1.55}
+input,textarea,select{font-size:16px}
+:where(p,td,dd,pre){overflow-wrap:anywhere}
+[hidden]{display:none!important}

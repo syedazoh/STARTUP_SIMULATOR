@@ -13,6 +13,7 @@ import { decisionAllowed } from "../../lib/workspace-contracts";
 import {
   resolveMessage,
   observedMessages,
+  decisionEvents,
 } from "../../../frontend/src/components/boardroom/eventRoutes";
 import {
   loadStudio,
@@ -60,6 +61,9 @@ export default function Studio({
     eventsInitialized = useRef(
       !initial.errors.some((e) => e.startsWith("Activity")),
     );
+  const [soloMode, setSoloMode] = useState(false);
+  const focusAgent = soloMode ? selected : null;
+  const previousDecisions = useRef<Set<string> | null>(initial.decisionsReady ? new Set(decisionEvents(initial.decisions || []).map((e: {event_id: string})=>e.event_id)) : null);
   const previewing = useRef(preview);
   previewing.current = preview;
   const queue = useRef<Transfer[]>([]),
@@ -86,9 +90,15 @@ export default function Studio({
         seenEvents.current = new Set(next.events.map((e) => e.event_id));
         eventsInitialized.current = true;
       }
+      if (next.decisionsReady) {
+        const rows = decisionEvents(next.decisions || []);
+        queue.current.push(...observedMessages(previousDecisions.current, rows));
+        previousDecisions.current = new Set(rows.map((e: {event_id: string}) => e.event_id));
+      }
       queue.current = queue.current.slice(-32);
       const merged = {
         ...next,
+        decisions: next.decisionsReady ? next.decisions : latest.current.decisions,
         tasks: next.tasksReady ? next.tasks : latest.current.tasks,
         statuses: next.errors.some((e) => e.startsWith("Agent"))
           ? latest.current.statuses
@@ -192,14 +202,16 @@ export default function Studio({
           route: `${humanize(t.sender)} → ${humanize(t.receiver)}`,
           time: "Visual preview",
         }))
-    : snapshot.events
-        .slice(-4)
+    : [...snapshot.events, ...decisionEvents(snapshot.decisions || []), ...snapshot.tasks.map(t => ({event_id:`task:${t.id}:${t.status}`,event_type:t.status,source:t.agent,timestamp:t.updated_at || t.created_at,data:{message:`${t.objective || t.action_type} · ${taskPhase(t)}`}}))]
+        .filter(e => { const route = resolveMessage(e); return !focusAgent || route?.sender === focusAgent || route?.receiver === focusAgent || agentId(e.source) === focusAgent; })
+        .sort((a,b)=>(Date.parse(a.timestamp || "")||0)-(Date.parse(b.timestamp || "")||0))
+        .slice(-20)
         .reverse()
         .map((e) => {
           const route = resolveMessage(e);
           return {
             id: e.event_id,
-            title: humanize(e.event_type),
+            title: typeof e.data?.message === "string" ? e.data.message : humanize(e.event_type),
             route: route
               ? `${humanize(route.sender)} → ${humanize(route.receiver)}`
               : humanize(e.source || "System"),
@@ -368,6 +380,7 @@ export default function Studio({
                 </button>
               </div>
               <Scene
+                focusAgent={focusAgent}
                 selected={selected}
                 onSelect={setSelected}
                 transfer={activeTransfer}
@@ -588,6 +601,7 @@ export default function Studio({
           <section className="studio-activity">
             <div className="studio-section-title">
               <h2>Across the floor</h2>
+          <div className="room-filters"><button onClick={() => setSoloMode(false)} aria-pressed={!focusAgent}>All events</button><button onClick={() => setSoloMode(true)} aria-pressed={!!focusAgent}>{AGENTS.find(a => a.id === selected)?.label} only</button></div>
               <span>{preview ? "Synthetic preview" : "Recorded activity"}</span>
             </div>
             {activity.length ? (

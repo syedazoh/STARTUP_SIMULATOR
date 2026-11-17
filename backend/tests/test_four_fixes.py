@@ -73,6 +73,30 @@ def test_local_decision_log_and_run_history_http(monkeypatch):
         assert history.json()[0]['run_id'] == 'test-run'
 
 
+def test_recent_boardroom_decisions_keep_latest_records_and_business_scope(monkeypatch):
+    from fastapi.testclient import TestClient
+    from mongomock_motor import AsyncMongoMockClient
+    from app.main import app
+    from app.config import settings
+    monkeypatch.setattr('app.database.mongodb.AsyncIOMotorClient', lambda *a, **k: AsyncMongoMockClient())
+    monkeypatch.setattr(settings, 'allow_in_memory_login', True)
+    with TestClient(app) as client:
+        app.state.db = InMemoryDatabase()
+        credentials = {'email': 'recent@example.com', 'password': 'supersecret123'}
+        assert client.post('/api/auth/register', json=credentials).status_code == 201
+        token = client.post('/api/auth/login', json=credentials).json()['access_token']
+        headers = {'Authorization': 'Bearer ' + token}
+        bid = client.post('/api/businesses', json={'company_name': 'Recent', 'industry': 'Software'}, headers=headers).json()['id']
+        async def seed():
+            for i in range(4):
+                await app.state.db['decision_logs'].insert_one({'business_id': bid, 'timestamp': f'2026-11-17T00:00:0{i}Z', 'event_type': str(i)})
+            await app.state.db['decision_logs'].insert_one({'business_id': 'another-business', 'timestamp': '2026-11-18T00:00:00Z', 'event_type': 'private'})
+        client.portal.call(seed)
+        response = client.get(f'/api/businesses/{bid}/simulation/decision-log?recent=true&limit=2', headers=headers)
+        assert response.status_code == 200
+        assert [row['event_type'] for row in response.json()] == ['2', '3']
+
+
 @pytest.mark.asyncio
 async def test_retry_after_is_respected_and_attempt_budget_is_bounded():
     clock = Clock()

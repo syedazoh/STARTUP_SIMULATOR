@@ -8,6 +8,7 @@ import type { Transfer } from "./types";
 import Icon from "./icon";
 
 type Engine = {
+  showOnly: (id: string | null) => void;
   select: (id: string) => void;
   playTransfer: (t: Transfer | null) => void;
   setImmersive: (v: boolean) => void;
@@ -17,11 +18,13 @@ type Engine = {
 };
 export default function Scene({
   selected,
+  focusAgent = null,
   onSelect,
   transfer,
   onRecorded,
 }: {
   selected: string;
+  focusAgent?: string | null;
   onSelect: (id: string) => void;
   transfer: Transfer | null;
   onRecorded?: (t: Transfer) => void;
@@ -99,6 +102,7 @@ export default function Scene({
       engine.current = null;
     };
   }, [view]);
+  useEffect(() => { engine.current?.showOnly(focusAgent); }, [focusAgent, ready, view]);
   useEffect(() => {
     engine.current?.select(selected);
   }, [selected]);
@@ -225,6 +229,7 @@ export default function Scene({
             {AGENTS.map((a) => (
               <button
                 key={a.id}
+                hidden={!!focusAgent && focusAgent !== a.id}
                 data-agent={a.id}
                 data-direction={
                   transfer?.sender === a.id
