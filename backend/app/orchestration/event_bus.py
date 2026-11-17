@@ -27,6 +27,7 @@ class EventBus:
         self.subscribers: Dict[str, List[Callable]] = {}
         self.event_history: List[Event] = []
         self.max_history_size = 1000
+        self.on_publish = None  # Optional persistence observer; never authorizes work
 
     def subscribe(self, event_type: str, callback: Callable) -> None:
         if event_type not in self.subscribers:
@@ -41,6 +42,11 @@ class EventBus:
         self.event_history.append(event)
         if len(self.event_history) > self.max_history_size:
             self.event_history.pop(0)
+        if self.on_publish is not None:
+            try:
+                await self.on_publish(event)
+            except Exception:
+                logging.getLogger(__name__).exception("Could not persist boardroom activity")
         results: List[Any] = []
         if event_type in self.subscribers:
             payload = {"type": event.event_type, **event.data}
