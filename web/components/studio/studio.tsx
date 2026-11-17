@@ -77,7 +77,7 @@ export default function Studio({
         // CEO assignments come from durable directed events; don't animate twice.
         queue.current.push(
           ...observedChanges(previous.current, next.tasks).filter(
-            (change) => change.label !== "Task assigned",
+            (change: Transfer) => change.label !== "Task assigned",
           ),
         );
         previous.current = new Map(next.tasks.map((t) => [t.id, t]));
