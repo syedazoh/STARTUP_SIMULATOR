@@ -5,6 +5,7 @@ These records are visual/audit projections, not commands and never approve work.
 from datetime import datetime, timezone
 from uuid import uuid4
 import re
+import logging
 
 AGENTS = {"ceo", "finance", "marketing", "hr", "operations"}
 RECEIVERS = {
@@ -85,7 +86,20 @@ async def list_collaboration_events(db, business_id, limit=100):
     result = []
     for doc in reversed(docs):
         result.append({
-            key: value.isoformat() if isinstance(value, datetime) else value
+            key: (value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value).isoformat() if isinstance(value, datetime) else value
             for key, value in doc.items() if key not in {"_id", "business_id"}
         })
     return result
+
+async def best_effort_handoff(*args, **kwargs):
+    """A failed visual projection must never invalidate an actual task or approval."""
+    try:
+        await record_handoff(*args, **kwargs)
+    except Exception:
+        logging.getLogger(__name__).exception("Could not record boardroom handoff")
+
+async def best_effort_decision_activity(*args, **kwargs):
+    try:
+        await record_decision_activity(*args, **kwargs)
+    except Exception:
+        logging.getLogger(__name__).exception("Could not record boardroom decision activity")
