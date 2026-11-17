@@ -89,7 +89,7 @@ class AgentRegistry:
 
                     async def persist_internal_handoff(event):
                         route = infer_internal_route(event.source, event.event_type)
-                        if route:
+                        if route and route[1] in agent_manager.agents and agent_manager.event_bus.subscribers.get(event.event_type):
                             await record_handoff(
                                 self._db, business.id, *route, event.event_type,
                                 event.event_type.replace("_", " "),
