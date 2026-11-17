@@ -1367,3 +1367,7 @@
   }
 }
 .studio-scene.is-immersive{background-color:#0d0813}
+.scene-labels>button{font-size:13px!important;min-height:34px;padding:6px 11px;background:#24162f;color:#fff5ff;border-color:#a886c1}
+.studio-task small,.studio-task>p,.studio-task details summary,.studio-task details dl,.studio-action-warning,.studio-inbox-empty p,.studio-feedback{font-size:13px;color:#ddcbea}
+.studio-task h3,.studio-selected h2{font-size:16px}.studio-task-actions button{font-size:13px;min-height:44px}.studio-selected p,.studio-selected h2>span,.studio-roster small{font-size:12px;color:#d7c3e7}
+@media(max-width:700px){.scene-labels>button{font-size:12px!important;min-height:32px}.studio-roster small{font-size:10px}.studio-roster strong{font-size:12px}}

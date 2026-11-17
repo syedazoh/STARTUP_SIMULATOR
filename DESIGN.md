@@ -167,3 +167,6 @@ Soft rectangular controls and panels contrast with circular station rings and an
 - Don't claim screenshots prove provider readiness or live gameplay fidelity.
 
 Source of truth: `web/app/globals.css`, `web/components/studio/studio.css`, `frontend/src/theme/night-studio.css`, `frontend/src/theme/palette.js`, and `frontend/src/studio/{model,scene}.mjs`. This document captures source inspection; it does not certify the review screenshots, accessibility conformance, deployment or provider integrations. No Figma comp or image-generation concept was produced in this session.
+
+### Boardroom readability update — November 17, 2026
+Projected HTML labels identify departments only; the floating owner/approval-desk badge is omitted from public and authenticated views. The physical owner station and approval authority remain separate from the CEO. Department labels use 13px desktop / 12px mobile text with solid dark backgrounds and light foregrounds. Task statuses use 13px, titles 15px and identifiers 12px; the legacy inspector body uses 15px high-contrast metadata. Shared collision boxes account for the larger labels. The legacy inspector stacks below the scene at widths up to 1450px.

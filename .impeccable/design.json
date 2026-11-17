@@ -133,7 +133,17 @@
         "name": "wide",
         "value": "1600px"
       }
-    ]
+    ],
+    "boardroomReadability": {
+      "floatingOwnerLabel": false,
+      "agentLabelFontSize": "13px",
+      "agentLabelMobileFontSize": "12px",
+      "taskStatusFontSize": "13px",
+      "taskTitleFontSize": "15px",
+      "taskIdFontSize": "12px",
+      "metadataColor": "#ddcfe8",
+      "legacyInspectorStackBreakpoint": "1450px"
+    }
   },
   "components": [
     {

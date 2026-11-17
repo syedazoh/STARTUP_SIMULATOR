@@ -177,8 +177,8 @@ export function layoutLabels(positions, width, height) {
   if (positions.owner) entries.push(["owner", positions.owner]);
   for (const [id, point] of entries) {
     const label = AGENTS.find((a) => a.id === id)?.label || "Approval desk";
-    const w = id === "owner" ? 90 : Math.max(48, label.length * 6 + 24),
-      h = id === "owner" ? (width < 550 ? 26 : 42) : 30;
+    const w = id === "owner" ? 90 : Math.max(48, label.length * 8 + 28),
+      h = id === "owner" ? (width < 550 ? 26 : 42) : 36;
     const x = Math.max(w / 2 + 8, Math.min(width - w / 2 - 8, point[0]));
     const initial = point[1] - (id === "owner" ? 25 : 0);
     let y = Math.max(70, Math.min(height - h / 2 - 12, initial));
