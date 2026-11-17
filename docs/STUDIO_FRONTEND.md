@@ -35,6 +35,14 @@ Handoffs use a bright raised line, directional arrowheads, a moving document pac
 
 Both clients queue every newly observed routed event, not just the last event of a polling batch. Explicit sender/receiver records support all twenty directed pairs among the five departments. For implicit routes, recipients come only from inspected EventBus subscriptions and negotiation/arbitration wiring; external/manual/system sources and self-routes do not generate department-to-department transfers. Known numeric, Mongo ObjectID and UUID agent-instance suffixes normalize to department names. Live playback pauses while previewing or while the tab is hidden; illustrative routes never create backend work.
 
+## Durable task and coordination signals (November 17 update)
+
+Both the Next.js executive studio (`/workspace/<businessId>/boardroom`) and the Vite Boardroom now read the authenticated `GET /api/businesses/<businessId>/events/boardroom` endpoint. It combines the existing in-memory EventBus history with **business-scoped persisted collaboration records** (deduplicated by event ID). The original `GET .../events` endpoint retains its original event-history contract.
+
+The backend records CEO plan activation assignments (CEO → assigned department), completed CEO task reviews (CEO → department), department reports (department → CEO), actual agent-originated EventBus messages to subscribed departments, and decision-log writes. Decision-log entries without a known sender and receiver appear in the timeline **without a directional signal**. Arbitration results may have both Finance and Marketing as actual recipients. The visual packets and activity rows show the recorded task objective when available.
+
+New records survive an application restart **only with persistent MongoDB**; the explicit in-memory development fallback does not persist data. Existing historical decisions and tasks from before this change are not backfilled into the new collection, and the initial activity snapshot is not animated as if it just happened. The Next.js studio polls every five seconds, while Vite polls more frequently; neither uses WebSockets. Rendering a handoff does not approve, execute, or verify a task. This does not create new interdepartment coordination; it makes already-recorded interactions visible.
+
 ## Implementation
 
 `frontend/src/studio/model.mjs` contains the shared state-to-visual mapping and collision layout. `scene.mjs` builds the avatars, workstations, approval station, geometric portals, camera and task packets directly in Three.js. These are authored robot meshes, not imported rigged characters or video. Placing the core inside `frontend/` preserves the existing frontend-only Docker context. Next.js expands its Turbopack/tracing root to the repository to share the framework-neutral core without mixing React 18 and React 19 renderers. Next adds Three.js 0.170.0 and its development types; existing Vite dependencies remain.

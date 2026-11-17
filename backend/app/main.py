@@ -81,6 +81,7 @@ async def _create_indexes(db) -> None:
     await ensure_index(db["chat_threads"], [("business_id", 1), ("agent", 1)])
     await ensure_index(db["credentials"], [("business_id", 1), ("provider", 1)])
     await ensure_index(db["audit_logs"], [("business_id", 1), ("timestamp", -1)])
+    await ensure_index(db["collaboration_events"], [("business_id", 1), ("timestamp", -1)])
     # Every login counts attempts for this email within a time window, so the
     # compound key matches that query instead of forcing a collection scan.
     await ensure_index(db["login_attempts"], [("email", 1), ("timestamp", -1)])
