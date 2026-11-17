@@ -1,6 +1,6 @@
 """Event Bus for Agent Communication"""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Tuple
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ class Event:
         self.event_type = event_type
         self.data = data
         self.source = source
-        self.timestamp = datetime.now()
+        self.timestamp = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
