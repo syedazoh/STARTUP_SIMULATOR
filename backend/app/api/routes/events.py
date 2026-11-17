@@ -1,5 +1,7 @@
 """Event routes (business-scoped)"""
 from typing import Any, Dict
+from datetime import datetime, timezone
+from ...services.collaboration import list_collaboration_events
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ValidationError
@@ -41,7 +43,19 @@ async def list_events(
     request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 100
 ):
     runtime = await request.app.state.agent_registry.get_or_create(business)
-    return runtime.agent_manager.event_bus.get_event_history(limit=limit)
+    bounded = min(max(limit, 1), 200)
+    durable = await list_collaboration_events(request.app.state.db, business.id, bounded)
+    live = runtime.agent_manager.event_bus.get_event_history(limit=bounded)
+    # Same event may exist in both sources; keep its durable directed record.
+    combined = {event["event_id"]: event for event in live}
+    combined.update({event["event_id"]: event for event in durable})
+    def recorded_at(event):
+        try:
+            stamp = datetime.fromisoformat(event["timestamp"])
+            return stamp if stamp.tzinfo else stamp.replace(tzinfo=timezone.utc)
+        except (ValueError, KeyError, TypeError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+    return sorted(combined.values(), key=recorded_at)[-bounded:]
 
 
 _limiter = RateLimiter(max_requests=30, window_seconds=60)
