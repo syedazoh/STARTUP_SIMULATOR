@@ -6,7 +6,7 @@ import { getLatestMessage } from './eventRoutes'
 import './boardroom.css'
 
 export const EXECUTIVES = AGENTS
-export default function Boardroom3D({ statuses = {}, events = [], tasks = [], ready = true, onSelect = () => {}, selected = 'ceo' }) {
+export default function Boardroom3D({ statuses = {}, events = [], tasks = [], ready = true, onSelect = () => {}, selected = 'ceo', showApprovalLabel = true }) {
   const canvas = useRef(null), labels = useRef(null), engine = useRef(null)
   const select = useRef(onSelect); select.current = onSelect
   const [mode, setMode] = useState('3d'), [error, setError] = useState(''), [preview, setPreview] = useState(false)
@@ -52,7 +52,7 @@ export default function Boardroom3D({ statuses = {}, events = [], tasks = [], re
   useEffect(()=>{engine.current?.playTransfer(handoff)},[handoff, mode])
   return <section className="boardroom-shell" aria-label="AI executive boardroom">
     <div className="boardroom-toolbar"><div><strong>Executive floor</strong><span>{preview?'Visual preview · synthetic · no tasks created':'Select an avatar. Inspect real work. Keep approval in your hands.'}</span></div><div className="boardroom-controls"><button onClick={()=>{setPreview(!preview);if(preview)setHandoff(null)}}>{preview?'Exit preview':'Preview handoff'}</button><button onClick={()=>setMode(mode==='3d'?'list':'3d')}>{mode==='3d'?'Team list':'3D view'}</button></div></div>
-    {mode==='3d'?<div className="boardroom-canvas"><canvas ref={canvas} aria-label="3D executive avatars; drag to orbit or use the labelled selection buttons"/>{error?<p role="alert" className="boardroom-render-error">{error}<button onClick={()=>setMode('list')}>Open team list</button></p>:<div className="boardroom-projected-labels" ref={labels}>{AGENTS.map(a=><button data-agent={a.id} key={a.id} aria-label={`Select ${a.label}`} aria-pressed={selected===a.id} onClick={()=>onSelect(a.id)}>{a.label}</button>)}<span data-agent="owner">You · Approval desk</span></div>}</div>:<div className="boardroom-list">{AGENTS.map(a=><button key={a.id} onClick={()=>onSelect(a.id)} aria-pressed={selected===a.id}><span style={{background:a.color}}/>{a.label}<small>{statuses[a.id]?'State available':'No snapshot'}</small></button>)}</div>}
+    {mode==='3d'?<div className="boardroom-canvas"><canvas ref={canvas} aria-label="3D executive avatars; drag to orbit or use the labelled selection buttons"/>{error?<p role="alert" className="boardroom-render-error">{error}<button onClick={()=>setMode('list')}>Open team list</button></p>:<div className="boardroom-projected-labels" ref={labels}>{AGENTS.map(a=><button data-agent={a.id} key={a.id} aria-label={`Select ${a.label}`} aria-pressed={selected===a.id} onClick={()=>onSelect(a.id)}>{a.label}</button>)}{showApprovalLabel && <span data-agent="owner">You · Approval desk</span>}</div>}</div>:<div className="boardroom-list">{AGENTS.map(a=><button key={a.id} onClick={()=>onSelect(a.id)} aria-pressed={selected===a.id}><span style={{background:a.color}}/>{a.label}<small>{statuses[a.id]?'State available':'No snapshot'}</small></button>)}</div>}
     <p className="boardroom-note" role="status">{handoff?`${handoff.source==='visual preview'?'Visual preview: ':''}${handoff.sender.toUpperCase()} → ${handoff.receiver.toUpperCase()} · ${handoff.label}`:'No new handoff. Historical tasks are not replayed as live activity.'}</p>
   </section>
 }

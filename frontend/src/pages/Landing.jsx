@@ -36,7 +36,7 @@ export default function Landing() {
       </div>
       <div className="hero-world">
         <div className="world-caption"><span className="live-dot"/> Interactive 3D preview <small>Illustration only — login to see real events</small></div>
-        <Boardroom3D selected={selected} onSelect={setSelected} />
+        <Boardroom3D selected={selected} onSelect={setSelected} showApprovalLabel={false} />
         <div className="hero-world-agent"><span>EXECUTIVE PROFILE</span><strong>{EXECUTIVES.find(a=>a.id===selected)?.label}</strong><p>{DESCRIPTIONS[selected]}</p></div>
       </div>
     </section>
