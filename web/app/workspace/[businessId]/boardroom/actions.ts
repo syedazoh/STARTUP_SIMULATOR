@@ -7,7 +7,7 @@ export async function loadStudio(businessId: string): Promise<Snapshot> {
   const results = await Promise.allSettled([
     backend(`${base}/tasks?limit=200`),
     backend(`${base}/agents`),
-    backend(`${base}/events?limit=100`),
+    backend(`${base}/events/boardroom?limit=100`),
     backend(`${base}/simulation/decision-log?limit=500&recent=true`),
   ]);
   const labels = ["Tasks", "Agent status", "Activity", "Decision log"];

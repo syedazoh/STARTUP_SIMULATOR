@@ -83,7 +83,9 @@ export default function Boardroom3D({
     if (!ready) return;
     const changes = observedChanges(previous.current, tasks);
     previous.current = new Map(tasks.map((t) => [t.id, t]));
-    queue.current.push(...changes);
+    // CEO assignments are now emitted as durable directed backend events.
+    // Do not animate the same assignment again from its task snapshot.
+    queue.current.push(...changes.filter((change) => change.label !== "Task assigned"));
     queue.current = queue.current.slice(-32);
   }, [tasks, ready, preview]);
   useEffect(() => {

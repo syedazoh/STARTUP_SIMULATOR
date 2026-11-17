@@ -1,6 +1,6 @@
 """Event Bus for Agent Communication"""
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Tuple
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ class Event:
         self.event_type = event_type
         self.data = data
         self.source = source
-        self.timestamp = datetime.now()
+        self.timestamp = datetime.now(timezone.utc)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -27,6 +27,7 @@ class EventBus:
         self.subscribers: Dict[str, List[Callable]] = {}
         self.event_history: List[Event] = []
         self.max_history_size = 1000
+        self.on_publish = None  # Optional persistence observer; never authorizes work
 
     def subscribe(self, event_type: str, callback: Callable) -> None:
         if event_type not in self.subscribers:
@@ -41,6 +42,11 @@ class EventBus:
         self.event_history.append(event)
         if len(self.event_history) > self.max_history_size:
             self.event_history.pop(0)
+        if self.on_publish is not None:
+            try:
+                await self.on_publish(event)
+            except Exception:
+                logging.getLogger(__name__).exception("Could not persist boardroom activity")
         results: List[Any] = []
         if event_type in self.subscribers:
             payload = {"type": event.event_type, **event.data}

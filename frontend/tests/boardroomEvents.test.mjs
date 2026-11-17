@@ -224,3 +224,20 @@ test("decision log routes explicit coordination but never replays task results a
  assert.deepEqual(observedMessages(null,rows),[]);
  assert.equal(observedMessages(new Set(),rows).length,1);
 });
+
+test("durable CEO delegation displays the assigned task objective", () => {
+  const [handoff] = observedMessages(new Set(), [{
+    event_id: "durable-1", event_type: "task_assigned",
+    sender: "ceo", receiver: "hr", source: "ceo",
+    data: { title: "Recruit a designer", task_id: "task-1" },
+  }]);
+  assert.equal(handoff.sender, "ceo");
+  assert.equal(handoff.receiver, "hr");
+  assert.equal(handoff.title, "Recruit a designer");
+});
+test("decision records never create fictional directed messages", () => {
+  assert.deepEqual(observedMessages(new Set(), [{
+    event_id: "decision-1", event_type: "decision_recorded",
+    source: "system", data: { title: "Decision recorded: campaign launch" },
+  }]), []);
+});

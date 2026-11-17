@@ -28,6 +28,7 @@ async def get_business(bid:str):return business
 async def agents(bid:str):return {r:{'agent_id':r,'decision_count':i+2,'status':'working' if r=='operations' else 'idle'} for i,r in enumerate(['ceo','finance','marketing','hr','operations'])}
 @app.get('/api/businesses/{bid}/tasks')
 async def get_tasks(bid:str):return tasks
+@app.get('/api/businesses/{bid}/events/boardroom')
 @app.get('/api/businesses/{bid}/events')
 async def get_events(bid:str):return events
 decisions=[]
@@ -53,6 +54,7 @@ async def logout():return {}
 
 @app.post('/__fixture__/delegate-budget')
 async def delegate_budget():
+ events.append({'event_id':'durable-budget-fixture','event_type':'task_assigned','source':'ceo','sender':'ceo','receiver':'finance','timestamp':now(),'data':{'title':'Review department budget','task_id':'ceo-budget-fixture','synthetic':True}})
  tasks.append({'id':'ceo-budget-fixture','business_id':'studio-business','agent':'finance','status':'executing','action_type':'budget_request','objective':'Review department budget','payload':{'amount':500,'synthetic':True},'mode':'simulation','source':'ceo','plan_id':'synthetic-ceo-plan','ceo_authorized':True,'created_at':now()})
  return {'synthetic':True}
 

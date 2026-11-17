@@ -1,5 +1,7 @@
 """Event routes (business-scoped)"""
 from typing import Any, Dict
+from datetime import datetime, timezone
+from ...services.collaboration import list_collaboration_events
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, ValidationError
@@ -42,6 +44,32 @@ async def list_events(
 ):
     runtime = await request.app.state.agent_registry.get_or_create(business)
     return runtime.agent_manager.event_bus.get_event_history(limit=limit)
+
+
+@router.get("/boardroom")
+async def boardroom_activity(
+    request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 100
+):
+    """Merged durable handoffs and in-memory events; the original /events API is unchanged."""
+    runtime = await request.app.state.agent_registry.get_or_create(business)
+    bounded = min(max(limit, 1), 200)
+    durable = await list_collaboration_events(request.app.state.db, business.id, bounded)
+    live = runtime.agent_manager.event_bus.get_event_history(limit=bounded)
+    # Same event may exist in both sources; keep its durable directed record.
+    combined = {event["event_id"]: event for event in live}
+    for event in durable:
+        existing = combined.get(event["event_id"])
+        combined[event["event_id"]] = (
+            {**existing, **event, "data": {**existing.get("data", {}), **event.get("data", {})}}
+            if existing else event
+        )
+    def recorded_at(event):
+        try:
+            stamp = datetime.fromisoformat(event["timestamp"])
+            return stamp if stamp.tzinfo else stamp.replace(tzinfo=timezone.utc)
+        except (ValueError, KeyError, TypeError):
+            return datetime.min.replace(tzinfo=timezone.utc)
+    return sorted(combined.values(), key=recorded_at)[-bounded:]
 
 
 _limiter = RateLimiter(max_requests=30, window_seconds=60)

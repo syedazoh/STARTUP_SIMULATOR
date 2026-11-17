@@ -78,7 +78,12 @@ export default function Studio({
       const next = await loadStudio(businessId);
       if (!mounted.current) return;
       if (next.tasksReady) {
-        queue.current.push(...observedChanges(previous.current, next.tasks));
+        // CEO assignments come from durable directed events; don't animate twice.
+        queue.current.push(
+          ...observedChanges(previous.current, next.tasks).filter(
+            (change: Transfer) => change.label !== "Task assigned",
+          ),
+        );
         previous.current = new Map(next.tasks.map((t) => [t.id, t]));
       }
       if (!next.errors.some((e) => e.startsWith("Activity"))) {
@@ -211,7 +216,7 @@ export default function Studio({
           const route = resolveMessage(e);
           return {
             id: e.event_id,
-            title: typeof e.data?.message === "string" ? e.data.message : humanize(e.event_type),
+            title: typeof e.data?.message === "string" ? e.data.message : typeof e.data?.title === "string" ? e.data.title : humanize(e.event_type),
             route: route
               ? `${humanize(route.sender)} → ${humanize(route.receiver)}`
               : humanize(e.source || "System"),

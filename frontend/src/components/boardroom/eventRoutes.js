@@ -77,9 +77,11 @@ export function observedMessages(previous, events) {
         ...route,
         label: event.event_type.replaceAll("_", " "),
         title:
-          typeof event.data?.message === "string"
-            ? event.data.message
-            : event.event_type.replaceAll("_", " "),
+          typeof event.data?.title === "string"
+            ? event.data.title
+            : typeof event.data?.message === "string"
+              ? event.data.message
+              : event.event_type.replaceAll("_", " "),
         status: event.event_type,
         source: "backend",
       },
