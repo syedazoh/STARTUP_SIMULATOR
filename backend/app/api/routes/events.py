@@ -43,6 +43,15 @@ async def list_events(
     request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 100
 ):
     runtime = await request.app.state.agent_registry.get_or_create(business)
+    return runtime.agent_manager.event_bus.get_event_history(limit=limit)
+
+
+@router.get("/boardroom")
+async def boardroom_activity(
+    request: Request, business: BusinessOut = Depends(get_owned_business), limit: int = 100
+):
+    """Merged durable handoffs and in-memory events; the original /events API is unchanged."""
+    runtime = await request.app.state.agent_registry.get_or_create(business)
     bounded = min(max(limit, 1), 200)
     durable = await list_collaboration_events(request.app.state.db, business.id, bounded)
     live = runtime.agent_manager.event_bus.get_event_history(limit=bounded)
