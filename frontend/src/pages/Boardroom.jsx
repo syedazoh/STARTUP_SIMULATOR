@@ -48,7 +48,7 @@ export default function Boardroom() {
     </header>
     <div className="immersive-room-layout">
       <div className="immersive-room-stage">
-        <Boardroom3D selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
+        <Boardroom3D key={businessId} tasks={tasks} ready={eventStatus==='succeeded'} selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
         <div className="immersive-room-roster" aria-label="Select executive">
           {EXECUTIVES.map(agent => <button key={agent.id} type="button" aria-pressed={selected === agent.id} className={selected === agent.id ? 'active' : ''} onClick={() => {setSelected(agent.id);setFilter('selected')}}>
             <span className="room-avatar" style={{background:agent.color}}>{agent.label.charAt(0)}</span><strong>{agent.label}</strong>
