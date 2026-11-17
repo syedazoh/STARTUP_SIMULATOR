@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
 import { fetchAgents } from '../store/slices/agentsSlice'
-import { fetchEvents } from '../store/slices/eventsSlice'
+import { fetchBoardroomEvents } from '../store/slices/eventsSlice'
 import useBoardroomTasks from '../hooks/useBoardroomTasks'
 import { fetchSimulationStatus } from '../store/slices/simulationSlice'
 import useVisiblePolling from '../hooks/useVisiblePolling'
@@ -34,7 +34,7 @@ export default function Boardroom() {
   useEffect(() => { setSelected('ceo'); setFilter('all') }, [businessId])
   useVisiblePolling(() => {
     dispatch(fetchAgents(businessId))
-    dispatch(fetchEvents(businessId))
+    dispatch(fetchBoardroomEvents(businessId))
     dispatch(fetchSimulationStatus(businessId))
   }, 1800, [dispatch, businessId])
   const selectedAgent = EXECUTIVES.find(agent => agent.id === selected) || EXECUTIVES[0]
