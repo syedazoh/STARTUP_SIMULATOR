@@ -4,13 +4,13 @@ export default function Home() {
     <section className="hero">
       <p className="eyebrow">A clearer way to run your startup</p>
       <h1>
-        Your ambition.
+        A startup takes a team.
         <br />
-        One shared workspace.
+        Meet yours.
       </h1>
       <p>
-        Connect your identity and keep your business records as we build your
-        team of five AI departments.
+        Give your five executive departments a shared direction. Explore their
+        3D workspace, review the work and stay in control of every approval.
       </p>
       <div className="actions">
         <Link className="button" href="/login">
@@ -21,8 +21,8 @@ export default function Home() {
         </Link>
       </div>
       <p>
-        Authentication is the first migration milestone. Department screens
-        remain in the existing application.
+        The executive studio visualizes recorded task states. A separate visual
+        preview lets you explore handoffs without taking real actions.
       </p>
     </section>
   );

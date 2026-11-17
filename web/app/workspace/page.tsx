@@ -50,10 +50,14 @@ export default async function Workspace({
             <a href="/workspace">Retry connection</a>
           </>
         ) : businesses.length ? (
-          <ul>
+          <ul className="workspace-businesses">
             {businesses.map((b) => (
               <li key={b.id}>
-                <strong>{b.company_name}</strong> · {b.industry} ·{" "}
+                <strong>{b.company_name}</strong>
+                <small>{b.industry}</small>
+                <a className="button" href={`/workspace/${b.id}/boardroom`}>
+                  Enter executive studio
+                </a>
                 <a href={`/workspace/${b.id}/demo`}>Synthetic launch demo</a>
               </li>
             ))}

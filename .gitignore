@@ -84,3 +84,6 @@ web/tsconfig.tsbuildinfo
 
 # Local verification environment
 .venv/
+
+# Local design-review captures (synthetic fixture evidence, not runtime assets)
+.impeccable/review/

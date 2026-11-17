@@ -1,4 +1,6 @@
 import "./globals.css";
+import "../components/studio/studio.css";
+import Icon from "../components/studio/icon";
 export const metadata = {
   title: "Startup Simulator | Owner workspace",
   description: "Your supervised startup workspace",
@@ -9,11 +11,13 @@ export default function Layout({
   return (
     <html lang="en">
       <body>
-        <header>
-          <a href="/">STARTUP SIMULATOR</a>
-          <span>Owner workspace · Authentication preview</span>
+        <header className="site-header">
+          <a href="/" className="site-brand">
+            <Icon name="studio" /> Startup Simulator
+          </a>
+          <span>Your executive workspace</span>
         </header>
-        <main>{children}</main>
+        <div className="site-main">{children}</div>
       </body>
     </html>
   );
