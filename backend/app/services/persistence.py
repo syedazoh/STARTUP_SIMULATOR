@@ -27,8 +27,8 @@ async def record_decision(
         "timestamp": datetime.now(timezone.utc),
         "source": source,
     })
-    from .collaboration import record_decision_activity
-    await record_decision_activity(
+    from .collaboration import best_effort_decision_activity
+    await best_effort_decision_activity(
         db, business_id, event_type, run_id=run_id, tick=tick,
         task_id=data.get("task_id"),
     )
