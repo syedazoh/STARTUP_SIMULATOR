@@ -14,6 +14,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Setup from './pages/Setup'
 import Landing from './pages/Landing'
+import GettingStarted from './pages/GettingStarted'
 import Dashboard from './pages/Dashboard'
 import Boardroom from './pages/Boardroom'
 import AgentDetail from './pages/AgentDetail'
@@ -48,6 +49,7 @@ function App() {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Landing />} />
+          <Route path="/getting-started" element={<GettingStarted />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Route>

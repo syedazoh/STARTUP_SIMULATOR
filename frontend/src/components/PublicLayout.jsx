@@ -6,7 +6,7 @@ export default function PublicLayout() {
     <header className="public-header">
       <NavLink to="/" className="public-brand"><span className="public-brand-mark">✦</span><span>Startup Simulator<small>Autonomous executive workspace</small></span></NavLink>
       <nav aria-label="Public navigation">
-        <a href="/#team">The team</a><a href="/#how-it-works">How it works</a><a href="/#features">Features</a>
+        <a href="/#executives">The team</a><a href="/#process">How it works</a><NavLink to="/getting-started">Product demo</NavLink>
         <NavLink to="/login" className="public-signin">Sign in</NavLink>
         <NavLink to="/register" className="public-register">Start simulation ↗</NavLink>
       </nav>

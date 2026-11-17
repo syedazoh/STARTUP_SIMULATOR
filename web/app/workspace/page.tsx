@@ -36,6 +36,7 @@ export default async function Workspace({
           <Submit>Sign out</Submit>
         </form>
       </section>
+      <section className="card"><h2>New to your executive workspace?</h2><p>See how to create a business, propose a plan, review approvals and follow the result.</p><a href="/getting-started">Watch the product demo &amp; quick start →</a></section>
       {params.error && (
         <p role="alert" className="error">
           The action failed. Check original account credentials or retry.

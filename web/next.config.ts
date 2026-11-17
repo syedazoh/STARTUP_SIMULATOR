@@ -16,6 +16,7 @@ const config: NextConfig = {
           { key: "Cache-Control", value: "private, no-store" },
         ],
       },
+      {source: "/media/:path*", headers: [{key: "Cache-Control", value: "public, max-age=3600"}]},
     ];
   },
 };

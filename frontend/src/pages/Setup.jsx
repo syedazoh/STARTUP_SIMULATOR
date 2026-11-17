@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { createBusiness } from '../store/slices/businessSlice'
 import { saveBusinessProfile } from '../store/slices/businessProfileSlice'
 import ErrorBanner from '../components/ErrorBanner'
@@ -424,6 +424,7 @@ function Setup() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-2xl bg-white rounded-lg shadow p-6">
+        <p className="text-sm mb-6">New here? <Link to="/getting-started" style={{textDecoration:'underline'}}>Watch the product demo before setting up your company.</Link></p>
         <div className="flex items-center justify-between mb-6">
           {STEPS.map((stepLabel, i) => {
             const n = i + 1

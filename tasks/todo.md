@@ -388,3 +388,9 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 - [x] Connect decision-log observations and task states to both boardroom timelines; add selected-avatar-only scene filtering and restore full room on All events. Apply readable text sizes across both apps and verify mobile wrapping, backend history isolation and decision-driven signals.
 
 - [x] Replace both public homepages with a shared glass/3D landing, device-aware persisted theme toggle, five English narrated/captioned agent introductions, playback controls, sliding profile, native overview popup and phone/reduced-motion/fallback behavior. Preserve account routes and authenticated themes.
+
+- [x] Add a captioned product walkthrough video, setup/workspace replay links, transcript/checklist and lazy native playback in both frontends; validate byte-range serving, mobile layout and public-only media caching.
+- [x] Record selected integration priorities (Gmail, Instagram and Facebook), current adapter gaps, AWS frontend/container decision and measurable staging latency targets in docs/RELEASE_ROADMAP.md.
+- [ ] Implement and verify Gmail OAuth/token lifecycle and approved email execution with controlled delivery receipts.
+- [ ] Complete Instagram/Facebook OAuth/account eligibility, media publishing and verified provider receipts before live automation.
+- [ ] Resolve production frontend packaging, provider permission acceptance, AWS staging, load/latency baselines and rollback before production deployment.

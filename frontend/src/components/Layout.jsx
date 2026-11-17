@@ -29,7 +29,7 @@ export default function Layout(){
        <small className="hq-nav-heading hq-nav-agents">EXECUTIVE AGENTS</small>
        {agentLinks.map(([key,label])=><NavLink key={key} to={`/b/${businessId}/agents/${key}`} className={({isActive})=>'hq-nav-link '+(isActive?'active':'')} onClick={()=>setOpen(false)}><span aria-hidden="true" className={'hq-agent-dot hq-'+key}/>{label}</NavLink>)}
      </nav>
-     <div className="hq-sidebar-footer">{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>
+     <div className="hq-sidebar-footer"><Link to="/getting-started">Product demo &amp; quick start</Link>{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>
    </aside>
    <div className="hq-workspace"><Outlet key={businessId}/></div>
  </div>

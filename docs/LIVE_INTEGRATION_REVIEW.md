@@ -30,3 +30,6 @@ Reviewed main bc19bf8. This is a code/configuration and existing-CI evidence rev
 ## Verification boundary
 
 Existing successful CI runs were rechecked through GitHub. Source paths, action contracts, credentials, worker allowlist and simulated posting tests were inspected. A fresh focused local pytest attempt could not start because the temporary test virtual environment no longer exists; no new local pass is claimed. No runtime code was changed by this review. Follow-up implementation and real-account acceptance remain open.
+
+## 18 November follow-up
+The owner selected Gmail inbox connection and Instagram + Facebook. This turn added onboarding media and a release plan, not external adapters or grants. The source gaps above remain open; use [RELEASE_ROADMAP.md](RELEASE_ROADMAP.md) for the agreed sequence, frontend Docker packaging decision and proposed staging latency checks. No new live-provider acceptance is claimed.

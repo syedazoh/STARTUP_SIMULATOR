@@ -64,4 +64,34 @@ async def collaborate():
   events.append({'event_id':f'collaboration-{i}','event_type':'task_handoff','sender':sender,'receiver':receiver,'source':sender,'timestamp':now(),'data':{'synthetic':True,'message':f'Fixture handoff {i+1}: {sender} to {receiver}'}})
  return {'synthetic':True}
 
+# Walkthrough-only plan fixtures. No model, database or provider is used.
+business.update(starting_budget=10000, enabled_agents=['ceo','finance','marketing','hr','operations'])
+plans=[]
+@app.post('/api/businesses')
+async def create_demo_business(request:Request):
+ data=await request.json()
+ business.update(company_name=data.get('company_name','Orbit Studio · demo'), industry=data.get('industry','Software'))
+ return business
+@app.get('/api/businesses/{bid}/ceo/plans')
+async def get_plans(bid:str):return plans
+@app.post('/api/businesses/{bid}/ceo/plans')
+async def propose_demo_plan(bid:str,request:Request):
+ data=await request.json()
+ plan={'plan_id':'demo-plan','goal':data['goal'],'strategy':'Synthetic demo plan: review the campaign before any execution.','status':'draft','created_at':now(),'assignments':[{'department':'marketing','action_type':'campaign_launch','objective':'Introduce the next big idea.','success_criteria':'Review the proposed launch budget and record the simulated result.','payload':{'budget':1000,'synthetic':True}}]}
+ plans.append(plan)
+ return plan
+@app.post('/api/businesses/{bid}/ceo/plans/{pid}/activate')
+async def activate_demo_plan(bid:str,pid:str):
+ plans[0]['status']='active'
+ return {'status':'active','synthetic':True}
+@app.get('/api/businesses/{bid}/ceo/reports')
+async def demo_reports(bid:str):return []
+@app.get('/api/businesses/{bid}/finances')
+async def demo_finances(bid:str):return {'available':10000,'revenue':0,'expenses':0,'monthly_payroll_commitment':0}
+
+for task in tasks:
+ task.setdefault('source','demo_fixture')
+ task.setdefault('business_id','studio-business')
+ task.setdefault('ceo_authorized',True)
+
 if __name__=='__main__':uvicorn.run(app,host='127.0.0.1',port=8012)

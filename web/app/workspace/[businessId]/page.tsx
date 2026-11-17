@@ -30,6 +30,7 @@ export default async function BusinessWorkspace({
   }
   return (
     <>
+      <p><a href="/getting-started">Product demo &amp; quick start →</a></p>
       <p>
         <a href={`/workspace/${encodeURIComponent(businessId)}/automation`}>
           Jobs, deadlines, knowledge &amp; MCP →

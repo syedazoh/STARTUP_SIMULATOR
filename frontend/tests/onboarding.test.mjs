@@ -25,7 +25,7 @@ async function setupForm(step, existingId = null) {
       calls.push(action)
       return action.kind === 'create' ? { type: 'created', payload: { id: 'created-business' } } : { type: 'saved' }
     }, useSelector: (select) => select({ business: { status: 'idle' }, businessProfile: { status: 'idle' } }) },
-    'react-router-dom': { useNavigate: () => (p) => navigations.push(p) },
+    'react-router-dom': { Link: 'a', useNavigate: () => (p) => navigations.push(p) },
     '../store/slices/businessSlice': { createBusiness: create },
     '../store/slices/businessProfileSlice': { saveBusinessProfile: save },
     '../utils/profilePayload': { toProfilePayload },
