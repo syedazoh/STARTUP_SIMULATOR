@@ -1,8 +1,9 @@
 // Disposable local provider, mocked database and offline model. No real accounts.
+let diagnosticPage;
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ const page=await browser.newPage();diagnosticPage=page;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('http://127.0.0.1:3000/login');
  await page.getByLabel('Email address').fill('automation-browser@example.com');
  await page.getByLabel('Password',{exact:true}).fill('test-password');
@@ -33,4 +34,4 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
  const fs=require('node:fs');const dir=process.env.WORKSPACE_SCREENSHOT_DIR||'/tmp/workspace-screenshots';fs.mkdirSync(dir,{recursive:true});await page.screenshot({path:dir+'/automation-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);console.log('Automation acceptance passed: brief, deadline, indexing, citations, MCP revoke and mobile layout.');await browser.close();
-})().catch(e=>{console.error(e);process.exit(1)});
+})().catch(async e=>{if(diagnosticPage){const fs=require('node:fs');const dir=process.env.WORKSPACE_SCREENSHOT_DIR||'/tmp/workspace-screenshots';fs.mkdirSync(dir,{recursive:true});await diagnosticPage.screenshot({path:dir+'/automation-failure.png',fullPage:true}).catch(()=>{});fs.writeFileSync(dir+'/automation-failure.html',await diagnosticPage.content().catch(()=>''));}console.error(e);process.exit(1)});

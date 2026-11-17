@@ -157,3 +157,27 @@ def test_chunks_keep_bounded_heading_and_version():
         c["version"] == 3 and c["section"] == "Hiring" and len(c["text"]) <= 4000
         for c in chunks
     )
+
+
+def test_invalid_query_vector_falls_back_instead_of_returning_nan(
+    accounts, monkeypatch
+):
+    c, h, a, b, doc = indexed(accounts)
+    monkeypatch.setattr(settings, "rag_dense_enabled", True)
+    asyncio.run(
+        c.app.state.db["knowledge_documents"].update_one(
+            {"document_id": doc}, {"$set": {"chunks.0.vector": [1.0, 0.0]}}
+        )
+    )
+    monkeypatch.setattr(knowledge, "embed", lambda texts: [[float("nan"), 0.0]])
+    r = c.post(
+        f"/api/businesses/{a}/knowledge/search",
+        headers=h["alice"],
+        json={"query": "campaign approval", "department": "finance"},
+    )
+    assert (
+        r.status_code == 200
+        and r.json()["mode"] == "lexical"
+        and r.json()["dense_status"] == "unavailable"
+    )
+    assert r.json()["results"]

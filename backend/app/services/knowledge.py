@@ -367,6 +367,12 @@ async def search(db, business_id, department, query, limit=5):
         if any(c.get("vector") for c in chunks):
             try:
                 vector = (await asyncio.to_thread(embed, [query]))[0]
+                if (
+                    not vector
+                    or len(vector) > 1024
+                    or not all(math.isfinite(v) for v in vector)
+                ):
+                    raise ValueError("Invalid query embedding")
                 dense = sorted(
                     [
                         (i, dot(vector, c.get("vector")))

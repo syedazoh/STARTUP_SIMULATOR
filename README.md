@@ -92,7 +92,7 @@ PYTHONPATH=. python scripts/evaluate_knowledge.py --output knowledge-evaluation.
 PYTHONPATH=. python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output knowledge-evaluation.json
 ```
 
-The **50 synthetic cases** run in an isolated mocked database with no LLM calls. Results record lexical baseline versus actual pipeline and modes; this tests retrieval coverage and department isolation, not factual entailment or customer-data quality. The recovered implementation's offline lexical result is 48/50; actual cached-model results are recorded in [impact log](docs/impact.md), without inventing improvement.
+The **50 synthetic cases** run in an isolated mocked database with no LLM calls. Results record lexical baseline versus actual pipeline and modes; this tests retrieval coverage and department isolation, not factual entailment or customer-data quality. CI measured lexical baseline 48/50 and actual hybrid/cross-encoder retrieval 50/50 on this same synthetic corpus; this is limited retrieval evidence, not a real-data quality claim. Run links and final verification are recorded in [impact log](docs/impact.md).
 
 Manual acceptance with a test business: verify Mongo/worker heartbeat; complete a brief; set a deadline and observe an in-app reminder; upload/reindex a policy and inspect citations; mint/revoke MCP access; approve/queue internal work and verify its saved result survives a backend restart. Production hosting, provider credentials and real-data acceptance remain operator tasks.
 

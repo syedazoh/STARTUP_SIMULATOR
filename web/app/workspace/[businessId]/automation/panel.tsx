@@ -289,30 +289,28 @@ export default function Automation({
               );
             }}
           >
-            <label>
-              Task
-              <select name="task" required>
-                <option value="">Choose pending task</option>
-                {data?.tasks
-                  .filter((t) =>
-                    [
-                      "pending_approval",
-                      "needs_changes",
-                      "pending_ceo_review",
-                      "needs_revision",
-                      "awaiting_asset",
-                    ].includes(t.status),
-                  )
-                  .map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.action_type} · {t.id.slice(0, 8)}
-                      {t.due_at
-                        ? ` · due ${new Date(t.due_at).toLocaleString()}`
-                        : ""}
-                    </option>
-                  ))}
-              </select>
-            </label>
+            <label htmlFor="deadline-task">Task</label>
+            <select id="deadline-task" name="task" required>
+              <option value="">Choose pending task</option>
+              {data?.tasks
+                .filter((t) =>
+                  [
+                    "pending_approval",
+                    "needs_changes",
+                    "pending_ceo_review",
+                    "needs_revision",
+                    "awaiting_asset",
+                  ].includes(t.status),
+                )
+                .map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.action_type} · {t.id.slice(0, 8)}
+                    {t.due_at
+                      ? ` · due ${new Date(t.due_at).toLocaleString()}`
+                      : ""}
+                  </option>
+                ))}
+            </select>
             <label>
               Due date &amp; time
               <input name="due" type="datetime-local" required />
@@ -469,14 +467,12 @@ export default function Automation({
               Ask the documents
               <input name="query" minLength={2} maxLength={1000} required />
             </label>
-            <label>
-              Department
-              <select name="department">
-                {departments.map((d) => (
-                  <option key={d}>{d}</option>
-                ))}
-              </select>
-            </label>
+            <label htmlFor="knowledge-department">Department</label>
+            <select id="knowledge-department" name="department">
+              {departments.map((d) => (
+                <option key={d}>{d}</option>
+              ))}
+            </select>
             <button>Answer with evidence</button>
           </form>
           {result != null && (

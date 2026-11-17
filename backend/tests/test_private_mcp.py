@@ -74,6 +74,14 @@ def test_protocol_and_token_boundaries(accounts):
 
 def test_proposals_are_queued_owner_reviewed_and_revocable(accounts):
     c, h, a, b = accounts
+    assert (
+        c.put(
+            f"/api/businesses/{a}/agents/finance/mode",
+            headers=h["alice"],
+            json={"mode": "auto", "auto_thresholds": {"auto_approve_max": 500}},
+        ).status_code
+        == 200
+    )
     g = grant(c, h, a, True)
     r = rpc(
         c,
@@ -142,3 +150,32 @@ def test_readonly_capability_cannot_propose_and_foreign_task_hidden(accounts):
         },
     )
     assert r.json()["result"]["isError"]
+
+
+def test_revoked_capability_cannot_finish_queued_proposal(accounts):
+    c, h, a, b = accounts
+    g = grant(c, h, a, True)
+    r = rpc(
+        c,
+        g["token"],
+        "tools/call",
+        {
+            "name": "propose_task",
+            "arguments": {
+                "department": "finance",
+                "action_type": "budget_request",
+                "payload": {"amount": 25},
+                "idempotency_key": "revoked-before-work",
+            },
+        },
+    )
+    assert not r.json()["result"].get("isError")
+    assert (
+        c.post(
+            f"/api/businesses/{a}/mcp-grants/{g['grant_id']}/revoke", headers=h["alice"]
+        ).status_code
+        == 200
+    )
+    job = asyncio.run(jobs.run_once(c.app.state.db, c.app.state.agent_registry))
+    assert job["status"] == "failed"
+    assert c.get(f"/api/businesses/{a}/tasks", headers=h["alice"]).json() == []
