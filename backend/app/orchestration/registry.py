@@ -95,6 +95,17 @@ class AgentRegistry:
                                 event.event_type.replace("_", " "),
                                 event_id=event.event_id,
                             )
+                            # Arbitration results have two actual subscribers.
+                            if (
+                                event.event_type == "arbitration_result"
+                                and route[0] == "ceo"
+                                and "marketing" in agent_manager.agents
+                            ):
+                                await record_handoff(
+                                    self._db, business.id, "ceo", "marketing",
+                                    event.event_type, "arbitration result",
+                                    event_id=event.event_id + ":marketing",
+                                )
 
                     agent_manager.event_bus.on_publish = persist_internal_handoff
                 await self._rehydrate_from_snapshots(business.id, agent_manager)
