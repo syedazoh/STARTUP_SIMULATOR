@@ -171,8 +171,8 @@ async def report_task(db, business, runtime, task, before):
     }
     # Persist evidence before an optional model call, so outages don't lose it.
     await db["department_reports"].insert_one(report)
-    from .collaboration import record_handoff
-    await record_handoff(
+    from .collaboration import best_effort_handoff
+    await best_effort_handoff(
         db, business.id, task["agent"], "ceo", "department_reported",
         report["objective"], task_id=task["task_id"], plan_id=task.get("plan_id"),
     )
