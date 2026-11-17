@@ -52,3 +52,12 @@ async def test_event_bus_publishes_real_internal_handoffs_to_durable_store():
     rows = await list_collaboration_events(db, "b")
     assert len(rows) == 1
     assert rows[0]["sender"] == "hr" and rows[0]["receiver"] == "finance"
+
+@pytest.mark.asyncio
+async def test_projection_failure_never_blocks_real_task_processing():
+    from app.services.collaboration import best_effort_handoff
+    class FailingDB:
+        def __getitem__(self, name):
+            raise RuntimeError("activity store unavailable")
+    await best_effort_handoff(FailingDB(), "b", "ceo", "hr",
+                              "task_assigned", "Recruit a designer")
