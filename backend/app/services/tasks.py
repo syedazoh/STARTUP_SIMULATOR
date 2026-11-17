@@ -172,8 +172,8 @@ async def create_task(
         details={"agent": agent, "source": source, "status": task["status"]},
     )
     if source == "ceo" and plan_id:
-        from .collaboration import record_handoff
-        await record_handoff(
+        from .collaboration import best_effort_handoff
+        await best_effort_handoff(
             db, business.id, "ceo", agent, "task_assigned",
             task["objective"], task_id=task["task_id"], plan_id=plan_id,
         )
@@ -274,8 +274,8 @@ async def review_task(db, registry, business, task, allow_auto=True):
         target_id=task["task_id"],
         details={"decision": decision, "basis": task["ceo_review"]["basis"]},
     )
-    from .collaboration import record_handoff
-    await record_handoff(
+    from .collaboration import best_effort_handoff
+    await best_effort_handoff(
         db, business.id, "ceo", task["agent"], "ceo_review_completed",
         "CEO review: " + decision.replace("_", " "),
         task_id=task["task_id"], plan_id=task.get("plan_id"),
