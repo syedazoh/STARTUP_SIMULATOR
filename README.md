@@ -13,6 +13,10 @@ Plan: [automation and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md). In Next.js,
 | Advanced document RAG | Heading/overlap chunks, source/version/department metadata, BM25+dense reciprocal-rank fusion, cached CrossEncoder reranking, strict evidence prompt, exact-quote checks and abstention | Markdown/text only, separate from Chroma decision memory. Visible lexical/extractive fallback when models are unavailable. Citation checks do not establish semantic entailment. |
 | Planner evidence | CEO draft planning retrieves CEO-authorized documents | Documents never grant approval or override live ledger/status APIs. Department-scoped evidence is exposed through MCP; automatic consumption across every agent is not implemented. |
 
+### Live delivery status — reviewed 17 November
+
+Business email/Resend and calendar integrations are **not implemented**. Instagram has a partial approved-task adapter, not verified end-to-end live publishing: media input/processing and published-ID receipts are incomplete, and debug test tokens simulate `posted`. Successful CI validates the implemented/tested flows; it does not establish real email delivery or social publication. The durable worker excludes external publishing/email actions. See [live integration review and remaining work](docs/LIVE_INTEGRATION_REVIEW.md).
+
 ### Local setup — Windows Git Bash
 
 Keep existing `.env` files; do not overwrite configured secrets. Python 3.11 is the supported Docker/CI version. From the repository root:
