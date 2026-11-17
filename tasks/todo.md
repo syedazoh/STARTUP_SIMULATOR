@@ -342,6 +342,16 @@ These checks do not mark any November 4+ daily milestone complete or close the b
 - [ ] DS07: Verify the new flow against configured live Supabase and real MongoDB restart persistence; not established by doubles/local identity fixtures.
 Evidence and acceptance instructions: docs/DATASET_SIMULATION.md; datasets/product-launch-v1/. Regular agents remain unchanged; demo adapters are not represented as live LLM decisions.
 
+## Purple 3D executive studio — November 17, 2026
+- [x] Implement user-directed black/purple identity with warm beige/off-white across the Next.js workspace and existing Vite surfaces.
+- [x] Add an authenticated Next.js executive studio reusing existing ownership, tasks, agent snapshots and approval routes.
+- [x] Share real procedural 3D avatars/workstations, task packets and event/task state mapping without React renderer-version mixing.
+- [x] Separate owner authorization from CEO review, avoid historical replay, and label the non-mutating visual preview.
+- [x] Add immersive/follow controls, reduced motion, accessible list view, camera reset and responsive label placement.
+- [x] Run frontend behavioral checks, builds/typecheck, local-fixture browser acceptance and a separate visual review; record limits in docs/impact.md.
+- [ ] Verify the redesigned flow on the user's configured Supabase/backend/business and target hardware. Direct HelloRun/Figma comparison remains unavailable until those sources are accessible.
+These checks do not close unrelated November roadmap milestones, backend worker/realtime work or live-provider acceptance.
+
 ## November 16 — Next.js command-center slice and November 30 target
 - [x] Reuse the existing dataset import/approved-launch demo on main; do not rebuild it.
 - [x] Add Next.js business creation and business-specific command-center navigation.

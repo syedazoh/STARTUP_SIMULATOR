@@ -1,11 +1,11 @@
-// Product identity: Emerald, Champagne and Lavender (no blue/black primary surfaces).
+// User-directed identity: near-black, purple gradients and warm off-white/beige.
 export const BRAND = {
-  emerald: '#1f6b57',
-  deepEmerald: '#205b49',
-  champagne: '#e9d8b7',
-  lavender: '#a88bc7',
-  ivory: '#f8f5ef',
-  ink: '#24352f',
+  emerald: '#a47deb',
+  deepEmerald: '#7549b4',
+  champagne: '#e6d6ba',
+  lavender: '#c0a1ed',
+  ivory: '#15111d',
+  ink: '#f0e9df',
 }
 export const CATEGORICAL = {
   blue: '#457f74', // legacy chart key; renders muted jade
@@ -24,9 +24,9 @@ export const STATUS = {
   critical: '#b95155',
 }
 export const INK = {
-  primary: '#24352f',
-  secondary: '#5d6f61',
-  muted: '#87958a',
-  gridline: '#e1e8df',
-  baseline: '#c8d3c9',
+  primary: '#f0e9df',
+  secondary: '#c5b1d8',
+  muted: '#b5a0c6',
+  gridline: '#382b43',
+  baseline: '#685176',
 }

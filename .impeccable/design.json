@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T13:32:56.001254+00:00",
+  "title": "Design System: Startup Simulator",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "displayName": "Bg",
+        "role": "neutral"
+      },
+      "surface": {
+        "displayName": "Surface",
+        "role": "neutral"
+      },
+      "raised": {
+        "displayName": "Raised",
+        "role": "neutral"
+      },
+      "line": {
+        "displayName": "Line",
+        "role": "neutral"
+      },
+      "text": {
+        "displayName": "Text",
+        "role": "neutral"
+      },
+      "muted": {
+        "displayName": "Muted",
+        "role": "neutral"
+      },
+      "purple": {
+        "displayName": "Purple",
+        "role": "primary"
+      },
+      "purple-deep": {
+        "displayName": "Purple Deep",
+        "role": "primary"
+      },
+      "beige": {
+        "displayName": "Beige",
+        "role": "secondary"
+      },
+      "button": {
+        "displayName": "Button",
+        "role": "neutral"
+      },
+      "button-hover": {
+        "displayName": "Button Hover",
+        "role": "neutral"
+      },
+      "button-ink": {
+        "displayName": "Button Ink",
+        "role": "neutral"
+      },
+      "focus": {
+        "displayName": "Focus",
+        "role": "neutral"
+      },
+      "attention": {
+        "displayName": "Attention",
+        "role": "secondary"
+      },
+      "attention-ink": {
+        "displayName": "Attention Ink",
+        "role": "neutral"
+      },
+      "input": {
+        "displayName": "Input",
+        "role": "neutral"
+      },
+      "input-line": {
+        "displayName": "Input Line",
+        "role": "neutral"
+      },
+      "ceo": {
+        "displayName": "Ceo",
+        "role": "neutral"
+      },
+      "finance": {
+        "displayName": "Finance",
+        "role": "neutral"
+      },
+      "marketing": {
+        "displayName": "Marketing",
+        "role": "neutral"
+      },
+      "hr": {
+        "displayName": "Hr",
+        "role": "neutral"
+      },
+      "operations": {
+        "displayName": "Operations",
+        "role": "neutral"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Studio heading",
+        "purpose": "Executive studio page title."
+      },
+      "body": {
+        "displayName": "Studio Sans",
+        "purpose": "Self-hosted Manrope with system fallbacks."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Global easing token."
+      },
+      {
+        "name": "navigation-state",
+        "value": "0.2s",
+        "purpose": "Navigation background transition."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "700px"
+      },
+      {
+        "name": "stack-inbox",
+        "value": "1060px"
+      },
+      {
+        "name": "compact",
+        "value": "1240px"
+      },
+      {
+        "name": "wide",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary button extracted from the current source styles.",
+      "html": "<button class=\"ds-primary\">Review task</button>",
+      "css": ".ds-primary{background:var(--button,#a981ed);color:#160d23;border:0;border-radius:10px;padding:12px 20px;min-height:44px;font:650 12px \"Studio Sans\",system-ui,sans-serif;cursor:pointer}.ds-primary:hover{background:#bb98f5}.ds-primary:focus-visible{outline:2px solid #d9befb;outline-offset:4px}.ds-primary:disabled{opacity:.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Task field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Task field extracted from the current source styles.",
+      "html": "<label class=\"ds-field\">Objective<input placeholder=\"Describe the work\"></label>",
+      "css": ".ds-field{display:grid;gap:8px;color:#f0e9df;font:600 14px \"Studio Sans\",system-ui,sans-serif}.ds-field input{background:#110e17;color:#f0e9df;border:1px solid #51415f;border-radius:8px;padding:12px;font:inherit}.ds-field input::placeholder{color:#b0a0bf}.ds-field input:focus-visible{outline:2px solid #d9befb;outline-offset:4px}"
+    },
+    {
+      "name": "Form card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Form card extracted from the current source styles.",
+      "html": "<section class=\"ds-card\"><h2>Task details</h2><p>Inspect the proposed action.</p></section>",
+      "css": ".ds-card{background:#15111d;border:1px solid #34293f;border-radius:14px;padding:32px;color:#f0e9df;font-family:\"Studio Sans\",system-ui,sans-serif}.ds-card h2{font-size:23px;line-height:1.2}.ds-card p{color:#b7a9c7}"
+    },
+    {
+      "name": "Owner attention",
+      "kind": "card",
+      "refersTo": "attention",
+      "description": "Owner attention extracted from the current source styles.",
+      "html": "<section class=\"ds-attention\"><h2>Your attention</h2><p>Inspect the proposal before approving.</p></section>",
+      "css": ".ds-attention{background:#dfcfb3;color:#34263b;border-radius:13px;padding:21px 21px 20px;font-family:\"Studio Sans\",system-ui,sans-serif}.ds-attention h2{font-size:22px;font-weight:600}"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Workspace navigation extracted from the current source styles.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#boardroom\" aria-current=\"page\">Boardroom</a><a href=\"#tasks\">Tasks</a></nav>",
+      "css": ".ds-nav{display:grid;gap:5px;font:12px \"Studio Sans\",system-ui,sans-serif}.ds-nav a{padding:12px;border-radius:9px;color:#bcaecb;text-decoration:none}.ds-nav a[aria-current]{background:linear-gradient(110deg,#5f3e87,#382646);color:#fff0e6}.ds-nav a:hover{background-color:#291f35}.ds-nav a:focus-visible{outline:2px solid #d9befb;outline-offset:4px}"
+    },
+    {
+      "name": "Task state",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "Task state extracted from the current source styles.",
+      "html": "<span class=\"ds-state\">Needs your approval</span>",
+      "css": ".ds-state{display:inline-block;color:#c1a3e2;background:#25192f;padding:5px 9px;border-radius:5px;font:9px \"Studio Sans\",system-ui,sans-serif;white-space:nowrap}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Executive Studio",
+    "overview": "A near-black working environment illuminated by purple gradients, with warm off-white text and beige reserved for human attention. The user selected visible 3D executives and task handoffs; the executive studio brief records the composition. HelloRun supplies an immersive reference, not a claim of inspected gameplay or copied assets.\n\nThe scene is a working view of persisted business state. Physical robots, terminals, receding portals and a separate owner station make collaboration spatial; readable controls and task details carry the decisions.",
+    "keyCharacteristics": [
+      "Purple-lit geometry against near-black surfaces.",
+      "Small warm accents, with a prominent beige attention panel.",
+      "Selectable avatars and equivalent list selection.",
+      "Handoffs explain recorded changes without executing work."
+    ],
+    "rules": [
+      {
+        "name": "The Authority Rule",
+        "body": "Warm owner accents distinguish human approval from CEO review; color never substitutes for a task status label.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do preserve the separate owner approval station and CEO review identity.",
+      "Do label synthetic previews throughout their display.",
+      "Do preserve readable task details and equivalent non-3D selection.",
+      "Do keep focus visible and stop camera follow under reduced motion."
+    ],
+    "donts": [
+      "Don't restore emerald as the primary identity of these frontends.",
+      "Don't animate the initial historical snapshot as new work.",
+      "Don't treat a packet arriving as approval, execution or completion.",
+      "Don't claim screenshots prove provider readiness or live gameplay fidelity."
+    ]
+  }
+}
