@@ -13,6 +13,7 @@ import './boardroom-page.css'
 
 const titleCase = (value) => String(value || '').replaceAll('_', ' ').replace(/\b\w/g, char => char.toUpperCase())
 const describe = (event) => {
+  if (event.data?.title && typeof event.data.title === 'string') return event.data.title
   if (event.data?.message && typeof event.data.message === 'string') return event.data.message
   if (event.data?.reason && typeof event.data.reason === 'string') return event.data.reason
   return titleCase(event.event_type)
@@ -68,7 +69,7 @@ export default function Boardroom() {
       </aside>
     </div>
     <section className="room-conversation">
-      <div className="room-conversation-heading"><div><span className="hq-kicker">SIMULATOR RECORDS</span><h2>Communication & activity timeline</h2><p>Events are retrieved from the backend. A directional arrow appears only when a known agent-to-agent route exists.</p></div><div className="room-filters"><button type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>All events</button><button type="button" aria-pressed={filter==='selected'} onClick={()=>setFilter('selected')}>{selectedAgent.label} only</button></div></div>
+      <div className="room-conversation-heading"><div><span className="hq-kicker">SIMULATOR RECORDS</span><h2>Communication & activity timeline</h2><p>Recorded CEO assignments, department coordination and decision-log activity. Signals show only verified backend handoffs; updates are polled, not streamed.</p></div><div className="room-filters"><button type="button" aria-pressed={filter==='all'} onClick={()=>setFilter('all')}>All events</button><button type="button" aria-pressed={filter==='selected'} onClick={()=>setFilter('selected')}>{selectedAgent.label} only</button></div></div>
       {eventError && <p role="alert" className="room-empty">Could not refresh events: {eventError}</p>}
       {eventStatus === 'loading' && events.length === 0 && <p className="room-empty">Loading backend events…</p>}
       {communication.length === 0 && eventStatus !== 'loading' && <p className="room-empty">No matching events have been recorded. Start a simulation from the Command Center.</p>}
