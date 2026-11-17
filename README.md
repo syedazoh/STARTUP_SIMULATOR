@@ -77,11 +77,11 @@ Official SDK smoke client, from `backend`:
 python scripts/check_mcp.py
 ```
 
-It privately prompts for the capability and initializes/lists tools without executing work. Tools: `get_budget`, `get_task_status`, `search_knowledge`, `propose_task`. Tenant identity comes from the token, never tool arguments. App native/Supabase tokens cannot replace MCP capabilities. Hosted MCP requires operator-configured HTTPS `/mcp/` routing, `MCP_RESOURCE_URL`, `MCP_ALLOWED_HOSTS` and allowed origins, followed by newly minted tokens. Existing production proxy routing is not automatically changed.
+It privately prompts for the capability and initializes/lists tools without executing work. For a non-default endpoint, export `MCP_RESOURCE_URL` in the client shell (the standalone client does not load backend `.env`). Tools: `get_budget`, `get_task_status`, `search_knowledge`, `propose_task`. Tenant identity comes from the token, never tool arguments. App native/Supabase tokens cannot replace MCP capabilities. Hosted MCP requires operator-configured HTTPS `/mcp/` routing, `MCP_RESOURCE_URL`, `MCP_ALLOWED_HOSTS` and allowed origins, followed by newly minted tokens. Existing production proxy routing is not automatically changed.
 
 ### Verification and manual acceptance
 
-Automated tests cover idempotency/leases/retry recovery, deferred approval, tenant isolation, deadline versions/cutoff, MCP wire access/revocation and source deletion/fallbacks. The verified application passed 475 backend tests, Docker wiring/restart, Next build/types/tests/audit and browser acceptance, including 320/390/768 px layouts. An official MCP SDK client also passed a disposable real local HTTP smoke. Run links and the operator-client follow-up are in [impact log](docs/impact.md).
+Automated tests cover idempotency/leases/retry recovery, deferred approval, tenant isolation, deadline versions/cutoff, MCP wire access/revocation and source deletion/fallbacks. The verified application passed 476 backend tests, Docker wiring/restart, Next build/types/tests/audit and browser acceptance, including 320/390/768 px layouts. An official MCP SDK client also passed a disposable real local HTTP smoke. Run links and the operator-client follow-up are in [impact log](docs/impact.md).
 
 From `backend`:
 
