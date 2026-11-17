@@ -12,6 +12,17 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build:
       context: ../backend
@@ -28,6 +39,8 @@ services:
       SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
       CREDENTIAL_MASTER_KEY: ${CREDENTIAL_MASTER_KEY:-iJ7xpFNwPD8CwdnW0NN6viQNZ0OF-87hwCWMbswRUWQ=}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:8000}
+      BACKGROUND_JOBS_ENABLED: "true"
+      REDIS_URL: redis://redis:6379/0
       DEBUG: "true"
     ports:
       - "8000:8000"

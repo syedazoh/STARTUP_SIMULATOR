@@ -1,7 +1,6 @@
 """Versioned in-app deadlines. No external notification side effects."""
 
 import time
-from datetime import datetime, timezone
 from fastapi import HTTPException
 from pymongo import ReturnDocument
 from .jobs import digest, persistent

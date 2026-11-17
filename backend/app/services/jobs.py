@@ -120,7 +120,13 @@ async def reconcile(db):
     # Approval and outbox marker are one task write; queue insertion is repairable.
     tasks = (
         await db["tasks"]
-        .find({"status": "approved", "deferred_execution": True})
+        .find(
+            {
+                "status": "approved",
+                "deferred_execution": True,
+                "deferred_enqueued": {"$ne": True},
+            }
+        )
         .to_list(length=100)
     )
     for t in tasks:
@@ -131,6 +137,14 @@ async def reconcile(db):
             "execute_task",
             {"task_id": t["task_id"]},
             t["task_id"],
+        )
+        await db["tasks"].update_one(
+            {
+                "task_id": t["task_id"],
+                "business_id": t["business_id"],
+                "status": "approved",
+            },
+            {"$set": {"deferred_enqueued": True}},
         )
 
 

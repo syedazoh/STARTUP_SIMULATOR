@@ -1,0 +1,317 @@
+{
+  "synthetic": true,
+  "documents": [
+    {
+      "key": "expenses",
+      "title": "expenses",
+      "department": "finance",
+      "text": "Expense claims need a receipt and must be submitted within fourteen days."
+    },
+    {
+      "key": "invoices",
+      "title": "invoices",
+      "department": "finance",
+      "text": "Supplier invoices require a purchase order number and finance manager approval."
+    },
+    {
+      "key": "brand",
+      "title": "brand",
+      "department": "marketing",
+      "text": "Campaign graphics must use emerald and ivory. Brand review is required before publication."
+    },
+    {
+      "key": "campaign",
+      "title": "campaign",
+      "department": "marketing",
+      "text": "Campaign proposals must include the audience, channel, budget and success metric."
+    },
+    {
+      "key": "hiring",
+      "title": "hiring",
+      "department": "hr",
+      "text": "Hiring starts with an approved job description. Interview scorecards must be completed before a selection meeting."
+    },
+    {
+      "key": "onboarding",
+      "title": "onboarding",
+      "department": "hr",
+      "text": "New employee onboarding includes an access checklist and a mentor assignment during the first week."
+    },
+    {
+      "key": "inventory",
+      "title": "inventory",
+      "department": "operations",
+      "text": "Inventory is counted every Friday. Discrepancies are recorded in the stock register."
+    },
+    {
+      "key": "incidents",
+      "title": "incidents",
+      "department": "operations",
+      "text": "Service incidents require a severity assessment and a named incident coordinator."
+    },
+    {
+      "key": "board",
+      "title": "board",
+      "department": "ceo",
+      "text": "The weekly board summary includes department progress, approval blockers and unresolved risks."
+    },
+    {
+      "key": "delegation",
+      "title": "delegation",
+      "department": "ceo",
+      "text": "Delegated assignments need a responsible department, an objective and measurable completion evidence."
+    }
+  ],
+  "cases": [
+    {
+      "query": "expense claim receipt",
+      "department": "finance",
+      "expected_key": "expenses"
+    },
+    {
+      "query": "expense submission deadline",
+      "department": "finance",
+      "expected_key": "expenses"
+    },
+    {
+      "query": "receipt reimbursement",
+      "department": "finance",
+      "expected_key": "expenses"
+    },
+    {
+      "query": "claims fourteen days",
+      "department": "finance",
+      "expected_key": "expenses"
+    },
+    {
+      "query": "supplier invoice approval",
+      "department": "finance",
+      "expected_key": "invoices"
+    },
+    {
+      "query": "invoice purchase order",
+      "department": "finance",
+      "expected_key": "invoices"
+    },
+    {
+      "query": "finance manager invoices",
+      "department": "finance",
+      "expected_key": "invoices"
+    },
+    {
+      "query": "invoice requirement",
+      "department": "finance",
+      "expected_key": "invoices"
+    },
+    {
+      "query": "campaign graphics colours",
+      "department": "marketing",
+      "expected_key": "brand"
+    },
+    {
+      "query": "brand review publication",
+      "department": "marketing",
+      "expected_key": "brand"
+    },
+    {
+      "query": "emerald ivory campaign",
+      "department": "marketing",
+      "expected_key": "brand"
+    },
+    {
+      "query": "graphics brand policy",
+      "department": "marketing",
+      "expected_key": "brand"
+    },
+    {
+      "query": "campaign proposal audience",
+      "department": "marketing",
+      "expected_key": "campaign"
+    },
+    {
+      "query": "proposal success metric",
+      "department": "marketing",
+      "expected_key": "campaign"
+    },
+    {
+      "query": "campaign budget channel",
+      "department": "marketing",
+      "expected_key": "campaign"
+    },
+    {
+      "query": "marketing proposal requirements",
+      "department": "marketing",
+      "expected_key": "campaign"
+    },
+    {
+      "query": "hiring job description",
+      "department": "hr",
+      "expected_key": "hiring"
+    },
+    {
+      "query": "interview scorecards selection",
+      "department": "hr",
+      "expected_key": "hiring"
+    },
+    {
+      "query": "hiring first step",
+      "department": "hr",
+      "expected_key": "hiring"
+    },
+    {
+      "query": "scorecards meeting",
+      "department": "hr",
+      "expected_key": "hiring"
+    },
+    {
+      "query": "employee onboarding checklist",
+      "department": "hr",
+      "expected_key": "onboarding"
+    },
+    {
+      "query": "mentor assignment week",
+      "department": "hr",
+      "expected_key": "onboarding"
+    },
+    {
+      "query": "new employee access",
+      "department": "hr",
+      "expected_key": "onboarding"
+    },
+    {
+      "query": "onboarding first week",
+      "department": "hr",
+      "expected_key": "onboarding"
+    },
+    {
+      "query": "inventory counting schedule",
+      "department": "operations",
+      "expected_key": "inventory"
+    },
+    {
+      "query": "stock discrepancies register",
+      "department": "operations",
+      "expected_key": "inventory"
+    },
+    {
+      "query": "inventory Friday",
+      "department": "operations",
+      "expected_key": "inventory"
+    },
+    {
+      "query": "stock register counting",
+      "department": "operations",
+      "expected_key": "inventory"
+    },
+    {
+      "query": "service incident assessment",
+      "department": "operations",
+      "expected_key": "incidents"
+    },
+    {
+      "query": "incident coordinator",
+      "department": "operations",
+      "expected_key": "incidents"
+    },
+    {
+      "query": "incident severity",
+      "department": "operations",
+      "expected_key": "incidents"
+    },
+    {
+      "query": "service incident requirements",
+      "department": "operations",
+      "expected_key": "incidents"
+    },
+    {
+      "query": "weekly board summary",
+      "department": "ceo",
+      "expected_key": "board"
+    },
+    {
+      "query": "board unresolved risks",
+      "department": "ceo",
+      "expected_key": "board"
+    },
+    {
+      "query": "department approval blockers",
+      "department": "ceo",
+      "expected_key": "board"
+    },
+    {
+      "query": "board progress report",
+      "department": "ceo",
+      "expected_key": "board"
+    },
+    {
+      "query": "delegation completion evidence",
+      "department": "ceo",
+      "expected_key": "delegation"
+    },
+    {
+      "query": "assignment responsible department",
+      "department": "ceo",
+      "expected_key": "delegation"
+    },
+    {
+      "query": "delegated objective",
+      "department": "ceo",
+      "expected_key": "delegation"
+    },
+    {
+      "query": "assignment measurable evidence",
+      "department": "ceo",
+      "expected_key": "delegation"
+    },
+    {
+      "query": "expense claim receipt",
+      "department": "hr",
+      "expected_key": null
+    },
+    {
+      "query": "supplier invoice approval",
+      "department": "hr",
+      "expected_key": null
+    },
+    {
+      "query": "campaign graphics colours",
+      "department": "operations",
+      "expected_key": null
+    },
+    {
+      "query": "campaign proposal audience",
+      "department": "operations",
+      "expected_key": null
+    },
+    {
+      "query": "hiring job description",
+      "department": "ceo",
+      "expected_key": null
+    },
+    {
+      "query": "employee onboarding checklist",
+      "department": "ceo",
+      "expected_key": null
+    },
+    {
+      "query": "inventory counting schedule",
+      "department": "finance",
+      "expected_key": null
+    },
+    {
+      "query": "service incident assessment",
+      "department": "finance",
+      "expected_key": null
+    },
+    {
+      "query": "weekly board summary",
+      "department": "marketing",
+      "expected_key": null
+    },
+    {
+      "query": "delegation completion evidence",
+      "department": "marketing",
+      "expected_key": null
+    }
+  ]
+}

@@ -41,3 +41,15 @@ jobs:
         run: |
           cd backend
           pytest
+
+      - name: Warm and evaluate the 50-case synthetic knowledge corpus
+        run: |
+          cd backend
+          PYTHONPATH=. python scripts/warm_knowledge_models.py
+          PYTHONPATH=. python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output /tmp/knowledge-evaluation.json
+      - name: Save retrieval evaluation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: knowledge-evaluation
+          path: /tmp/knowledge-evaluation.json

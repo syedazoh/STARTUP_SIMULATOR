@@ -1,13 +1,100 @@
 # Startup Simulator - Multi-Agent AI-powered Business Simulation Platform
 
-## Automation expansion — 17 November 2026
+## Jobs, deadlines, private MCP and document RAG — 17 November 2026
 
-Plan and scope: [jobs, deadlines, MCP and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md).
-The additive backend supports durable Mongo jobs (optional Redis wake-ups), versioned UTC deadlines and in-app notifications, revocable private stateless MCP capabilities, and source/version/department-aware document RAG. Existing synchronous approvals remain compatible; the worker only executes approved internal simulation actions. It cannot publish/send/pay through MCP.
+Plan: [automation and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md). In Next.js, open your business, then **Jobs, deadlines, knowledge & MCP**.
 
-Install updated `backend/requirements.txt`, keep existing `.env` secrets, set `BACKGROUND_JOBS_ENABLED=True` in `backend/.env`, ensure `/health` reports `mongo: connected`, and restart the one supported backend process. Do not use multiple Uvicorn workers with the in-memory agent registry. New configuration keys are in `backend/.env.example`. Redis is optional; no provider communications or production deployment are performed by these changes.
+| Feature | Implemented | Boundary |
+| --- | --- | --- |
+| Background jobs | Durable Mongo queue, idempotency keys, atomic leases, three attempts/backoff, restart recovery, progress/cancel/safe retry | One API process/agent registry; Redis is an optional wake hint, not the queue. Uncertain effects require reconciliation. |
+| Queued work | CEO draft plans, saved-task briefs, document indexing and approved internal simulation execution | Drafts require review/activation. Worker execution excludes live email/social/payment effects. |
+| Deadlines | Versioned UTC dates, reasoned pending-task edits, in-app reminder/overdue/CEO-owner escalation and execution cutoff | No email/calendar delivery. Approval freezes the deadline. |
+| Private MCP | Official SDK stateless Streamable HTTP `/mcp/`, revocable 15-minute business/department capabilities, request budgets | Read budget/task/knowledge or propose internal work. No approve/publish/credentials tool; not a full public OAuth server. |
+| Advanced document RAG | Heading/overlap chunks, source/version/department metadata, BM25+dense reciprocal-rank fusion, cached CrossEncoder reranking, strict evidence prompt, exact-quote checks and abstention | Markdown/text only, separate from Chroma decision memory. Visible lexical/extractive fallback when models are unavailable. Citation checks do not establish semantic entailment. |
+| Planner evidence | CEO draft planning retrieves CEO-authorized documents | Documents never grant approval or override live ledger/status APIs. Department-scoped evidence is exposed through MCP; automatic consumption across every agent is not implemented. |
 
-Validation is recorded in [impact log](docs/impact.md); planned features are not evidence of deployment. Dashboard controls and detailed acceptance instructions are added in the next implementation slice.
+### Local setup — Windows Git Bash
+
+Keep existing `.env` files; do not overwrite configured secrets. Python 3.11 is the supported Docker/CI version. From the repository root:
+
+**Terminal 1 — backend**
+
+```bash
+source .venv/Scripts/activate
+cd backend
+python -m pip install -r requirements.txt
+# Edit backend/.env: BACKGROUND_JOBS_ENABLED=True
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+If your virtual environment lives inside `backend`, activate `backend/.venv/Scripts/activate` instead. Linux/macOS activation ends in `bin/activate`. Require `http://127.0.0.1:8000/health` to report `mongo: connected`. Automation refuses volatile in-memory storage. Restart after `.env` changes.
+
+**Terminal 2 — Next.js frontend**, from the repository root:
+
+```bash
+cd web
+npm ci
+npm run dev
+```
+
+Open `http://localhost:3000`; sign in with your **application user's email/password**, choose your business and open automation. `web/.env.local` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `BACKEND_URL=http://127.0.0.1:8000`. Backend `.env` uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` without `NEXT_PUBLIC_`. Never expose service-role/backend secrets in browser variables. Existing Vite/3D boardroom remains separately available on port 5173.
+
+### Model cache and knowledge
+
+Run once from `backend`, with its environment activated and internet access:
+
+```bash
+PYTHONPATH=. python scripts/warm_knowledge_models.py
+```
+
+This explicitly downloads `sentence-transformers/all-MiniLM-L6-v2` and `cross-encoder/ms-marco-MiniLM-L-6-v2` to the local Hugging Face cache. Inspect model licenses before changing models. Runtime downloads default off (`RAG_ALLOW_MODEL_DOWNLOAD=False`); Docker builds warm both caches. Upload `.txt`/`.md`, select allowed departments, queue indexing and inspect job status. Use **Reindex** after warming models if a document previously lacked vectors; it increments the source version. Updates/deletion invalidate old retrieval and stale jobs cannot restore them.
+
+Ask a question under an authorized department. Inspect `mode`, `dense_status`, `reranker`, `answer_mode`, source versions and citations. Missing model/API access yields a labelled fallback or abstention. No false hybrid/AI-success claim is made. Bounds: 100 documents, 128 chunks per document, 2,048 chunks per retrieval corpus. Normalized vectors live in Mongo and a bounded authorized corpus is scored; this is **not Atlas Vector Search** or a large indexed vector service. PDF/OCR is deferred.
+
+### Use jobs and deadlines
+
+1. Queue a CEO goal, follow its saved job result, then review/activate the draft in the Command Center.
+2. Preview an internal task and choose **Approve and queue**. CEO authorization and the current approval fingerprint are still required. Existing **Approve and execute** remains available. After timeouts, refresh before repeating; API callers must reuse the original idempotency key for unchanged requests.
+3. Set a pending task's due date/time and reason. The UI converts your device timezone to UTC. Set reminder minutes before and escalation minutes after; notifications appear here. Deadline edits supersede old notifications. Expired work cannot begin through either execution path.
+4. Queue an on-demand task-status brief. Its counts/task IDs describe at most 200 recent saved tasks, not real-world business success.
+5. Cancel queued/retry jobs only. Failed drafting/index jobs can be retried. Running work is not UI-interruptible; uncertain executing effects require evidence review. Processing is sequential, with 120-second attempt timeout and 180-second lease.
+
+Redis is optional: `REDIS_URL=redis://127.0.0.1:6379/0`. To run local infrastructure:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d mongo redis
+```
+
+Use the Python/Next terminals above. The full existing Compose frontend is **Vite**, not Next.js. The development backend worker is enabled in Compose. Redis outages fall back to durable Mongo polling; no task payload/token is placed in Redis. Do not use multiple Uvicorn workers/replicas with this in-process agent registry. No production deployment is performed here.
+
+### Connect a private MCP client
+
+Select allowed departments and mint a 15-minute token in automation. Proposal permission is optional and still requires fresh owner review. Configure a trusted MCP client with `http://localhost:8000/mcp/` and `Authorization: Bearer …`. The token is shown only in the current tab and is not saved to local storage. Revoke it explicitly; application logout does not revoke an independently minted capability. Expiry/revocation is also rechecked before queued MCP proposals run.
+
+Official SDK smoke client, from `backend`:
+
+```bash
+python scripts/check_mcp.py
+```
+
+It privately prompts for the capability and initializes/lists tools without executing work. Tools: `get_budget`, `get_task_status`, `search_knowledge`, `propose_task`. Tenant identity comes from the token, never tool arguments. App native/Supabase tokens cannot replace MCP capabilities. Hosted MCP requires operator-configured HTTPS `/mcp/` routing, `MCP_RESOURCE_URL`, `MCP_ALLOWED_HOSTS` and allowed origins, followed by newly minted tokens. Existing production proxy routing is not automatically changed.
+
+### Verification and manual acceptance
+
+Automated tests cover idempotency/leases/retry recovery, deferred approval, tenant isolation, deadline versions/cutoff, MCP wire access/revocation and source deletion/fallbacks. CI additionally verifies actual Mongo reconnect, browser flows and cached-model retrieval.
+
+From `backend`:
+
+```bash
+python -m pytest tests/test_automation_jobs.py tests/test_automation_api.py tests/test_private_mcp.py tests/test_knowledge.py
+PYTHONPATH=. python scripts/evaluate_knowledge.py --output knowledge-evaluation.json
+# After cache warm-up, require actual hybrid/cross-encoder execution:
+PYTHONPATH=. python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output knowledge-evaluation.json
+```
+
+The **50 synthetic cases** run in an isolated mocked database with no LLM calls. Results record lexical baseline versus actual pipeline and modes; this tests retrieval coverage and department isolation, not factual entailment or customer-data quality. The recovered implementation's offline lexical result is 48/50; actual cached-model results are recorded in [impact log](docs/impact.md), without inventing improvement.
+
+Manual acceptance with a test business: verify Mongo/worker heartbeat; complete a brief; set a deadline and observe an in-app reminder; upload/reindex a policy and inspect citations; mint/revoke MCP access; approve/queue internal work and verify its saved result survives a backend restart. Production hosting, provider credentials and real-data acceptance remain operator tasks.
 
 ## Project Overview
 

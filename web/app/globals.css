@@ -242,3 +242,8 @@ li {
 .approval-preview, .assignment { background: #f4f0f8; padding: 20px; margin: 16px 0; border-radius: 8px; }
 textarea { font: inherit; width: 100%; resize: vertical; border: 1px solid #84968d; border-radius: 8px; padding: 12px; background: white; color: #153c33; }
 @media (max-width: 600px) { .task-meta { grid-template-columns: 1fr; } .workspace-toolbar button, .demo-actions button { width: 100%; } }
+
+.automation-controls { border: 0; padding: 0; min-width: 0; }
+.command-center input[type="checkbox"] { width: 18px; height: 18px; padding: 0; flex: 0 0 18px; }
+.command-center fieldset { min-width: 0; }
+.command-center li { overflow-wrap: anywhere; margin: 12px 0; }

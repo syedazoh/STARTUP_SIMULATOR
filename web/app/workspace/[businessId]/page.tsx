@@ -29,9 +29,16 @@ export default async function BusinessWorkspace({
     );
   }
   return (
-    <CommandCenter
-      business={business}
-      initial={await readWorkspace(businessId)}
-    />
+    <>
+      <p>
+        <a href={`/workspace/${encodeURIComponent(businessId)}/automation`}>
+          Jobs, deadlines, knowledge &amp; MCP →
+        </a>
+      </p>
+      <CommandCenter
+        business={business}
+        initial={await readWorkspace(businessId)}
+      />
+    </>
   );
 }

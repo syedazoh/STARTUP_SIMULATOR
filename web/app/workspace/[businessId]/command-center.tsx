@@ -645,6 +645,34 @@ export default function CommandCenter({
                       >
                         Approve and execute
                       </button>
+                      {[
+                        "budget_request",
+                        "campaign_launch",
+                        "recruitment_request",
+                        "resource_request",
+                        "dataset_launch",
+                      ].includes(task.action_type) && (
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              () =>
+                                decideTask(
+                                  business.id,
+                                  task.id,
+                                  "approve",
+                                  "",
+                                  selected.approval_fingerprint || "",
+                                  true,
+                                ),
+                              "Approved and queued. Follow progress in Jobs, deadlines, knowledge & MCP.",
+                            )
+                          }
+                        >
+                          Approve and queue
+                        </button>
+                      )}
+
                       <button
                         className="secondary"
                         disabled={busy}

@@ -33,6 +33,9 @@ jobs:
       BACKEND_URL: http://127.0.0.1:8001
       SIMULATOR_BROWSER_TEST: '1'
       HF_HUB_OFFLINE: '1'
+      BACKGROUND_JOBS_ENABLED: 'True'
+      RAG_DENSE_ENABLED: 'False'
+      RAG_RERANKER_ENABLED: 'False'
       WORKSPACE_SCREENSHOT_DIR: /tmp/workspace-screenshots
     steps:
       - uses: actions/checkout@v4
@@ -71,6 +74,8 @@ jobs:
                   raise SystemExit('Service did not start: ' + url)
           PYTHON
       - run: node tests/workspace.browser.cjs
+        working-directory: web
+      - run: node tests/automation.browser.cjs
         working-directory: web
       - name: Install and serve the existing Vite UI
         run: |

@@ -80,6 +80,7 @@ export async function decideTask(
   decision: "approve" | "reject",
   feedback: string,
   expectedFingerprint: string,
+  deferExecution = false,
 ) {
   return safely(async () => {
     const task: Task = await backend(
@@ -98,6 +99,7 @@ export async function decideTask(
     return backend(`/api/tasks/${encodeURIComponent(taskId)}/${decision}`, {
       method: "POST",
       body: JSON.stringify({
+        defer_execution: deferExecution,
         owner_feedback: feedback,
         expected_fingerprint: expectedFingerprint,
       }),
