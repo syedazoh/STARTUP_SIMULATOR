@@ -57,7 +57,12 @@ async def boardroom_activity(
     live = runtime.agent_manager.event_bus.get_event_history(limit=bounded)
     # Same event may exist in both sources; keep its durable directed record.
     combined = {event["event_id"]: event for event in live}
-    combined.update({event["event_id"]: event for event in durable})
+    for event in durable:
+        existing = combined.get(event["event_id"])
+        combined[event["event_id"]] = (
+            {**existing, **event, "data": {**existing.get("data", {}), **event.get("data", {})}}
+            if existing else event
+        )
     def recorded_at(event):
         try:
             stamp = datetime.fromisoformat(event["timestamp"])
