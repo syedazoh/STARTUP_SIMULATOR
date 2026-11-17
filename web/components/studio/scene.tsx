@@ -228,9 +228,7 @@ export default function Scene({
                 {a.label}
               </button>
             ))}
-            <span data-agent="owner" className="scene-owner-label">
-              You <small>Approval desk</small>
-            </span>
+
           </div>
         </div>
       ) : (

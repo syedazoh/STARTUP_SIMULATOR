@@ -6,7 +6,7 @@ import { getLatestMessage } from './eventRoutes'
 import './boardroom.css'
 
 export const EXECUTIVES = AGENTS
-export default function Boardroom3D({ statuses = {}, events = [], tasks = [], ready = true, onSelect = () => {}, selected = 'ceo', showApprovalLabel = true }) {
+export default function Boardroom3D({ statuses = {}, events = [], tasks = [], ready = true, onSelect = () => {}, selected = 'ceo', showApprovalLabel = false }) {
   const canvas = useRef(null), labels = useRef(null), engine = useRef(null)
   const select = useRef(onSelect); select.current = onSelect
   const [mode, setMode] = useState('3d'), [error, setError] = useState(''), [preview, setPreview] = useState(false)

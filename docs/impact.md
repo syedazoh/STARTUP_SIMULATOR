@@ -147,3 +147,7 @@ Browser integration acceptance passed on the merged Next.js 16.4.6 production bu
 
 ## 2026-11-17 — Hide owner label in public landing preview
 Removed the floating “You · Approval desk” label from the public landing page using a presentation-only Boardroom3D prop. Authenticated Boardroom labels and owner approval behavior are preserved. No API, authority or task-state changes. Validation: frontend lint/build recorded for this small visual change; no additional implementation-mirroring test added.
+
+## 2026-11-17 — Boardroom text visibility and owner-label removal
+Removed the floating owner approval label from both Boardroom presentations (public and authenticated). Owner authorization and the physical central station are unchanged. Increased avatar labels, controls, task statuses, task titles and identifiers; replaced low-contrast legacy metadata colors with readable light tones. Stacked the Vite inspector earlier on narrower desktop windows to prevent clipping. Updated shared label collision measurements for the larger text. No approval or execution behavior changed.
+Validation for the readability change: 46 frontend tests, Vite lint/build and Next.js typecheck/build passed. Production browser acceptance passed with larger labels at 320–1600px, mobile collision checks during orbit, avatar/list selection and reduced-motion preview cleanup. Design records were updated. Existing large-bundle warning remains; no live provider action was used.
