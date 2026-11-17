@@ -105,3 +105,7 @@ Browser acceptance found ambiguous implicit select labels in the new deadline/kn
 
 ## 2026-11-17 — mobile acceptance correction
 The corrected-label browser rerun passed job completion, deadline saving, document indexing/cited fallback, capability mint/hide/revoke, then caught horizontal mobile overflow from a native select's long task option forcing the CSS grid column wider. CI failure screenshot/DOM confirmed this cause. Fixed the form column to minmax(0,1fr) and bounded/styled native selects; retained overflow assertions and expanded them to 320/390/768 px instead of hiding page overflow or weakening checks. Final browser rerun pending; previous evidence: https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/44032249852.
+
+
+## 2026-11-17 — embedding identity guard
+Changing the configured embedding model now leaves older vectors in an explicit lexical/unavailable mode until reindexing; embeddings from different models are never reported as a working hybrid corpus. Added a regression asserting the query embedder is not invoked against mismatched vectors. Local knowledge tests: 7 passed. Preceding CI at 87f9ff7 passed 474 backend tests, actual cached-model evaluation 50/50 versus lexical 48/50, and Docker wiring. Mobile form acceptance is tracked separately in its web-only rerun. No expanded provider/deployment scope.

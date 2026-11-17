@@ -181,3 +181,33 @@ def test_invalid_query_vector_falls_back_instead_of_returning_nan(
         and r.json()["dense_status"] == "unavailable"
     )
     assert r.json()["results"]
+
+
+def test_changed_embedding_model_requires_reindex_before_hybrid_mode(
+    accounts, monkeypatch
+):
+    c, h, a, b, doc = indexed(accounts)
+    asyncio.run(
+        c.app.state.db["knowledge_documents"].update_one(
+            {"document_id": doc}, {"$set": {"chunks.0.vector": [1.0, 0.0]}}
+        )
+    )
+    monkeypatch.setattr(settings, "rag_dense_enabled", True)
+    monkeypatch.setattr(settings, "rag_embedding_model", "different-embedding-model")
+    called = []
+
+    def unexpected(texts):
+        called.append(True)
+        return [[1.0, 0.0]]
+
+    monkeypatch.setattr(knowledge, "embed", unexpected)
+    result = c.post(
+        f"/api/businesses/{a}/knowledge/search",
+        headers=h["alice"],
+        json={"query": "campaign approval", "department": "finance"},
+    ).json()
+    assert (
+        result["mode"] == "lexical"
+        and result["dense_status"] == "unavailable"
+        and not called
+    )

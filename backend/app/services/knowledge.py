@@ -364,7 +364,10 @@ async def search(db, business_id, department, query, limit=5):
     dense_mode = "disabled"
     if settings.rag_dense_enabled:
         dense_mode = "unavailable"
-        if any(c.get("vector") for c in chunks):
+        if any(
+            c.get("vector") and c["embedding_model"] == settings.rag_embedding_model
+            for c in chunks
+        ):
             try:
                 vector = (await asyncio.to_thread(embed, [query]))[0]
                 if (
