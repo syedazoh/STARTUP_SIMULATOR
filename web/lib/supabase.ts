@@ -1,11 +1,13 @@
 import "server-only";
 import { createServerClient } from "@supabase/ssr";
+import { authConfigurationIssue } from "./auth-state";
 import { cookies } from "next/headers";
 export async function supabase() {
   const jar = await cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL,
     key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) throw new Error("Configure Supabase in web/.env.local");
+  const issue = authConfigurationIssue(process.env);
+  if (issue || !url || !key) throw new Error(issue || "Configure Supabase in web/.env.local");
   return createServerClient(url, key, {
     cookieOptions: {
       httpOnly: true,

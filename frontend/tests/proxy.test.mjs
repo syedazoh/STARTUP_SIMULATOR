@@ -47,3 +47,25 @@ test('Vite proxies API paths, refresh cookies, and health checks to the configur
     await new Promise((resolve) => backend.close(resolve))
   }
 })
+
+test('backend connection refusal returns an actionable 503 without granting a session', async () => {
+  const reservation = http.createServer()
+  await new Promise(resolve=>reservation.listen(0,'127.0.0.1',resolve))
+  const port = reservation.address().port
+  await new Promise(resolve=>reservation.close(resolve))
+  const previous=process.env.API_PROXY_TARGET
+  process.env.API_PROXY_TARGET=`http://127.0.0.1:${port}`
+  let frontend
+  try {
+    frontend=await createServer({configFile:fileURLToPath(new URL('../vite.config.js',import.meta.url)),server:{host:'127.0.0.1',port:0,strictPort:false},logLevel:'silent'})
+    await frontend.listen()
+    const response=await fetch(`http://127.0.0.1:${frontend.httpServer.address().port}/api/auth/refresh`,{method:'POST'})
+    assert.equal(response.status,503)
+    assert.match((await response.json()).detail,/Start the backend/)
+    assert.equal(response.headers.get('set-cookie'),null)
+    assert.equal(response.headers.get('cache-control'),'no-store')
+  } finally {
+    if(previous===undefined)delete process.env.API_PROXY_TARGET;else process.env.API_PROXY_TARGET=previous
+    await frontend?.close()
+  }
+})

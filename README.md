@@ -41,7 +41,9 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000`; sign in with your **application user's email/password**, choose your business and open automation. `web/.env.local` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `BACKEND_URL=http://127.0.0.1:8000`. Backend `.env` uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` without `NEXT_PUBLIC_`. Never expose service-role/backend secrets in browser variables. Existing Vite/3D boardroom remains separately available on port 5173.
+Open `http://localhost:3000`; sign in with an account registered in your configured **Supabase project**, choose your business and open automation. A classic FastAPI login is not automatically a Supabase account: register/confirm the same email in Supabase, then explicitly link the original login in the workspace to retain its businesses. `web/.env.local` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `BACKEND_URL=http://127.0.0.1:8000`. Backend `.env` uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` without `NEXT_PUBLIC_`. Never expose service-role/backend secrets in browser variables. Existing Vite/3D boardroom remains separately available on port 5173.
+
+For `ECONNREFUSED` or sign-in setup issues, run `python scripts/check_local_auth.py --ui next` (or `--ui classic`) from the repository root and see [local authentication troubleshooting](docs/LOCAL_AUTH_TROUBLESHOOTING.md). The checker prints no secret values.
 
 ### Model cache and knowledge
 

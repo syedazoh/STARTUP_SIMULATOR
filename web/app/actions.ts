@@ -1,7 +1,8 @@
 "use server";
 import { redirect } from "next/navigation";
 import { supabase } from "../lib/supabase";
-function fields(form: FormData) {
+import { authConfigurationIssue, authErrorCode, signupDestination } from "../lib/auth-state";
+function fields(form: FormData, page = "/login") {
   const email = String(form.get("email") || "").trim(),
     password = String(form.get("password") || "");
   if (
@@ -10,25 +11,29 @@ function fields(form: FormData) {
     password.length < 8 ||
     password.length > 128
   )
-    redirect("/login?error=input");
+    redirect(`${page}?error=input`);
   return { email, password };
 }
 export async function login(form: FormData) {
-  const client = await supabase();
-  const { error } = await client.auth.signInWithPassword(fields(form));
-  if (error) redirect("/login?error=login");
+  const credentials = fields(form);
+  if (authConfigurationIssue(process.env)) redirect("/login?error=configuration");
+  let result;
+  try { const client = await supabase(); result = await client.auth.signInWithPassword(credentials); }
+  catch { redirect("/login?error=unavailable"); }
+  if (result.error) redirect(`/login?error=${authErrorCode(result.error)}`);
+  if (!result.data.session) redirect("/login?error=login");
   redirect("/workspace");
 }
 export async function signup(form: FormData) {
-  const client = await supabase();
-  const { error } = await client.auth.signUp({
-    ...fields(form),
-    options: {
-      emailRedirectTo: `${process.env.APP_URL || "http://localhost:3000"}/auth/callback`,
-    },
-  });
-  if (error) redirect("/signup?error=signup");
-  redirect("/login?notice=verify");
+  const credentials = fields(form, "/signup");
+  if (authConfigurationIssue(process.env)) redirect("/signup?error=configuration");
+  let result;
+  try {
+    const client = await supabase();
+    result = await client.auth.signUp({...credentials, options: {emailRedirectTo: `${process.env.APP_URL || "http://localhost:3000"}/auth/callback`}});
+  } catch { redirect("/signup?error=unavailable"); }
+  if (result.error) redirect(`/signup?error=${authErrorCode(result.error)}`);
+  redirect(signupDestination(!!result.data.session));
 }
 export async function logout() {
   const client = await supabase();

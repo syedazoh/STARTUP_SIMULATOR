@@ -394,3 +394,5 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 - [ ] Implement and verify Gmail OAuth/token lifecycle and approved email execution with controlled delivery receipts.
 - [ ] Complete Instagram/Facebook OAuth/account eligibility, media publishing and verified provider receipts before live automation.
 - [ ] Resolve production frontend packaging, provider permission acceptance, AWS staging, load/latency baselines and rollback before production deployment.
+
+- [x] Diagnose local Vite auth proxy refusal, document required FastAPI startup, improve proxy/missing-config feedback, correct Next immediate-session signup and preserve explicit legacy account linking. Add local setup diagnostics and auth regression/browser checks.

@@ -14,7 +14,13 @@ events=[{'event_id':'e1','event_type':'budget_request','source':'marketing','tim
 @app.post('/auth/v1/token')
 async def login(request:Request):
  d=await request.json()
+ if d.get('email')=='unavailable-fixture@example.com':raise HTTPException(503,'Fixture provider unavailable')
  if d.get('email')!=user['email'] or d.get('password')!='fixture-password':raise HTTPException(400,'Invalid fixture credentials')
+ return {'access_token':token,'refresh_token':'fixture-only','expires_in':3600,'expires_at':int(time.time())+3600,'token_type':'bearer','user':user}
+@app.post('/auth/v1/signup')
+async def signup_fixture(request:Request):
+ data=await request.json()
+ if data.get('email')=='confirm-fixture@example.com':return {'user':user}
  return {'access_token':token,'refresh_token':'fixture-only','expires_in':3600,'expires_at':int(time.time())+3600,'token_type':'bearer','user':user}
 @app.get('/auth/v1/user')
 async def get_user():return user

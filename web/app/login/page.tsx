@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { authConfigurationIssue, authNotice } from "../../lib/auth-state";
 import { login } from "../actions";
 import { Submit } from "../../components/submit";
 export default async function Login({
@@ -7,6 +8,7 @@ export default async function Login({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
+  const configuration = authConfigurationIssue(process.env);
   return (
     <section className="card">
       <p className="eyebrow">Welcome back</p>
@@ -17,8 +19,7 @@ export default async function Login({
       </p>
       {params.error && (
         <p role="alert" className="error">
-          Sign-in failed. Check your credentials and email confirmation, then
-          retry.
+          {authNotice(params.error)}
         </p>
       )}
       {params.notice === "verify" && (
@@ -26,7 +27,8 @@ export default async function Login({
           Check your email to confirm your account, then sign in here.
         </p>
       )}
-      <form action={login}>
+      {configuration && <p role="alert" className="error">{configuration}</p>}
+      {!configuration && <form action={login}>
         <label htmlFor="email">Email address</label>
         <input
           id="email"
@@ -47,7 +49,7 @@ export default async function Login({
           required
         />
         <Submit>Sign in</Submit>
-      </form>
+      </form>}
       <p>
         New here? <Link href="/signup">Create account</Link>
       </p>
