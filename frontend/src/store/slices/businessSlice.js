@@ -2,6 +2,9 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import apiClient from '../../api/client'
 
 const ACTIVE_BUSINESS_STORAGE_KEY = 'simulator_active_business'
+function rememberedBusiness() {
+  try { return localStorage.getItem(ACTIVE_BUSINESS_STORAGE_KEY) } catch { return null }
+}
 
 export const fetchBusinesses = createAsyncThunk('business/fetchAll', async () => {
   const response = await apiClient.get('/api/businesses')
@@ -17,7 +20,7 @@ const businessSlice = createSlice({
   name: 'business',
   initialState: {
     items: [],
-    activeBusinessId: localStorage.getItem(ACTIVE_BUSINESS_STORAGE_KEY),
+    activeBusinessId: rememberedBusiness(),
     status: 'idle',
     error: null,
   },

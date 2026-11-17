@@ -25,11 +25,14 @@ export function createStudio(
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 80);
   const lookAt = new THREE.Vector3(0, 0.75, 0);
-  scene.add(new THREE.HemisphereLight("#d7ccff", "#171020", 2.3));
+  const ambientLight = new THREE.HemisphereLight("#d7ccff", "#171020", 2.3);
+  scene.add(ambientLight);
+  const themeLights = [];
   const light = (color, intensity, x, y, z) => {
     const l = new THREE.DirectionalLight(color, intensity);
     l.position.set(x, y, z);
     scene.add(l);
+    themeLights.push({light: l, intensity});
   };
   light("#fff0d8", 4, 2, 9, 7);
   light("#a67bff", 5, -6, 5, -4);
@@ -272,6 +275,7 @@ export function createStudio(
       phase: Math.random() * Math.PI * 2,
     });
   }
+  let visible = true;
   let solo = null;
   let selected = "ceo",
     transfer = null,
@@ -477,7 +481,7 @@ export function createStudio(
   }
   function loop(now) {
     if (disposed) return;
-    if (!document.hidden) render(now);
+    if (!document.hidden && visible) render(now);
     animation = requestAnimationFrame(loop);
   }
   const down = (e) => {
@@ -528,6 +532,23 @@ export function createStudio(
   resize();
   if (!reducedMotion) animation = requestAnimationFrame(loop);
   return {
+    setVisible(value) {
+      visible = !!value;
+      if (visible) render(performance.now());
+    },
+    setTheme(value) {
+      const isDark = value === "dark";
+      const color = new THREE.Color(isDark ? "#160d29" : "#e9e1f5");
+      renderer.setClearColor(color, 0.25);
+      scene.fog = new THREE.FogExp2(color, isDark ? 0.012 : 0.009);
+      ambientLight.intensity = isDark ? 2.3 : 3.1;
+      for (const {light, intensity} of themeLights) light.intensity = intensity * (isDark ? 1 : 0.8);
+      dark.color.set(isDark ? "#24202e" : "#4b415b");
+      lightShell.color.set(isDark ? "#d9d1e2" : "#f2edf7");
+      dark.needsUpdate = true;
+      lightShell.needsUpdate = true;
+      render(performance.now());
+    },
     showOnly(id) {
       solo = AGENTS.some(a => a.id === id) ? id : null;
       for (const [key, value] of agents) value.group.visible = !solo || key === solo;

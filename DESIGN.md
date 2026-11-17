@@ -175,3 +175,47 @@ Projected HTML labels identify departments only; the floating owner/approval-des
 Body and form text use a 16px baseline; authored compact text has a 14px floor across the public, authentication and operational surfaces. Legacy text-sm uses 15px and text-xs uses 14px. Metadata retains hierarchy through color, weight and spacing. Chart ticks/tooltips are 14px. Mobile studio rosters wrap into three columns.
 
 The timeline filter controls scene scope: All events shows all executive avatars; the selected department shows its avatar alone with a centered camera. Other mesh groups and labels are hidden; the full floor restores on All events. Communication routes remain in readable records during solo viewing. Decision-log signals are backed by real route evidence, with a separate initial-history baseline.
+
+## Public landing extension — glass executive introduction
+
+This extension applies only to the public landing. Preserve the authenticated dark Executive Studio tokens, readable business records and owner approval rules above. The public composition pairs an editorial invitation with the live executive floor, a horizontal introduction/player, process explanation and account CTA. At 800px and below, the floor follows the headline before longer copy and controls. It is an illustrative introduction, not recorded business activity.
+
+### Landing palette and glass
+
+CSS tokens are scoped to `.launch-page` with prefix `--launch-`; light values override under `data-theme=light`.
+
+| Token suffix | Dark | Light |
+| --- | --- | --- |
+| bg | `#100a1e` | `#f3eef8` |
+| ink | `#f8f1ff` | `#291b3c` |
+| muted | `#c9bdd9` | `#625173` |
+| glass | `rgba(43,29,65,.57)` | `rgba(255,255,255,.51)` |
+| edge | `rgba(218,195,255,.27)` | `rgba(112,72,154,.24)` |
+| accent | `#d7baff` | `#67408e` |
+| button | `#dfc9ff` | `#59327f` |
+| button-ink | `#28113e` | `#fff7ff` |
+| soft | `rgba(211,175,255,.12)` | `rgba(119,77,161,.08)` |
+| readable-glass | `rgba(27,16,43,.95)` | `rgba(252,248,255,.95)` |
+
+Standard glass combines themed fill, a 1px edge, 16px radius and `blur(24px) saturate(130%)`. Unsupported backdrop filtering falls back to the opaque background token. Captions and the overview dialog use the stronger 95% alpha readable glass: moving geometry must not compete with their text. Fixed live captions explicitly disable both backdrop-filter and -webkit-backdrop-filter to avoid a black compositor rectangle over active WebGL; their tint and border remain. Other glass surfaces, including the dialog, retain blur. Agent dots preserve champagne, lavender, orchid, peach and periwinkle department identities; text and pressed state also identify selection.
+
+### Landing type, geometry and components
+
+`Launch Sans` is another alias for the same self-hosted Manrope (`/fonts/studio-sans.woff2`, weights 200–800), followed by Studio Sans/system fallbacks. Body is 16px/1.65, hero supporting copy 17px/1.8 (16px on phones), profile body 15px/1.8 and compact controls/captions 14px. The hero is `clamp(44px,5.35vw,82px)`, weight 500, line height 1.08 and tracking −.04em; the final phone override is 42px. Profile headings are 24px/1.3, growing to 26px on phones. Paragraph measure caps at 65ch.
+
+Content caps at 1520px; the process section caps at 1320px. Page padding is `24px clamp(18px,4.5vw,80px) 0`, changing to `14px 16px 0` on phones. Hero gaps span 30–72px; introduction padding is 30px by 35px, reducing to 23px on phones. Process margins reduce from 140px to 75px on phones. Responsive steps are 1600, 1150, 800 and 480px. The canvas is 500px high by default, 580px wide-screen, 440px compact, 460px stacked and finally 330px on phones.
+
+- **Navigation and actions:** Glass navigation includes the theme toggle and sign-in. Primary/secondary actions use a 12px radius, 13px by 21px padding, 14px weight-650 text and minimum 50px height. Icons have 44px circular targets; play has a 52px target. Small stage controls use a 9px radius and department tabs 8px.
+- **Executive floor:** Existing procedural Three.js robots remain shared with the studio. Five labelled department buttons expose pressed selection; full-team and spotlight views are available. Loading and unavailable-WebGL copy preserve access to profiles below the canvas.
+- **Sliding profile and player:** CEO, Finance, Marketing, HR and Operations each have a role, description, example and English introduction. Profile changes slide 14px over 320ms using `cubic-bezier(.16,1,.3,1)`. Previous/next, play/pause and narration controls supplement direct selection. A live caption accompanies playback and an expandable transcript remains readable without playing.
+- **Overview popup:** A visitor-triggered native modal dialog has a labelled heading, close control and native Escape dismissal. No popup interrupts arrival. Readable glass carries its explanatory copy.
+
+### Theme, motion and functional behavior
+
+The landing follows `prefers-color-scheme` until a visitor chooses a theme. A valid `startup-landing-theme` localStorage override persists that choice; storage failure leaves the toggle usable. The component updates browser `theme-color` and root `color-scheme`, restoring prior values when unmounted. Opt-in renderer `setTheme` updates clear color, fog, lights and robot materials without changing authenticated studio defaults. The landing's IntersectionObserver calls `setVisible` for offscreen rendering. Hidden tabs and page exit stop the tour and speech.
+
+The user starts the tour or presses play before any audio. Browser speech synthesis requests `en-US` at rate .95, introducing the five departments one by one; actual voices depend on the browser and operating system. Missing or failed speech retains captions and advances after 16 seconds. This is a live 3D tour, not prerecorded or exported video. It makes no task writes, approvals, communications or spending requests.
+
+Focus uses a 3px accent outline with 4px offset. Labelled native controls, pressed states, a transcript and non-WebGL profiles keep the departments reachable without sound or 3D. Reduced motion disables CSS animations/transitions and smooth tour scrolling, and suppresses renderer idle animation. Phone tabs wrap; captions scroll within 38dvh and page spacing accommodates them. These are implemented behaviors, not a claim of complete accessibility certification.
+
+Both apps render `frontend/src/landing/LandingExperience.jsx` with introductions in `agents.mjs` and the shared framework-neutral `frontend/src/studio/scene.mjs`. Landing CSS is mirrored in `frontend/src/landing/landing.css` and `web/components/landing/landing.css` because their PostCSS configurations differ. Vite retains `/register`, `/login` and its authenticated `/app` redirect; Next uses `/signup` and `/login`. The direction contract is `.impeccable/briefs/glass-landing.md`. No detector or launcher exists for this work; these tokens were documented from source, without invented tool reports.

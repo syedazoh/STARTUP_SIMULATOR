@@ -386,3 +386,5 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 - [x] Extend collaboration visuals to all five executives: sender/receiver participant roles, full launch-meeting preview, every new routed event in snapshot order, and regression coverage for all twenty explicit department pairs.
 
 - [x] Connect decision-log observations and task states to both boardroom timelines; add selected-avatar-only scene filtering and restore full room on All events. Apply readable text sizes across both apps and verify mobile wrapping, backend history isolation and decision-driven signals.
+
+- [x] Replace both public homepages with a shared glass/3D landing, device-aware persisted theme toggle, five English narrated/captioned agent introductions, playback controls, sliding profile, native overview popup and phone/reduced-motion/fallback behavior. Preserve account routes and authenticated themes.
