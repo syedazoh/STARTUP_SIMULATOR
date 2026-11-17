@@ -351,3 +351,32 @@ Evidence and acceptance instructions: docs/DATASET_SIMULATION.md; datasets/produ
 - [x] Run frontend behavioral checks, builds/typecheck, local-fixture browser acceptance and a separate visual review; record limits in docs/impact.md.
 - [ ] Verify the redesigned flow on the user's configured Supabase/backend/business and target hardware. Direct HelloRun/Figma comparison remains unavailable until those sources are accessible.
 These checks do not close unrelated November roadmap milestones, backend worker/realtime work or live-provider acceptance.
+
+## November 16 — Next.js command-center slice and November 30 target
+- [x] Reuse the existing dataset import/approved-launch demo on main; do not rebuild it.
+- [x] Add Next.js business creation and business-specific command-center navigation.
+- [x] Connect department state/proposals, CEO draft review/activation, internal owner decisions, finance summary and saved reports to existing authorized APIs.
+- [x] Show source/plan/CEO/owner/result distinctions and partial errors; keep unknown deadlines explicit.
+- [x] Add opt-in atomic approval-preview binding and cross-owner/stale/concurrent-edit regression checks.
+- [x] Record passing Next.js production browser/build, backend and Docker CI evidence in docs/impact.md (November 16). Display follow-up has its own checks.
+- [ ] User acceptance on local Atlas/Supabase after pulling (docs/NEXT_COMMAND_CENTER.md).
+Full T07/T08 versioning, worker/outbox/MCP, deadline scheduler, advanced RAG, complete frontend migration and deployment remain unchecked. Revised submission target is November 30; the old December 5 plan is superseded for submission. No staged deployment URL has been verified by this slice.
+
+## November 16 — Reported Vite dashboard/revision fixes
+- [x] Trace counter flicker to loading gates during polling; preserve last confirmed snapshots and suppress overlapping requests.
+- [x] Keep request-changes task visible and implement feedback-driven typed revision with an explicit blocked state for unavailable/unchanged output.
+- [x] Require a fresh owner approval after revision, including in auto mode; keep unchanged work blocked and concurrent rejection authoritative.
+- [x] Record passing backend, Next/Vite browser, frontend and Docker CI evidence in docs/impact.md; live local/provider acceptance remains separate.
+The remaining submission work is unchanged: durable jobs/outbox/MCP, advanced RAG, deadlines, deployment and live acceptance. These fixes do not mark the entire plan complete.
+
+
+## November 17 — jobs, deadlines, MCP and document knowledge
+- [x] Durable Mongo queue/atomic claims, bounded retries, task-outbox repair and optional Redis hints.
+- [x] Internal approved execution only; uncertain effects require reconciliation; preserve synchronous compatibility.
+- [x] Versioned UTC deadlines, in-app reminder/overdue/CEO-owner escalation and common execution cutoff.
+- [x] Official private stateless MCP with revocable tenant/department access and proposal-only writes.
+- [x] Markdown/text knowledge ingestion, smart chunks/metadata, hybrid retrieval, cached reranking, strict prompt, version-aware citations/abstention and explicit fallbacks.
+- [x] Next automation controls, README setup, model/client scripts, synthetic retrieval fixture and automated acceptance coverage.
+- [ ] User acceptance with local Atlas/Supabase and representative documents.
+- [ ] Production domain, HTTPS/MCP routing, provider integrations, staging/deployment and backup/monitoring acceptance.
+Implementation above supersedes the earlier November 16 entries that listed these features as future work. Full distributed services, PDF/OCR and general autonomous external actions remain outside this slice. Check docs/impact.md for executed verification, rather than interpreting this list as deployed proof.

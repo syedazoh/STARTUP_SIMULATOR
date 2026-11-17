@@ -12,7 +12,9 @@ export default async function DemoPage({
   );
   return (
     <>
-      <a href="/workspace">← Businesses</a>
+      <a href={`/workspace/${encodeURIComponent(businessId)}`}>
+        ← Command center
+      </a>
       <section className="hero compact">
         <p className="eyebrow">Synthetic business laboratory</p>
         <h1>Product launch</h1>

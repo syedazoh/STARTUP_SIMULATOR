@@ -10,3 +10,9 @@ The user named five techniques; the sixth is evaluation and freshness management
 
 Ingestion: upload → scan/type validation → extraction → human-visible parse status → metadata/ACL → chunks → embeddings + lexical index → evaluation → activate. Retrieval traces store IDs/scores with sensitive content redacted. Candidate CV information must never leak into general Marketing retrieval.
 Fine-tuning is deferred: first fix retrieval, tools and evaluation. Later consider it only for measured repeated style/structured-output failures with licensed consented training data and held-out comparison. Fine-tuning does not provide current company facts or tool authorization.
+
+
+## Implemented first slice — 17 November 2026
+`app/services/knowledge.py` implements Markdown/text heading-aware 320-word windows with 40-word overlap, bounded character segments, source/version/department metadata, pre-ranking tenant/department filtering, BM25 plus normalized dense retrieval/RRF and optional cached CrossEncoder reranking. Queries report actual model/fallback modes. Strict untrusted-context generation validates source IDs and exact quotes, rechecks current versions and abstains or extracts evidence if unavailable. CEO draft context can retrieve CEO-authorized documents; all-agent automatic retrieval and PDF/OCR remain pending.
+
+Vectors are stored with a bounded Mongo corpus, not a production ANN index. Chunking is word-based rather than an exact token guarantee. `scripts/evaluate_knowledge.py` compares a lexical baseline against the actual configured pipeline over 50 **synthetic** retrieval/isolation cases, without LLM calls. These cases do not establish full groundedness, conflict detection or latency/cost quality on real documents; retain the broader acceptance plan above. Local no-model retrieval is 48/50. See docs/impact.md for actual CI cached-model evidence and README for warm-up/reindex steps.

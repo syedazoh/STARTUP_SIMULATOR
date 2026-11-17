@@ -1,5 +1,6 @@
 "use server";
 import { backend } from "../../../../lib/backend";
+import { decideTask } from "../actions";
 import type { Snapshot } from "../../../../components/studio/types";
 export async function loadStudio(businessId: string): Promise<Snapshot> {
   const base = `/api/businesses/${encodeURIComponent(businessId)}`;
@@ -25,24 +26,17 @@ export async function loadStudio(businessId: string): Promise<Snapshot> {
   };
 }
 export async function decideStudioTask(
+  businessId: string,
   taskId: string,
   decision: "approve" | "reject",
+  expectedFingerprint: string,
 ) {
-  try {
-    if (!["approve", "reject"].includes(decision))
-      throw new Error("Unknown decision");
-    const task = await backend(
-      `/api/tasks/${encodeURIComponent(taskId)}/${decision}`,
-      { method: "POST", body: JSON.stringify({}) },
-    );
-    return { ok: true as const, task };
-  } catch (e) {
-    return {
-      ok: false as const,
-      error:
-        e instanceof Error
-          ? e.message
-          : "Decision failed. Refresh the task and retry.",
-    };
-  }
+  const result = await decideTask(
+    businessId,
+    taskId,
+    decision,
+    "",
+    expectedFingerprint,
+  );
+  return result.ok ? { ok: true as const, task: result.data } : result;
 }

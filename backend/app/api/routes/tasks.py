@@ -26,7 +26,14 @@ from ..deps import get_owned_business, get_owned_task
 from ...core.rate_limit import RateLimiter, rate_limit_dependency
 from ...models.business_schemas import BusinessOut
 from ...models.media_asset_schemas import MediaAssetOut
-from ...models.task_schemas import TaskDecisionIn, TaskOut, TaskRevisionIn, to_task_out
+from ...models.task_schemas import (
+    TaskDecisionIn,
+    TaskOut,
+    TaskRevisionIn,
+    to_task_out,
+    approval_fingerprint,
+    APPROVAL_FIELDS,
+)
 from ...services.audit import record_audit
 from ...services.media_assets import MAX_UPLOAD_BYTES, upload_asset
 from ...services.tasks import execute_task, review_task
@@ -39,6 +46,19 @@ DECIDABLE_STATUSES = {"pending_approval", "needs_changes"}
 
 _task_rate_limiter = RateLimiter(max_requests=30, window_seconds=60)
 _rate_limited = Depends(rate_limit_dependency(_task_rate_limiter))
+
+
+def _preview_filter(task, payload):
+    if payload is None or payload.expected_fingerprint is None:
+        return {}
+    if approval_fingerprint(task) != payload.expected_fingerprint:
+        raise HTTPException(
+            status_code=409,
+            detail="Proposal changed since your preview. Refresh and review again.",
+        )
+    # Compare material fields again in the atomic decision, closing the gap
+    # between initial lookup/CEO review and the write. Status has its own guard.
+    return {field: task.get(field) for field in APPROVAL_FIELDS if field != "status"}
 
 
 @router.get("", response_model=List[TaskOut])
@@ -76,11 +96,25 @@ async def list_tasks(
     return [to_task_out(d) for d in docs]
 
 
+@task_actions_router.get("/{task_id}", response_model=TaskOut)
+async def get_task(owned: dict = Depends(get_owned_task)):
+    return to_task_out(owned["task"])
+
+
 @task_actions_router.post(
     "/{task_id}/approve", response_model=TaskOut, dependencies=[_rate_limited]
 )
-async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
+async def approve_task(
+    request: Request,
+    owned: dict = Depends(get_owned_task),
+    payload: Optional[TaskDecisionIn] = None,
+):
     task, business = owned["task"], owned["business"]
+    preview_filter = _preview_filter(task, payload)
+    if task["status"] == "needs_changes":
+        raise HTTPException(
+            409, "Owner changes are outstanding. Revise the proposal before approval."
+        )
     if task["action_type"] == "dataset_launch":
         if task["status"] == "executed":
             return to_task_out(task)
@@ -108,20 +142,37 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
             raise HTTPException(
                 status_code=409, detail="Task is awaiting CEO authorization"
             )
-    approval_fields = {}
-    approval_filter = {}
+    deferred = bool(payload and payload.defer_execution)
+    if deferred:
+        from ...services.jobs import SAFE_ACTIONS, persistent
+        from ...config import settings
+
+        persistent(db)
+        if not settings.background_jobs_enabled:
+            raise HTTPException(503, "Background worker disabled")
+        if task["action_type"] not in SAFE_ACTIONS:
+            raise HTTPException(409, "Only internal simulation actions may be queued")
+    approval_fields = {
+        "deferred_execution": deferred,
+        "approved_by": business.owner_user_id,
+    }
+    approval_filter = dict(preview_filter)
     if task["action_type"] == "dataset_launch":
         from ...services.demo_launch import validate_approval
 
         await validate_approval(db, business, task)
-        approval_fields = {
-            "approval_digest": task["proposal_digest"],
-            "approved_by": business.owner_user_id,
-        }
-        approval_filter = {
-            "proposal_digest": task["proposal_digest"],
-            "payload": task["payload"],
-        }
+        approval_fields.update(
+            {
+                "approval_digest": task["proposal_digest"],
+                "approved_by": business.owner_user_id,
+            }
+        )
+        approval_filter.update(
+            {
+                "proposal_digest": task["proposal_digest"],
+                "payload": task["payload"],
+            }
+        )
     decided_at = datetime.now(timezone.utc)
     task = await db["tasks"].find_one_and_update(
         {"task_id": task["task_id"], "status": task["status"], **approval_filter},
@@ -138,6 +189,18 @@ async def approve_task(request: Request, owned: dict = Depends(get_owned_task)):
         target_id=task["task_id"],
     )
 
+    if deferred:
+        from ...services.jobs import enqueue
+
+        await enqueue(
+            db,
+            business.id,
+            business.owner_user_id,
+            "execute_task",
+            {"task_id": task["task_id"]},
+            task["task_id"],
+        )
+        return to_task_out(task)
     executed = await execute_task(db, request.app.state.agent_registry, business, task)
     return to_task_out(executed)
 
@@ -149,6 +212,7 @@ async def reject_task(
     payload: TaskDecisionIn, request: Request, owned: dict = Depends(get_owned_task)
 ):
     task, business = owned["task"], owned["business"]
+    preview_filter = _preview_filter(task, payload)
     if task["status"] not in DECIDABLE_STATUSES | {
         "pending_ceo_review",
         "needs_revision",
@@ -166,7 +230,7 @@ async def reject_task(
         "decided_at": decided_at,
     }
     changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
+        {"task_id": task["task_id"], "status": task["status"], **preview_filter},
         {"$set": update},
         return_document=ReturnDocument.AFTER,
     )
@@ -209,29 +273,18 @@ async def request_changes(
             detail=f"Task is {task['status']}, not awaiting approval",
         )
 
-    db = request.app.state.db
-    decided_at = datetime.now(timezone.utc)
-    update = {
-        "status": "needs_changes",
-        "owner_feedback": payload.owner_feedback,
-        "decided_at": decided_at,
-    }
-    changed = await db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
-        {"$set": update},
-        return_document=ReturnDocument.AFTER,
+    from ...services.task_revision import request_revision
+
+    return to_task_out(
+        await request_revision(
+            request.app.state.db,
+            request.app.state.agent_registry,
+            business,
+            task,
+            payload.owner_feedback,
+            _preview_filter(task, payload),
+        )
     )
-    if changed is None:
-        raise HTTPException(status_code=409, detail="Task was already decided")
-    await record_audit(
-        db,
-        business.owner_user_id,
-        business.id,
-        "task_needs_changes",
-        target_id=task["task_id"],
-        details={"owner_feedback": payload.owner_feedback},
-    )
-    return to_task_out({**task, **update})
 
 
 def _to_media_asset_out(doc: dict) -> MediaAssetOut:
@@ -350,9 +403,18 @@ async def revise_task(
         proposal = validate_action(task["agent"], task["action_type"], payload.payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="Invalid revised proposal") from exc
+    if proposal == task["payload"] and (
+        payload.objective is None or payload.objective == task.get("objective")
+    ):
+        raise HTTPException(422, "Change the proposal before submitting a revision")
     update = {
         "payload": proposal,
         "ceo_authorized": False,
+        "revision_error": None,
+        "revision_request_id": None,
+        "previous_payload": task["payload"],
+        "revision": (task.get("revision") or 0) + 1,
+        "asset_id": None,
         "ceo_review": None,
         "status": "pending_ceo_review",
         "source": "owner_revision",
@@ -374,6 +436,10 @@ async def revise_task(
     )
     return to_task_out(
         await review_task(
-            request.app.state.db, request.app.state.agent_registry, business, changed
+            request.app.state.db,
+            request.app.state.agent_registry,
+            business,
+            changed,
+            allow_auto=False,
         )
     )

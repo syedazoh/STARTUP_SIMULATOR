@@ -1,4 +1,5 @@
 import "server-only";
+import { apiError } from "./api-errors";
 import { supabase } from "./supabase";
 export async function backend(path: string, init: RequestInit = {}) {
   if (!path.startsWith("/api/") || path.includes(".."))
@@ -14,35 +15,31 @@ export async function backend(path: string, init: RequestInit = {}) {
     data: { session },
   } = await client.auth.getSession();
   if (!session) throw new Error("Please sign in again.");
-  const res = await fetch(
-    `${process.env.BACKEND_URL || "http://127.0.0.1:8000"}${path}`,
-    {
-      ...init,
-      headers: {
-        ...(init.body instanceof FormData
-          ? {}
-          : { "Content-Type": "application/json" }),
-        Authorization: `Bearer ${session.access_token}`,
-        "X-Auth-Provider": "supabase",
+  let res: Response;
+  try {
+    res = await fetch(
+      `${process.env.BACKEND_URL || "http://127.0.0.1:8000"}${path}`,
+      {
+        ...init,
+        headers: {
+          ...(init.body instanceof FormData
+            ? {}
+            : { "Content-Type": "application/json" }),
+          Authorization: `Bearer ${session.access_token}`,
+          "X-Auth-Provider": "supabase",
+        },
+        cache: "no-store",
+        signal: init.signal || AbortSignal.timeout(12000),
       },
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000),
-    },
-  );
-  if (!res.ok) {
-    if (path.includes("/demo") || path.startsWith("/api/tasks/")) {
-      const failure = await res.json().catch(() => null);
-      throw new Error(
-        typeof failure?.detail === "string"
-          ? failure.detail
-          : JSON.stringify(failure?.detail || "Request failed"),
-      );
-    }
+    );
+  } catch {
     throw new Error(
-      res.status === 409
-        ? "Existing account found. Link your original login below to preserve your businesses."
-        : "Workspace unavailable. Check backend/Supabase configuration, then retry.",
+      "Cannot reach the backend or the request timed out. Check port 8000 and refresh before retrying; submitted work may still be processing.",
     );
   }
+  if (!res.ok)
+    throw new Error(
+      apiError(res.status, await res.json().catch(() => null), path),
+    );
   return res.json();
 }

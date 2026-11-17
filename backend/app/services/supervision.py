@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from fastapi import HTTPException
 from pymongo import ReturnDocument
+from pymongo.errors import DuplicateKeyError
 
 from ..database.utils import find_one
 from ..models.supervision_schemas import CEOPlan
@@ -13,7 +14,13 @@ from ..core.llm_errors import report_llm_failure
 from .audit import record_audit
 
 
-async def propose_plan(db, registry, business, goal):
+async def propose_plan(db, registry, business, goal, plan_id=None):
+    if plan_id:
+        old = await find_one(
+            db["ceo_plans"], {"_id": plan_id, "business_id": business.id}
+        )
+        if old:
+            return {k: v for k, v in old.items() if k != "_id"}
     runtime = await registry.get_or_create(business)
     ceo = runtime.agent_manager.agents.get("ceo")
     if ceo is None:
@@ -26,6 +33,11 @@ async def propose_plan(db, registry, business, goal):
             db["business_profiles"], {"business_id": business.id}
         ),
     }
+    from .knowledge import search
+
+    context["document_evidence"] = (await search(db, business.id, "ceo", goal, 4))[
+        "results"
+    ]
     from . import ledger
 
     financial = await ledger.account_for(db, business, runtime)
@@ -51,14 +63,24 @@ async def propose_plan(db, registry, business, goal):
             status_code=422, detail="Plan assigns work to a disabled department"
         )
     doc = {
-        "plan_id": str(uuid4()),
+        "plan_id": plan_id or str(uuid4()),
         "business_id": business.id,
         "goal": goal,
         **plan.model_dump(),
         "status": "draft",
         "created_at": datetime.now(timezone.utc),
     }
-    await db["ceo_plans"].insert_one(doc)
+    if plan_id:
+        doc["_id"] = plan_id
+    try:
+        await db["ceo_plans"].insert_one(doc)
+    except DuplicateKeyError:
+        if not plan_id:
+            raise
+        old = await find_one(
+            db["ceo_plans"], {"_id": plan_id, "business_id": business.id}
+        )
+        return {k: v for k, v in old.items() if k != "_id"}
     await record_audit(
         db,
         business.owner_user_id,

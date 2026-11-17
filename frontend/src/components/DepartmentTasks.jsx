@@ -34,12 +34,13 @@ function Assignment({ task, businessId, refresh }) {
       {task.success_criteria && <p className="text-sm">Success criteria: {task.success_criteria}</p>}
       <p className="text-xs text-gray-600">{Object.entries(task.payload).map(([k, v]) => `${label(k)}: ${v}`).join(' · ')}</p>
       {task.ceo_review && <p className="text-sm">CEO ({label(task.ceo_review.basis)}): {task.ceo_review.reason}</p>}
+      {task.revision_error && <p role="alert" className="text-sm text-red-700">{task.revision_error}</p>}
       {task.owner_feedback && <p className="text-sm">Owner feedback: {task.owner_feedback}</p>}
       {task.result && <p className="text-sm">Result: {task.result.reason || task.result.reasoning || task.result.status}{task.result.financial_amount !== undefined ? ` · Financial amount: $${task.result.financial_amount}` : ''}</p>}
       {task.status === 'awaiting_asset' && <AssetUploadCard businessId={businessId} task={task} />}
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
       <div className="flex flex-wrap gap-3 text-sm">
-        {['pending_approval', 'needs_changes'].includes(task.status) && <button disabled={busy} onClick={() => run('approve')}>Approve execution</button>}
+        {task.status === 'pending_approval' && <button disabled={busy} onClick={() => run('approve')}>Approve execution</button>}
         {['pending_ceo_review', 'needs_revision', 'ceo_reviewing'].includes(task.status) && <button disabled={busy} onClick={() => run('ceo-review')}>Retry CEO review</button>}
         {editable.has(task.status) && <>
           <button disabled={busy} onClick={() => { setProposal(task.payload); setObjective(task.objective || ''); setEditing(!editing) }}>Revise proposal</button>

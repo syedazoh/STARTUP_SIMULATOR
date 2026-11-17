@@ -9,6 +9,7 @@ import {
   previewTransfers,
   agentId,
 } from "../../../frontend/src/studio/model.mjs";
+import { decisionAllowed } from "../../lib/workspace-contracts";
 import { resolveMessage } from "../../../frontend/src/components/boardroom/eventRoutes";
 import {
   loadStudio,
@@ -155,7 +156,12 @@ export default function Studio({
     setBusy(task.id);
     setFeedback("");
     try {
-      const result = await decideStudioTask(task.id, decision);
+      const result = await decideStudioTask(
+        businessId,
+        task.id,
+        decision,
+        task.approval_fingerprint || "",
+      );
       if (!result.ok) {
         setFeedback(result.error);
         return;
@@ -171,7 +177,9 @@ export default function Studio({
     }
   }
   const agent = AGENTS.find((a) => a.id === selected) || AGENTS[0];
-  const approvals = snapshot.tasks.filter(isPending),
+  const approvals = snapshot.tasks.filter(
+      (task) => isPending(task) && decisionAllowed(task),
+    ),
     working = snapshot.tasks.filter((t) =>
       ["queued", "executing", "approved"].includes(t.status),
     );
@@ -232,6 +240,14 @@ export default function Studio({
           >
             <Icon name="cube" />
             Executive studio
+          </a>
+          <a href={`/workspace/${businessId}`}>
+            <Icon name="grid" />
+            Command center
+          </a>
+          <a href={`/workspace/${businessId}/automation`}>
+            <Icon name="signal" />
+            Automation &amp; knowledge
           </a>
           <a href={`/workspace/${businessId}/demo`}>
             <Icon name="grid" />

@@ -19,6 +19,79 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm install --global npm@11.9.0 --ignore-scripts
       - run: npm ci --ignore-scripts
+      - run: npm test
       - run: npm run build
       - run: npm run typecheck
       - run: npm audit --omit=dev --audit-level=high
+
+  workspace-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:8101
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: fixture-key
+      BACKEND_URL: http://127.0.0.1:8001
+      SIMULATOR_BROWSER_TEST: '1'
+      HF_HUB_OFFLINE: '1'
+      BACKGROUND_JOBS_ENABLED: 'True'
+      RAG_DENSE_ENABLED: 'False'
+      RAG_RERANKER_ENABLED: 'False'
+      WORKSPACE_SCREENSHOT_DIR: /tmp/workspace-screenshots
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r backend/requirements.txt mongomock-motor
+      - run: npm ci --ignore-scripts
+        working-directory: web
+      - run: npx playwright install --with-deps chromium
+        working-directory: web
+      - name: Start disposable identity, database and API fixtures
+        run: cd backend && PYTHONPATH=. python tests/workspace_browser_fixture.py > /tmp/workspace-api.log 2>&1 &
+      - name: Build and serve the production Next app
+        run: |
+          cd web
+          npm run build
+          npm run start -- --hostname 127.0.0.1 > /tmp/workspace-web.log 2>&1 &
+      - name: Wait for local services
+        run: |
+          python - <<'PYTHON'
+          import time, urllib.request
+          for url in ['http://127.0.0.1:8001/health', 'http://127.0.0.1:8101/openapi.json', 'http://127.0.0.1:3000/login']:
+              for attempt in range(60):
+                  try:
+                      urllib.request.urlopen(url, timeout=2)
+                      break
+                  except Exception:
+                      time.sleep(1)
+              else:
+                  raise SystemExit('Service did not start: ' + url)
+          PYTHON
+      - run: node tests/workspace.browser.cjs
+        working-directory: web
+      - run: node tests/automation.browser.cjs
+        working-directory: web
+      - name: Install and serve the existing Vite UI
+        run: |
+          cd frontend
+          npm ci
+          API_PROXY_TARGET=http://127.0.0.1:8001 npm run dev -- --host 127.0.0.1 > /tmp/legacy-web.log 2>&1 &
+      - name: Check stable polling counters and requested revisions in Vite
+        run: node tests/legacy-reviews.browser.cjs
+        working-directory: web
+      - name: Browser evidence and diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: workspace-browser-evidence
+          path: |
+            /tmp/workspace-screenshots
+            /tmp/workspace-api.log
+            /tmp/workspace-web.log
+            /tmp/legacy-web.log

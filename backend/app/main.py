@@ -1,11 +1,14 @@
 """Main FastAPI Application"""
 
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import automation as automation_routes
+from .mcp_server import Gateway, build_server
 from .api.routes import demo as demo_routes
 from .api.routes import supervision as supervision_routes
 from .api.routes import admin as admin_routes
@@ -25,6 +28,7 @@ from .api.routes import tasks as tasks_routes
 from .config import settings
 from .core.llm import get_groq_llm
 from .database.mongodb import (
+    InMemoryDatabase,
     close_mongo_connection,
     connect_to_mongo,
     get_database,
@@ -43,6 +47,17 @@ async def _create_indexes(db) -> None:
     """Indexes for every field queried frequently enough to matter beyond
     users.email (created lazily in auth.py's register). No-ops against the
     in-memory fallback (see ensure_index)."""
+    await ensure_index(db["background_jobs"], [("status", 1), ("run_after", 1)])
+    await ensure_index(db["background_jobs"], [("business_id", 1), ("created_ts", -1)])
+    await ensure_index(
+        db["knowledge_documents"],
+        [("business_id", 1), ("status", 1), ("departments", 1)],
+    )
+    await ensure_index(
+        db["tasks"], [("deadline_active", 1), ("deadline_next_check", 1)]
+    )
+    await ensure_index(db["notifications"], [("business_id", 1), ("created_ts", -1)])
+    await ensure_index(db["mcp_grants"], [("business_id", 1), ("expires_ts", 1)])
     await ensure_unique_index(db["sessions"], "session_id")
     await ensure_unique_index(db["refresh_tokens"], "token_hash")
     await ensure_ttl_index(db["sessions"], "expires_at", 0)
@@ -103,7 +118,25 @@ async def lifespan(app: FastAPI):
     # AgentRegistry's lazy first construction — get_groq_llm() caches by
     # temperature, so every agent's later call reuses this instance.
     get_groq_llm()
-    yield
+    mcp, app.state.mcp_http = build_server()
+    app.state.worker_heartbeat = None
+    app.state.worker_error = None
+    worker = None
+    async with mcp.session_manager.run():
+        if settings.background_jobs_enabled:
+            if isinstance(app.state.db, InMemoryDatabase):
+                app.state.worker_error = "MongoDB required; worker not started"
+            else:
+                from .services.jobs import worker_loop
+
+                worker = asyncio.create_task(worker_loop(app))
+        try:
+            yield
+        finally:
+            if worker:
+                worker.cancel()
+                with suppress(asyncio.CancelledError):
+                    await worker
     await app.state.agent_registry.close()
     await close_mongo_connection()
 
@@ -165,3 +198,7 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+app.include_router(automation_routes.router)
+app.include_router(automation_routes.task_router)
+app.mount("/mcp", Gateway())

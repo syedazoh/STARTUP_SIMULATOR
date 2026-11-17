@@ -329,3 +329,175 @@ li {
     flex-direction: column;
   }
 }
+
+/* Connected command center and automation layouts. */
+.wide {
+  max-width: none;
+}
+.workspace-nav,
+.workspace-toolbar,
+.department-nav,
+.work-heading {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.workspace-nav {
+  justify-content: space-between;
+}
+.workspace-toolbar {
+  margin: 24px 0;
+}
+.inline-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inline-label input {
+  width: 20px;
+  height: 20px;
+}
+.workspace-metrics,
+.department-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 16px;
+}
+.metric,
+.department-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  background: var(--surface);
+  min-width: 0;
+}
+.metric span {
+  display: block;
+  font-size: 13px;
+}
+.metric strong {
+  display: block;
+  font-size: 28px;
+}
+.department-grid {
+  margin-top: 24px;
+}
+.department-card h3 {
+  margin-top: 0;
+}
+.department-nav button[aria-pressed="true"] {
+  background: var(--purple-deep);
+  color: white;
+}
+.command-center pre {
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 360px;
+  padding: 16px;
+  background: var(--raised);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.command-center h1,
+.command-center h3,
+.command-center p,
+.command-center small,
+.task-meta dd {
+  overflow-wrap: anywhere;
+}
+.work-item {
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+}
+.work-heading {
+  justify-content: space-between;
+}
+.work-heading h3 {
+  margin: 0;
+}
+.status {
+  display: inline-block;
+  background: var(--raised);
+  color: var(--text);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.task-meta {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 8px 16px;
+  font-size: 14px;
+}
+.task-meta dt {
+  font-weight: bold;
+}
+.task-meta dd {
+  margin: 0;
+}
+.approval-preview,
+.assignment {
+  background: var(--raised);
+  padding: 20px;
+  margin: 16px 0;
+  border-radius: 8px;
+}
+textarea {
+  font: inherit;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #51415f;
+  border-radius: 8px;
+  padding: 12px;
+  background: #110e17;
+  color: var(--text);
+}
+@media (max-width: 600px) {
+  .task-meta {
+    grid-template-columns: 1fr;
+  }
+  .workspace-toolbar button,
+  .demo-actions button {
+    width: 100%;
+  }
+}
+
+.automation-controls {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.command-center input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  flex: 0 0 18px;
+}
+.command-center fieldset {
+  min-width: 0;
+}
+.command-center li {
+  overflow-wrap: anywhere;
+  margin: 12px 0;
+}
+/* Native select option text must not set the mobile form's minimum grid width. */
+.automation-controls form {
+  grid-template-columns: minmax(0, 1fr);
+}
+.automation-controls form > * {
+  min-width: 0;
+}
+.automation-controls select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #51415f;
+  border-radius: 8px;
+  background: #110e17;
+  color: var(--text);
+}

@@ -59,3 +59,5 @@ User supplied HelloRun as a reference for immersive 3D movement. Its pasted HTML
 This change does not deploy or publish the application, add realtime transport, complete the full Next.js migration, change business ownership, or grant agents new execution authority.
 
 The disposable browser fixture and regression script are saved in `scripts/studio-browser/`; follow that directory's README to reproduce acceptance without accessing any real account or database. In Vite development, React StrictMode may mount a canvas twice; cleanup deliberately disposes resources without explicitly losing the reused context.
+
+After integration with the command center/automation work, the studio shares its guarded task-decision service: business ownership, the displayed approval fingerprint, safe action allowlist and pending-approval status must match. Other action types or outstanding revisions remain in their dedicated workflows; the studio does not introduce a broader execution path. Both the command center and automation/knowledge screens are linked from business selection and studio navigation.

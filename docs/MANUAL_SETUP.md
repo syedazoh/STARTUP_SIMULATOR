@@ -1,6 +1,19 @@
 # Manual setup and validation checklist
 Never paste secrets into chats, documents or source control. Use local environment files excluded from Git and deployment secret management.
 
+## Current automation slice — start here (17 November)
+Your existing Supabase and Mongo Atlas projects are enough; you do **not** need new Redis, Resend or cloud accounts to test this slice.
+
+1. Pull `main`, keep existing environment files, activate your Python environment and install updated `backend/requirements.txt`. Python 3.11/Node 24 match CI.
+2. In `backend/.env`, set `BACKGROUND_JOBS_ENABLED=True`. Verify Mongo reports connected; restart the backend from the `backend` directory. Do not use multiple Uvicorn workers.
+3. From another terminal run `npm ci` and `npm run dev` inside `web`. Sign in at localhost:3000, choose a test business and open **Jobs, deadlines, knowledge & MCP**.
+4. For real dense retrieval/reranking, run `PYTHONPATH=. python scripts/warm_knowledge_models.py` from backend once with internet access. No new AI account is needed for these local models. Reindex previously uploaded documents. Generated answers/CEO drafts still require your configured Groq access; otherwise the UI reports the actual failure/fallback.
+5. Test a queued brief, pending-task deadline/reminder, scoped document answer and MCP token/revocation. Redis is optional; the included Compose Redis holds bounded wake hints only. Mongo is the durable queue. No real emails/calendar posts are sent.
+
+Full commands, all feature limits and acceptance steps: root README. The following is the **broader future production/integration checklist**, not additional prerequisites for local automation. In particular its broker recommendations apply to a future dedicated broker; the implemented Redis wake-hint cache is optional and may evict hints safely.
+
+## Broader provider and production checklist
+
 1. Confirm FYP submission date, team capacity, first email/calendar provider, live-demo limits and monthly spend ceiling. Default plan: one business, Google calendar/mail integration where needed, one organic social account, all financial execution simulated.
 2. Create Supabase project; configure site/redirect URLs for local/staging/production, email verification/reset and optional OAuth provider. Decide existing-user account linking/reset strategy. Verify login, logout, refresh, expired session and cross-workspace denial. Keep service-role secrets server-only.
 3. Configure persistent MongoDB replica set or managed cluster and separate staging database; create least-privilege user, backup and restore test. Development in-memory mode is clearly labelled and unsuitable for durable workflows.

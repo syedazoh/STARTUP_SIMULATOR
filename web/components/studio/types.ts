@@ -1,17 +1,6 @@
-export type Task = {
-  id: string;
-  agent: string;
-  status: string;
-  source?: string;
-  plan_id?: string;
-  objective?: string;
-  action_type: string;
-  payload: Record<string, unknown>;
-  created_at?: string;
-  ceo_authorized?: boolean;
-  ceo_review?: Record<string, unknown> | null;
-  result?: Record<string, unknown> | null;
-  mode?: string;
+import type { Task as WorkspaceTask } from "../../lib/workspace-contracts";
+
+export type Task = WorkspaceTask & {
   revision?: number;
   proposal_digest?: string;
   approval_expires_at?: string;
