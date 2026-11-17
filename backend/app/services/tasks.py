@@ -82,7 +82,15 @@ async def create_task(
     run_id: Optional[str] = None,
     objective: Optional[str] = None,
     success_criteria: Optional[str] = None,
+    task_id: Optional[str] = None,
+    force_owner_review: bool = False,
 ) -> Dict[str, Any]:
+    if task_id:
+        existing = await find_one(
+            db["tasks"], {"_id": task_id, "business_id": business.id}
+        )
+        if existing:
+            return existing
     try:
         payload = validate_action(agent, action_type, payload)
     except ValueError as exc:
@@ -117,7 +125,8 @@ async def create_task(
                 409, "Enable the department and CEO before creating work"
             )
     task = {
-        "task_id": str(uuid4()),
+        "task_id": task_id or str(uuid4()),
+        "requires_explicit_owner": force_owner_review,
         "source": source,
         "plan_id": plan_id,
         "run_id": run_id,
@@ -138,6 +147,8 @@ async def create_task(
         "decided_at": None,
         "executed_at": None,
     }
+    if task_id:
+        task["_id"] = task_id
     if demo:
         task.update(
             _id=demo_id, source="dataset_demo", demo_import_id=payload["import_id"]
@@ -145,6 +156,10 @@ async def create_task(
     try:
         await db["tasks"].insert_one(task)
     except DuplicateKeyError:
+        if task_id:
+            return await find_one(
+                db["tasks"], {"_id": task_id, "business_id": business.id}
+            )
         if not demo:
             raise
         return await find_one(db["tasks"], {"_id": demo_id, "business_id": business.id})
@@ -232,6 +247,7 @@ async def review_task(db, registry, business, task, allow_auto=True):
         mode = await _get_mode(db, business.id, task["agent"])
         auto = (
             allow_auto
+            and not task.get("requires_explicit_owner")
             and task.get("source") != "owner_revision"
             and decision != "escalate"
             and mode["mode"] == "auto"
@@ -271,6 +287,26 @@ async def review_task(db, registry, business, task, allow_auto=True):
 async def execute_task(
     db, agent_registry, business: BusinessOut, task: Dict[str, Any]
 ) -> Dict[str, Any]:
+    # Shared cutoff protects both synchronous and queued execution.
+    current = await db["tasks"].find_one(
+        {"business_id": business.id, "task_id": task["task_id"]}
+    )
+    if (
+        current
+        and current.get("due_ts")
+        and current["due_ts"] <= datetime.now(timezone.utc).timestamp()
+    ):
+        await db["tasks"].update_one(
+            {
+                "business_id": business.id,
+                "task_id": task["task_id"],
+                "status": {"$in": ["approved", "auto_approved"]},
+            },
+            {"$set": {"status": "expired"}},
+        )
+        raise HTTPException(
+            409, "Task deadline passed; create a new proposal for review"
+        )
     if task["action_type"] == "dataset_launch":
         from .demo_launch import execute
 

@@ -142,16 +142,31 @@ async def approve_task(
             raise HTTPException(
                 status_code=409, detail="Task is awaiting CEO authorization"
             )
-    approval_fields = {}
+    deferred = bool(payload and payload.defer_execution)
+    if deferred:
+        from ...services.jobs import SAFE_ACTIONS, persistent
+        from ...config import settings
+
+        persistent(db)
+        if not settings.background_jobs_enabled:
+            raise HTTPException(503, "Background worker disabled")
+        if task["action_type"] not in SAFE_ACTIONS:
+            raise HTTPException(409, "Only internal simulation actions may be queued")
+    approval_fields = {
+        "deferred_execution": deferred,
+        "approved_by": business.owner_user_id,
+    }
     approval_filter = dict(preview_filter)
     if task["action_type"] == "dataset_launch":
         from ...services.demo_launch import validate_approval
 
         await validate_approval(db, business, task)
-        approval_fields = {
-            "approval_digest": task["proposal_digest"],
-            "approved_by": business.owner_user_id,
-        }
+        approval_fields.update(
+            {
+                "approval_digest": task["proposal_digest"],
+                "approved_by": business.owner_user_id,
+            }
+        )
         approval_filter.update(
             {
                 "proposal_digest": task["proposal_digest"],
@@ -174,6 +189,18 @@ async def approve_task(
         target_id=task["task_id"],
     )
 
+    if deferred:
+        from ...services.jobs import enqueue
+
+        await enqueue(
+            db,
+            business.id,
+            business.owner_user_id,
+            "execute_task",
+            {"task_id": task["task_id"]},
+            task["task_id"],
+        )
+        return to_task_out(task)
     executed = await execute_task(db, request.app.state.agent_registry, business, task)
     return to_task_out(executed)
 

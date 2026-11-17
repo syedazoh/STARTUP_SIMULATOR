@@ -29,6 +29,16 @@ class Settings(BaseSettings):
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "startup_simulator"
 
+    background_jobs_enabled: bool = False
+    redis_url: Optional[str] = None
+    mcp_resource_url: str = "http://localhost:8000/mcp/"
+    mcp_allowed_hosts: str = "localhost:*,127.0.0.1:*,testserver"
+    rag_dense_enabled: bool = True
+    rag_reranker_enabled: bool = True
+    rag_allow_model_download: bool = False
+    rag_embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    rag_reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
     chroma_persist_dir: str = "./chroma_data"
 
     groq_api_key: Optional[str] = None

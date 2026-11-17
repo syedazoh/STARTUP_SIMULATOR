@@ -1,5 +1,14 @@
 # Startup Simulator - Multi-Agent AI-powered Business Simulation Platform
 
+## Automation expansion — 17 November 2026
+
+Plan and scope: [jobs, deadlines, MCP and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md).
+The additive backend supports durable Mongo jobs (optional Redis wake-ups), versioned UTC deadlines and in-app notifications, revocable private stateless MCP capabilities, and source/version/department-aware document RAG. Existing synchronous approvals remain compatible; the worker only executes approved internal simulation actions. It cannot publish/send/pay through MCP.
+
+Install updated `backend/requirements.txt`, keep existing `.env` secrets, set `BACKGROUND_JOBS_ENABLED=True` in `backend/.env`, ensure `/health` reports `mongo: connected`, and restart the one supported backend process. Do not use multiple Uvicorn workers with the in-memory agent registry. New configuration keys are in `backend/.env.example`. Redis is optional; no provider communications or production deployment are performed by these changes.
+
+Validation is recorded in [impact log](docs/impact.md); planned features are not evidence of deployment. Dashboard controls and detailed acceptance instructions are added in the next implementation slice.
+
 ## Project Overview
 
 Startup Simulator is a comprehensive multi-agent AI-powered business simulation platform designed to model complex business operations through autonomous agents managing different departments of a startup.

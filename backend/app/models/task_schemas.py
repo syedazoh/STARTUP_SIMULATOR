@@ -20,6 +20,8 @@ TaskStatus = str
 
 
 class TaskOut(BaseModel):
+    due_at: Optional[str] = None
+    deadline_version: int = 0
     id: str
     mode: Optional[str] = None
     revision: Optional[int] = None
@@ -49,6 +51,7 @@ class TaskOut(BaseModel):
 
 
 class TaskDecisionIn(BaseModel):
+    defer_execution: bool = False
     owner_feedback: Optional[str] = Field(default=None, max_length=2000)
     expected_fingerprint: Optional[str] = Field(default=None, pattern=r"^[a-f0-9]{64}$")
 
@@ -56,6 +59,8 @@ class TaskDecisionIn(BaseModel):
 def to_task_out(doc: Dict[str, Any]) -> TaskOut:
     return TaskOut(
         id=doc["task_id"],
+        due_at=doc.get("due_at"),
+        deadline_version=doc.get("deadline_version", 0),
         approval_fingerprint=approval_fingerprint(doc),
         mode=doc.get("mode"),
         previous_payload=doc.get("previous_payload"),
@@ -92,6 +97,8 @@ class TaskRevisionIn(BaseModel):
 # Exact proposal fields guarded for opt-in command-center decisions. This is
 # additive preview binding, not the planned immutable task-version migration.
 APPROVAL_FIELDS = (
+    "due_at",
+    "deadline_version",
     "business_id",
     "task_id",
     "agent",
