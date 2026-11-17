@@ -31,7 +31,8 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.getByRole('button',{name:'Create access token'}).click();const token=page.getByRole('textbox',{name:'MCP access token'});await token.waitFor();assert.match(await token.inputValue(),/^ey/);
  await page.getByRole('button',{name:'Hide token'}).click();assert.equal(await token.count(),0);
  await page.getByRole('button',{name:'Revoke access'}).first().click();await page.getByText(/revoked/).first().waitFor();
- await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
+ for(const width of [320,390,768]){await page.setViewportSize({width,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`Automation overflows at ${width}px`);}
+ await page.setViewportSize({width:390,height:844});
  const fs=require('node:fs');const dir=process.env.WORKSPACE_SCREENSHOT_DIR||'/tmp/workspace-screenshots';fs.mkdirSync(dir,{recursive:true});await page.screenshot({path:dir+'/automation-mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);console.log('Automation acceptance passed: brief, deadline, indexing, citations, MCP revoke and mobile layout.');await browser.close();
 })().catch(async e=>{if(diagnosticPage){const fs=require('node:fs');const dir=process.env.WORKSPACE_SCREENSHOT_DIR||'/tmp/workspace-screenshots';fs.mkdirSync(dir,{recursive:true});await diagnosticPage.screenshot({path:dir+'/automation-failure.png',fullPage:true}).catch(()=>{});fs.writeFileSync(dir+'/automation-failure.html',await diagnosticPage.content().catch(()=>''));}console.error(e);process.exit(1)});

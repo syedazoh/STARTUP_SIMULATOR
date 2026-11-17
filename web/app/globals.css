@@ -247,3 +247,18 @@ textarea { font: inherit; width: 100%; resize: vertical; border: 1px solid #8496
 .command-center input[type="checkbox"] { width: 18px; height: 18px; padding: 0; flex: 0 0 18px; }
 .command-center fieldset { min-width: 0; }
 .command-center li { overflow-wrap: anywhere; margin: 12px 0; }
+/* Native select option text must not set the mobile form's minimum grid width. */
+.automation-controls form { grid-template-columns: minmax(0, 1fr); }
+.automation-controls form > * { min-width: 0; }
+.automation-controls select {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  font: inherit;
+  padding: 12px;
+  border: 1px solid #84968d;
+  border-radius: 8px;
+  background: white;
+  color: #153c33;
+}
