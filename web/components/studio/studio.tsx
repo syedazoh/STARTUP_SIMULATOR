@@ -198,7 +198,7 @@ export default function Studio({
           time: "Visual preview",
         }))
     : snapshot.events
-        .slice(-4)
+        .slice(-16)
         .reverse()
         .map((e) => {
           const route = resolveMessage(e);
