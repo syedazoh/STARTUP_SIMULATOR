@@ -105,3 +105,42 @@ test("the visual preview starts with the requested CEO to Finance budget example
   assert.equal(first.receiver, "finance");
   assert.match(first.title, /budget/i);
 });
+
+test("collaboration preview gives every executive sending and receiving roles", () => {
+  const rows = previewTransfers();
+  for (const id of ["ceo", "finance", "marketing", "hr", "operations"]) {
+    assert.ok(
+      rows.some((t) => t.sender === id),
+      `${id} never sends`,
+    );
+    assert.ok(
+      rows.some((t) => t.receiver === id),
+      `${id} never receives`,
+    );
+  }
+  assert.ok(
+    rows.every((t) => t.source === "visual preview" && t.sender !== t.receiver),
+  );
+});
+test("participant roles name the actual counterpart without claiming task acceptance", async () => {
+  const { collaborationRoles } = await import("../src/studio/model.mjs");
+  const transfer = { sender: "hr", receiver: "operations" };
+  const sending = collaborationRoles(transfer, "sending");
+  assert.equal(
+    sending.find((a) => a.id === "hr").activity,
+    "Sending to Operations",
+  );
+  assert.equal(
+    sending.find((a) => a.id === "operations").activity,
+    "Receiving from HR",
+  );
+  assert.equal(sending.find((a) => a.id === "ceo").direction, "idle");
+  const arrived = collaborationRoles(transfer, "arrived");
+  assert.equal(
+    arrived.find((a) => a.id === "operations").activity,
+    "Visual arrived from HR",
+  );
+  assert.ok(
+    collaborationRoles(null, "sending").every((a) => a.direction === "idle"),
+  );
+});

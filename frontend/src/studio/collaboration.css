@@ -1,0 +1,68 @@
+.collaboration-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: #51405f;
+  border-block: 1px solid #51405f;
+}
+.collaboration-strip > button {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 12px;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  background: #201729;
+  color: #e8d9f3;
+  cursor: pointer;
+}
+.collaboration-strip strong {
+  font-size: 13px;
+  font-weight: 650;
+}
+.collaboration-strip span {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.collaboration-strip > button[data-direction="sending"] {
+  background: #49315f;
+  color: #fff4ff;
+}
+.collaboration-strip > button[data-direction="receiving"] {
+  background: #dfcfb3;
+  color: #34263b;
+}
+.collaboration-strip > button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.collaboration-strip > button:focus-visible {
+  position: relative;
+  outline: 2px solid #d9befb;
+  outline-offset: -3px;
+}
+@media (max-width: 700px) {
+  .collaboration-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .collaboration-strip > button {
+    min-height: 72px;
+    padding: 10px;
+  }
+}
+
+.scene-labels > button[data-direction="sending"],
+.boardroom-projected-labels > button[data-direction="sending"] {
+  border-color: #f2dfff;
+  background: #49315f;
+}
+.scene-labels > button[data-direction="receiving"],
+.boardroom-projected-labels > button[data-direction="receiving"] {
+  border-color: #dfcfb3;
+  background: #dfcfb3;
+  color: #34263b;
+}

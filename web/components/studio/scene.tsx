@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { AGENTS } from "../../../frontend/src/studio/model.mjs";
+import {
+  AGENTS,
+  collaborationRoles,
+} from "../../../frontend/src/studio/model.mjs";
 import type { Transfer } from "./types";
 import Icon from "./icon";
 
@@ -223,6 +226,13 @@ export default function Scene({
               <button
                 key={a.id}
                 data-agent={a.id}
+                data-direction={
+                  transfer?.sender === a.id
+                    ? "sending"
+                    : transfer?.receiver === a.id
+                      ? "receiving"
+                      : "idle"
+                }
                 aria-label={`Select ${a.label}`}
                 aria-pressed={selected === a.id}
                 onClick={() => onSelect(a.id)}
@@ -252,6 +262,30 @@ export default function Scene({
           ))}
         </div>
       )}
+      <div
+        className="collaboration-strip"
+        aria-label="Task transfer participants"
+      >
+        {collaborationRoles(transfer, stage).map(
+          (a: {
+            id: string;
+            label: string;
+            direction: string;
+            activity: string;
+          }) => (
+            <button
+              key={a.id}
+              type="button"
+              data-direction={a.direction}
+              onClick={() => onSelect(a.id)}
+              aria-pressed={selected === a.id}
+            >
+              <strong>{a.label}</strong>
+              <span>{a.activity}</span>
+            </button>
+          ),
+        )}
+      </div>
       <div className="scene-bottomline">
         {transfer ? (
           <div className="scene-transfer-card" role="status">

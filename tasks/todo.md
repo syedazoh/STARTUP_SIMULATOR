@@ -382,3 +382,5 @@ The remaining submission work is unchanged: durable jobs/outbox/MCP, advanced RA
 Implementation above supersedes the earlier November 16 entries that listed these features as future work. Full distributed services, PDF/OCR and general autonomous external actions remain outside this slice. Check docs/impact.md for executed verification, rather than interpreting this list as deployed proof.
 
 - [x] Make boardroom task transfers visibly directional with bright lines, arrowheads, document packets and readable route cards; queue every observed assignment and demonstrate CEO → Finance budget delegation using disposable browser fixtures.
+
+- [x] Extend collaboration visuals to all five executives: sender/receiver participant roles, full launch-meeting preview, every new routed event in snapshot order, and regression coverage for all twenty explicit department pairs.

@@ -48,4 +48,10 @@ async def delegate_budget():
  tasks.append({'id':'ceo-budget-fixture','business_id':'studio-business','agent':'finance','status':'executing','action_type':'budget_request','objective':'Review department budget','payload':{'amount':500,'synthetic':True},'mode':'simulation','source':'ceo','plan_id':'synthetic-ceo-plan','ceo_authorized':True,'created_at':now()})
  return {'synthetic':True}
 
+@app.post('/__fixture__/collaborate')
+async def collaborate():
+ for i,(sender,receiver) in enumerate([('ceo','marketing'),('marketing','finance'),('finance','operations'),('operations','hr'),('hr','ceo')]):
+  events.append({'event_id':f'collaboration-{i}','event_type':'task_handoff','sender':sender,'receiver':receiver,'source':sender,'timestamp':now(),'data':{'synthetic':True,'message':f'Fixture handoff {i+1}: {sender} to {receiver}'}})
+ return {'synthetic':True}
+
 if __name__=='__main__':uvicorn.run(app,host='127.0.0.1',port=8012)

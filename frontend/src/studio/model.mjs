@@ -45,7 +45,10 @@ export const agentId = (value) => {
   return (
     AGENTS.find(
       (a) =>
-        value === a.id || new RegExp(`^${a.id}_(agent|[0-9]+)$`).test(value),
+        value === a.id ||
+        new RegExp(
+          `^${a.id}_(agent|[0-9]+|[a-f0-9]{24}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$`,
+        ).test(value),
     )?.id || null
   );
 };
@@ -120,51 +123,86 @@ export function observedChanges(previous, tasks) {
       const result = taskTransfer(task, previous.get(task.id));
       return result && result.sender !== result.receiver ? [result] : [];
     })
-    .slice(-8);
+    .slice(-32);
 }
+// One illustrative launch meeting: each executive both sends and receives work.
 export function previewTransfers() {
   return [
-    {
-      id: "preview-1",
-      sender: "ceo",
-      receiver: "finance",
-      label: "Task assigned",
-      title: "Review department budget",
-      status: "pending_ceo_review",
-    },
-    {
-      id: "preview-2",
-      sender: "marketing",
-      receiver: "finance",
-      label: "Budget review",
-      title: "Review launch budget",
-      status: "pending_ceo_review",
-    },
-    {
-      id: "preview-3",
-      sender: "finance",
-      receiver: "owner",
-      label: "Approval requested",
-      title: "Launch budget ready for review",
-      status: "pending_approval",
-    },
-    {
-      id: "preview-4",
-      sender: "owner",
-      receiver: "marketing",
-      label: "Owner approved",
-      title: "Illustrative approval — no action taken",
-      status: "approved",
-    },
-    {
-      id: "preview-5",
-      sender: "marketing",
-      receiver: "operations",
-      label: "Illustrative handoff",
-      title: "Prepare launch delivery",
-      status: "executing",
-    },
-  ].map((t) => ({ ...t, source: "visual preview" }));
+    ["ceo", "finance", "Task assigned", "Review department budget"],
+    [
+      "finance",
+      "marketing",
+      "Budget review",
+      "Share the campaign budget limits",
+    ],
+    ["marketing", "hr", "Staffing request", "Plan the launch support team"],
+    [
+      "hr",
+      "operations",
+      "Staffing handoff",
+      "Share the proposed staffing schedule",
+    ],
+    ["operations", "finance", "Cost review", "Review delivery resource costs"],
+    [
+      "finance",
+      "ceo",
+      "Review requested",
+      "Present the proposed launch budget",
+    ],
+    [
+      "ceo",
+      "owner",
+      "Approval requested",
+      "Review the illustrative launch proposal",
+    ],
+    [
+      "owner",
+      "ceo",
+      "Illustrative approval",
+      "Preview only — no action authorized",
+    ],
+    ["ceo", "marketing", "Task assigned", "Prepare the launch campaign"],
+    [
+      "marketing",
+      "operations",
+      "Delivery handoff",
+      "Coordinate the launch schedule",
+    ],
+    ["operations", "hr", "Readiness update", "Confirm launch support coverage"],
+    ["hr", "ceo", "Team update", "Share the launch staffing plan"],
+  ].map(([sender, receiver, label, title], i) => ({
+    id: `preview-${i + 1}`,
+    sender,
+    receiver,
+    label,
+    title,
+    status:
+      sender === "owner"
+        ? "approved"
+        : receiver === "owner"
+          ? "pending_approval"
+          : "illustrative",
+    source: "visual preview",
+  }));
+}
+
+// These describe the visual exchange, never an inferred backend acceptance.
+export function collaborationRoles(transfer, stage) {
+  const name = (id) =>
+    AGENTS.find((a) => a.id === id)?.label || (id === "owner" ? "Owner" : id);
+  return AGENTS.map((agent) => {
+    const sending = transfer?.sender === agent.id;
+    const receiving = transfer?.receiver === agent.id;
+    return {
+      ...agent,
+      direction: sending ? "sending" : receiving ? "receiving" : "idle",
+      activity: sending
+        ? `${stage === "arrived" ? "Sent to" : "Sending to"} ${name(transfer.receiver)}`
+        : receiving
+          ? `${stage === "arrived" ? "Visual arrived from" : "Receiving from"} ${name(transfer.sender)}`
+          : "No active transfer",
+    };
+  });
 }
 
 // Keep projected controls apart without per-frame DOM measurements.

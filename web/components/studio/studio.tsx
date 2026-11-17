@@ -10,7 +10,10 @@ import {
   agentId,
 } from "../../../frontend/src/studio/model.mjs";
 import { decisionAllowed } from "../../lib/workspace-contracts";
-import { resolveMessage } from "../../../frontend/src/components/boardroom/eventRoutes";
+import {
+  resolveMessage,
+  observedMessages,
+} from "../../../frontend/src/components/boardroom/eventRoutes";
 import {
   loadStudio,
   decideStudioTask,
@@ -57,6 +60,8 @@ export default function Studio({
     eventsInitialized = useRef(
       !initial.errors.some((e) => e.startsWith("Activity")),
     );
+  const previewing = useRef(preview);
+  previewing.current = preview;
   const queue = useRef<Transfer[]>([]),
     mounted = useRef(true),
     requesting = useRef(false),
@@ -74,23 +79,9 @@ export default function Studio({
       }
       if (!next.errors.some((e) => e.startsWith("Activity"))) {
         if (eventsInitialized.current) {
-          for (const event of next.events) {
-            if (seenEvents.current.has(event.event_id)) continue;
-            const route = resolveMessage(event);
-            if (route?.sender && route.receiver)
-              queue.current.push({
-                ...route,
-                sender: route.sender,
-                receiver: route.receiver,
-                label: humanize(event.event_type),
-                title:
-                  typeof event.data?.message === "string"
-                    ? event.data.message
-                    : humanize(event.event_type),
-                status: event.event_type,
-                source: "backend",
-              });
-          }
+          queue.current.push(
+            ...observedMessages(seenEvents.current, next.events),
+          );
         }
         seenEvents.current = new Set(next.events.map((e) => e.event_id));
         eventsInitialized.current = true;
@@ -133,6 +124,7 @@ export default function Studio({
   }, [refresh]);
   useEffect(() => {
     const interval = setInterval(() => {
+      if (document.hidden || previewing.current) return;
       const next = queue.current.shift();
       if (next) setTransfer(next);
     }, 4200);
@@ -147,6 +139,7 @@ export default function Studio({
     const transfers = previewTransfers();
     setPreviewTransfer(transfers[index] as Transfer);
     const interval = setInterval(() => {
+      if (document.hidden) return;
       index = (index + 1) % transfers.length;
       setPreviewTransfer(transfers[index] as Transfer);
     }, 4200);

@@ -27,6 +27,11 @@ with sync_playwright() as p:
  expect(page.get_by_text('Visual preview · synthetic',exact=True).first).to_be_visible()
  page.wait_for_timeout(900)
  page.screenshot(path=str(root/'desktop.png'),full_page=True)
+ # The illustrative meeting includes HR sending to Operations, not just CEO/Finance.
+ expect(page.locator('.scene-transfer-card')).to_contain_text('Share the proposed staffing schedule',timeout=18000)
+ expect(page.locator('.collaboration-strip [data-direction="sending"]')).to_contain_text('HR')
+ expect(page.locator('.collaboration-strip [data-direction="receiving"]')).to_contain_text('Operations')
+ page.screenshot(path=str(root/'hr-operations-preview.png'),full_page=True)
  # Screenshot once per class; same state and same scene at all target sizes.
  page.get_by_role('button',name='Enter immersive view').click()
  expect(page.get_by_role('dialog')).to_be_visible()
@@ -56,6 +61,13 @@ with sync_playwright() as p:
  expect(page.locator('.scene-transfer-card')).to_contain_text('CEO')
  expect(page.locator('.scene-transfer-card')).to_contain_text('Review department budget')
  page.screenshot(path=str(root/'ceo-finance-handoff.png'),full_page=True)
+ # All five new routed events in one snapshot must play in order.
+ response=httpx.post('http://127.0.0.1:8012/__fixture__/collaborate');assert response.status_code==200
+ for i,(sender,receiver) in enumerate([('ceo','marketing'),('marketing','finance'),('finance','operations'),('operations','hr'),('hr','ceo')]):
+  expect(page.locator('.scene-transfer-card')).to_contain_text(f'Fixture handoff {i+1}: {sender} to {receiver}',timeout=15000)
+  expect(page.locator('.collaboration-strip [data-direction="sending"]')).to_contain_text(sender,ignore_case=True)
+  expect(page.locator('.collaboration-strip [data-direction="receiving"]')).to_contain_text(receiver,ignore_case=True)
+ page.screenshot(path=str(root/'all-agent-handoffs.png'),full_page=True)
  # Real decisions require opening exact payload; no preview action can approve.
  page.locator('.studio-task summary').click();expect(page.get_by_text('Product launch',exact=False).first).to_be_visible()
  page.get_by_role('button',name='Approve action',exact=True).click()
