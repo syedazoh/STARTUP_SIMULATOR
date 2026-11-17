@@ -81,7 +81,7 @@ It privately prompts for the capability and initializes/lists tools without exec
 
 ### Verification and manual acceptance
 
-Automated tests cover idempotency/leases/retry recovery, deferred approval, tenant isolation, deadline versions/cutoff, MCP wire access/revocation and source deletion/fallbacks. CI additionally verifies actual Mongo reconnect, browser flows and cached-model retrieval.
+Automated tests cover idempotency/leases/retry recovery, deferred approval, tenant isolation, deadline versions/cutoff, MCP wire access/revocation and source deletion/fallbacks. The verified application passed 475 backend tests, Docker wiring/restart, Next build/types/tests/audit and browser acceptance, including 320/390/768 px layouts. An official MCP SDK client also passed a disposable real local HTTP smoke. Run links and the operator-client follow-up are in [impact log](docs/impact.md).
 
 From `backend`:
 

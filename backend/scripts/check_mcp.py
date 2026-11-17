@@ -3,6 +3,7 @@
 import asyncio
 import getpass
 import os
+import httpx
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
@@ -12,9 +13,13 @@ async def main():
     token = getpass.getpass("MCP capability (hidden): ")
     if not token:
         raise SystemExit("No capability supplied")
-    async with streamable_http_client(
-        resource, headers={"Authorization": "Bearer " + token}
-    ) as (read, write, _):
+    async with httpx.AsyncClient(
+        headers={"Authorization": "Bearer " + token}, timeout=30
+    ) as http_client, streamable_http_client(resource, http_client=http_client) as (
+        read,
+        write,
+        _,
+    ):
         async with ClientSession(read, write) as session:
             await session.initialize()
             print(
