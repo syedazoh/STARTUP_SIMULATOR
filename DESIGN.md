@@ -153,7 +153,7 @@ Soft rectangular controls and panels contrast with circular station rings and an
 - **Cards:** Global forms use a bounded 660px card with 32px padding, reducing to 24px on small screens. The attention panel has its own warm treatment and tighter padding.
 - **Navigation:** Muted lavender links become warm-white on an active purple gradient. Team buttons and the five-column roster expose pressed selection states; roster selection stays available on mobile when the full team rail hides.
 - **Status labels:** Compact plum chips support textual state. Synthetic preview labels use a warm accent and must persist while illustrative handoffs are visible.
-- **Executive floor:** Five selectable robot executives surround a separate owner desk. Packets follow raised curves; sender gestures and receiver lighting explain the handoff. The renderer performs no network or provider effects and never writes application state. The first successful snapshot establishes the baseline without replay. Exact proposed action details precede approval controls. Animation is evidence presentation, not business authority.
+- **Executive floor:** Five selectable robot executives surround a separate owner desk. Packets follow bright raised curves with directional arrowheads; sender gestures and receiver lighting explain the handoff. A separate high-contrast route card names the sender, receiver, task and visual phase. The last route persists until replacement or explicit clearing. The renderer performs no network or provider effects and never writes application state. The first successful snapshot establishes the baseline without replay. Exact proposed action details precede approval controls. Animation is evidence presentation, not business authority.
 
 ## Do's and Don'ts
 

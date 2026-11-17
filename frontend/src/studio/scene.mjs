@@ -350,30 +350,48 @@ export function createStudio(
     const group = new THREE.Group();
     scene.add(group);
     mesh(
-      new THREE.TubeGeometry(curve, 48, 0.012, 5, false),
-      glow("#bc92fb", 0.5),
+      new THREE.TubeGeometry(curve, 48, 0.045, 8, false),
+      glow("#b48aff", 0.8),
       group,
     );
+    // A bright core and fixed arrowheads make direction legible before/after delivery.
+    mesh(
+      new THREE.TubeGeometry(curve, 48, 0.012, 6, false),
+      glow("#f0dfff"),
+      group,
+    );
+    for (const at of [0.25, 0.5, 0.76]) {
+      const arrow = mesh(
+        new THREE.ConeGeometry(0.12, 0.32, 8),
+        glow("#ead1ff"),
+        group,
+        curve.getPoint(at).toArray(),
+      );
+      arrow.quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        curve.getTangent(at).normalize(),
+      );
+    }
     const packet = new THREE.Group();
     group.add(packet);
     mesh(
-      rounded(0.43, 0.32, 0.07, 0.045),
+      rounded(0.72, 0.49, 0.08, 0.06),
       standard("#e5d9f6", 0.3, 0.25),
       packet,
     );
     mesh(
-      new THREE.BoxGeometry(0.24, 0.025, 0.012),
+      new THREE.BoxGeometry(0.44, 0.045, 0.015),
       glow("#6a32b5"),
       packet,
       [-0.02, 0.055, 0.06],
     );
     mesh(
-      new THREE.BoxGeometry(0.17, 0.025, 0.012),
+      new THREE.BoxGeometry(0.32, 0.04, 0.015),
       glow("#6a32b5"),
       packet,
       [-0.055, -0.025, 0.06],
     );
-    packet.rotation.y = 0.6;
+    packet.quaternion.copy(camera.quaternion);
     const arrival = mesh(
       new THREE.TorusGeometry(0.47, 0.025, 8, 40),
       glow("#dbc5fd"),
@@ -391,18 +409,22 @@ export function createStudio(
       started: performance.now(),
     };
     ended = false;
+    onTransfer({ ...value, stage: "sending" });
     if (reducedMotion) {
       packet.position.copy(end);
       arrival.visible = true;
-      onTransfer({ ...value, stage: "recorded" });
+      onTransfer({ ...value, stage: "arrived" });
       render(performance.now());
     }
   };
   function render(now) {
     const t = now / 1000;
     for (const [id, a] of agents) {
-      const sending = transfer?.sender === id,
-        receiving = transfer?.receiver === id;
+      const elapsed = transfer ? now - transfer.started : Infinity;
+      const sending = transfer?.sender === id && elapsed < 2100,
+        receiving =
+          transfer?.receiver === id &&
+          (reducedMotion || (elapsed > 1500 && elapsed < 3900));
       const focus = selected === id || sending || receiving;
       a.halo.material.opacity = focus ? 1 : 0.38;
       if (!reducedMotion) {
@@ -421,7 +443,8 @@ export function createStudio(
       const p = Math.min((now - transfer.started) / 2100, 1);
       const eased = 1 - Math.pow(1 - p, 2);
       transfer.packet.position.copy(transfer.curve.getPoint(eased));
-      transfer.packet.rotation.z = Math.sin(p * Math.PI) * 0.25;
+      transfer.packet.quaternion.copy(camera.quaternion);
+      transfer.packet.rotateZ(Math.sin(p * Math.PI) * 0.16);
       transfer.arrival.visible = p > 0.87;
       transfer.arrival.scale.setScalar(0.6 + (p > 0.87 ? (p - 0.87) * 4 : 0));
       if (p >= 1 && !ended) {
@@ -432,10 +455,10 @@ export function createStudio(
           packet: undefined,
           curve: undefined,
           arrival: undefined,
-          stage: "recorded",
+          stage: "arrived",
         });
       }
-      if (p >= 1 && now - transfer.started > 3400) clearTransfer();
+      // Retain the last recorded route until the next handoff or explicit clear.
     }
     if (follow && !reducedMotion) {
       const target = transfer

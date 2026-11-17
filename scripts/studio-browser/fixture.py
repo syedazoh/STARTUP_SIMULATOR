@@ -42,4 +42,10 @@ async def decide(tid:str,decision:str,request:Request):
  return t
 @app.post('/auth/v1/logout')
 async def logout():return {}
+
+@app.post('/__fixture__/delegate-budget')
+async def delegate_budget():
+ tasks.append({'id':'ceo-budget-fixture','business_id':'studio-business','agent':'finance','status':'executing','action_type':'budget_request','objective':'Review department budget','payload':{'amount':500,'synthetic':True},'mode':'simulation','source':'ceo','plan_id':'synthetic-ceo-plan','ceo_authorized':True,'created_at':now()})
+ return {'synthetic':True}
+
 if __name__=='__main__':uvicorn.run(app,host='127.0.0.1',port=8012)

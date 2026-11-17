@@ -29,7 +29,9 @@ Next.js retrieves up to 200 tasks, 100 backend events and the agent snapshots th
 
 Ordinary execution and verified completion remain distinct labels. Counts describe the loaded task window, not company-wide analytics. The inbox displays up to eight pending tasks at a time; subsequent refreshes expose the next pending work as decisions are processed. Connection failures show a recovery message and retain last available records. Missing snapshots do not imply an agent is available.
 
-The Vite Boardroom currently receives its existing actionable-task feed; it cannot infer completion from disappearance. Its supported event routes and new actionable tasks animate; it does not invent an accepted state when a task leaves that feed. The Next.js studio uses the broader loaded task snapshot and can observe approval → execution changes.
+The Vite Boardroom retrieves its own authenticated, business-scoped snapshot of up to 200 tasks every 1.8 seconds while visible, leaving the actionable approval queue unchanged. Both studios observe persisted status changes without interpreting disappearance as acceptance. New assignments are queued individually (up to 32 pending visuals), so a multi-department CEO plan displays each connection in order.
+
+Handoffs use a bright raised line, directional arrowheads, a moving document packet and a receiver highlight. A readable route card identifies sender, receiver, task and visual phase. The last route remains visible until replaced or explicitly cleared; “Task visual arrived” describes the animation, not business acceptance. The synthetic preview begins with CEO → Finance: Review department budget.
 
 ## Implementation
 

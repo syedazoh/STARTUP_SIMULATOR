@@ -25,4 +25,4 @@ Terminal three:
 python scripts/studio-browser/check.py
 ```
 
-Covers production Next.js login, real WebGL, avatar selection, team-list fallback, synthetic preview, exact-action approval, owner handoff, no replay after reload, 320–1600px overflow checks, 320/390px label collision through orbit, immersive/follow/Escape and reduced-motion cleanup. The reduced-motion canvas image must return byte-identically to the pre-preview image after exit. Captures go to ignored `.impeccable/review/`. This is not a live Supabase/Mongo or provider acceptance test.
+Covers production Next.js login, real WebGL, avatar selection, team-list fallback, synthetic preview, a newly persisted CEO → Finance budget delegation, exact-action approval, owner handoff, no replay after reload, 320–1600px overflow checks, 320/390px label collision through orbit, immersive/follow/Escape and reduced-motion cleanup. The reduced-motion canvas image must return byte-identically to the pre-preview image after exit. Captures go to ignored `.impeccable/review/`. This is not a live Supabase/Mongo or provider acceptance test.

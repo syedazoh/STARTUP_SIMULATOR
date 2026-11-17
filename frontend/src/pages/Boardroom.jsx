@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
 import { fetchAgents } from '../store/slices/agentsSlice'
 import { fetchEvents } from '../store/slices/eventsSlice'
-import { fetchPendingTasks } from '../store/slices/tasksSlice'
+import useBoardroomTasks from '../hooks/useBoardroomTasks'
 import { fetchSimulationStatus } from '../store/slices/simulationSlice'
 import useVisiblePolling from '../hooks/useVisiblePolling'
 import Boardroom3D, { EXECUTIVES } from '../components/boardroom/Boardroom3D'
@@ -25,7 +25,8 @@ export default function Boardroom() {
   const events = useSelector(state => state.events.items)
   const eventStatus = useSelector(state => state.events.loadStatus)
   const eventError = useSelector(state => state.events.error)
-  const tasks = useSelector(state => state.tasks.items)
+  const taskSnapshot = useBoardroomTasks(businessId)
+  const tasks = taskSnapshot.items
   const { isRunning, isPaused, tickCount } = useSelector(state => state.simulation)
   const [selected, setSelected] = useState('ceo')
   const [filter, setFilter] = useState('all')
@@ -33,7 +34,6 @@ export default function Boardroom() {
   useVisiblePolling(() => {
     dispatch(fetchAgents(businessId))
     dispatch(fetchEvents(businessId))
-    dispatch(fetchPendingTasks(businessId))
     dispatch(fetchSimulationStatus(businessId))
   }, 1800, [dispatch, businessId])
   const selectedAgent = EXECUTIVES.find(agent => agent.id === selected) || EXECUTIVES[0]
@@ -48,7 +48,8 @@ export default function Boardroom() {
     </header>
     <div className="immersive-room-layout">
       <div className="immersive-room-stage">
-        <Boardroom3D key={businessId} tasks={tasks} ready={eventStatus==='succeeded'} selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
+        {taskSnapshot.error && <p role="alert" className="room-empty">{taskSnapshot.error}</p>}
+        <Boardroom3D key={businessId} tasks={tasks} ready={taskSnapshot.ready} eventsReady={eventStatus==='succeeded'} selected={selected} onSelect={setSelected} statuses={statuses} events={events}/>
         <div className="immersive-room-roster" aria-label="Select executive">
           {EXECUTIVES.map(agent => <button key={agent.id} type="button" aria-pressed={selected === agent.id} className={selected === agent.id ? 'active' : ''} onClick={() => {setSelected(agent.id);setFilter('selected')}}>
             <span className="room-avatar" style={{background:agent.color}}>{agent.label.charAt(0)}</span><strong>{agent.label}</strong>
@@ -58,8 +59,8 @@ export default function Boardroom() {
       <aside className="immersive-room-detail">
         <span className="hq-kicker">EXECUTIVE SPOTLIGHT</span>
         <div className="room-spotlight-heading"><span className="room-spotlight-icon" style={{background:selectedAgent.color}}>{selectedAgent.label.charAt(0)}</span><div><h2>{selectedAgent.label}</h2><p>{statuses?.[selected] ? 'Backend state available' : 'Awaiting backend state'}</p></div></div>
-        <h3>Assigned work requiring attention</h3>
-        {assignedTasks.length === 0 ? <p className="room-empty">No pending actionable tasks for this agent. Completed work may be visible in its history.</p> :
+        <h3>Assigned work and recorded results</h3>
+        {assignedTasks.length === 0 ? <p className="room-empty">No task records available for this agent.</p> :
           <div className="room-tasks">{assignedTasks.slice(0, 8).map(task => <article key={task.id}><span>{titleCase(task.status)}</span><strong>{task.objective || titleCase(task.action_type)}</strong><small>{task.id}</small></article>)}</div>}
         <h3>Backend state</h3>
         {statuses?.[selected] ? <dl className="room-facts">{Object.entries(statuses[selected]).filter(([,value])=>['string','number','boolean'].includes(typeof value)).slice(0,8).map(([key,value])=><div key={key}><dt>{titleCase(key)}</dt><dd>{String(value)}</dd></div>)}</dl> : <p className="room-empty">No agent snapshot available.</p>}

@@ -1371,3 +1371,8 @@
 .studio-task small,.studio-task>p,.studio-task details summary,.studio-task details dl,.studio-action-warning,.studio-inbox-empty p,.studio-feedback{font-size:13px;color:#ddcbea}
 .studio-task h3,.studio-selected h2{font-size:16px}.studio-task-actions button{font-size:13px;min-height:44px}.studio-selected p,.studio-selected h2>span,.studio-roster small{font-size:12px;color:#d7c3e7}
 @media(max-width:700px){.scene-labels>button{font-size:12px!important;min-height:32px}.studio-roster small{font-size:10px}.studio-roster strong{font-size:12px}}
+.scene-transfer-card{display:grid;gap:5px;padding:4px 0}
+.scene-transfer-card strong{display:flex;align-items:center;gap:12px;color:#fff1ff;font-size:16px;letter-spacing:.025em}.scene-transfer-card strong svg{color:#c298ff}
+.scene-transfer-card>span{font-size:14px;color:#e8d6f5}.scene-transfer-card small{font-size:12px;color:#d4bae8;line-height:1.6}
+.studio-scene.is-immersive:has(.scene-transfer-card) .scene-viewport{height:calc(100dvh - 103px)}
+@media(max-width:700px){.scene-transfer-card strong{font-size:14px}.scene-transfer-card>span{font-size:13px}.scene-transfer-card small{font-size:11px}}

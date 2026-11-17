@@ -28,6 +28,7 @@ export default function Scene({
     engine = useRef<Engine | null>(null);
   const callbacks = useRef({ onSelect, onRecorded });
   callbacks.current = { onSelect, onRecorded };
+  const [stage, setStage] = useState("sending");
   const [error, setError] = useState(""),
     [ready, setReady] = useState(false),
     [view, setView] = useState("3d"),
@@ -62,7 +63,10 @@ export default function Scene({
                 node.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
             }
           },
-          onTransfer: (t: Transfer) => callbacks.current.onRecorded?.(t),
+          onTransfer: (t: Transfer & { stage?: string }) => {
+            setStage(t.stage || "sending");
+            callbacks.current.onRecorded?.(t);
+          },
         });
         engine.current = created;
         created.select(current.current.selected);
@@ -228,7 +232,6 @@ export default function Scene({
                 {a.label}
               </button>
             ))}
-
           </div>
         </div>
       ) : (
@@ -250,12 +253,26 @@ export default function Scene({
         </div>
       )}
       <div className="scene-bottomline">
-        <span>
-          <i className="status-dot" />{" "}
-          {transfer
-            ? `${transfer.sender.toUpperCase()} → ${transfer.receiver.toUpperCase()} · ${transfer.label}`
-            : "Select an avatar to see its work"}
-        </span>
+        {transfer ? (
+          <div className="scene-transfer-card" role="status">
+            <strong>
+              {transfer.sender.toUpperCase()} <Icon name="arrow" size={18} />{" "}
+              {transfer.receiver.toUpperCase()}
+            </strong>
+            <span>{transfer.title || transfer.label}</span>
+            <small>
+              {transfer.source === "visual preview"
+                ? "Synthetic preview · "
+                : "Recorded task · "}
+              {stage === "arrived" ? "Task visual arrived" : "Sending task"} ·{" "}
+              {transfer.label}
+            </small>
+          </div>
+        ) : (
+          <span>
+            <i className="status-dot" /> Select an avatar to see its work
+          </span>
+        )}
         <span>Drag to orbit</span>
       </div>
     </section>

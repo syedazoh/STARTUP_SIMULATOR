@@ -127,9 +127,9 @@ export function previewTransfers() {
     {
       id: "preview-1",
       sender: "ceo",
-      receiver: "marketing",
+      receiver: "finance",
       label: "Task assigned",
-      title: "Prepare product launch",
+      title: "Review department budget",
       status: "pending_ceo_review",
     },
     {

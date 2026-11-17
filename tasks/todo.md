@@ -380,3 +380,5 @@ The remaining submission work is unchanged: durable jobs/outbox/MCP, advanced RA
 - [ ] User acceptance with local Atlas/Supabase and representative documents.
 - [ ] Production domain, HTTPS/MCP routing, provider integrations, staging/deployment and backup/monitoring acceptance.
 Implementation above supersedes the earlier November 16 entries that listed these features as future work. Full distributed services, PDF/OCR and general autonomous external actions remain outside this slice. Check docs/impact.md for executed verification, rather than interpreting this list as deployed proof.
+
+- [x] Make boardroom task transfers visibly directional with bright lines, arrowheads, document packets and readable route cards; queue every observed assignment and demonstrate CEO → Finance budget delegation using disposable browser fixtures.

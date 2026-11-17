@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import httpx
 from playwright.sync_api import sync_playwright,expect
 root=Path(__file__).resolve().parents[2] / '.impeccable/review'
 root.mkdir(parents=True,exist_ok=True)
@@ -49,6 +50,12 @@ with sync_playwright() as p:
    overlap=page.locator('.scene-labels').evaluate('''node=>{const boxes=[...node.children].map(n=>({id:n.dataset.agent,r:n.getBoundingClientRect()}));return boxes.flatMap((a,i)=>boxes.slice(i+1).filter(b=>a.r.left<b.r.right&&a.r.right>b.r.left&&a.r.top<b.r.bottom&&a.r.bottom>b.r.top).map(b=>a.id+"/"+b.id))}''')
    assert not overlap,overlap
  page.set_viewport_size({'width':1440,'height':1050})
+ # A new persisted CEO budget assignment must draw a CEO → Finance route.
+ response=httpx.post('http://127.0.0.1:8012/__fixture__/delegate-budget');assert response.status_code==200
+ expect(page.locator('.scene-transfer-card')).to_contain_text('FINANCE',timeout=15000)
+ expect(page.locator('.scene-transfer-card')).to_contain_text('CEO')
+ expect(page.locator('.scene-transfer-card')).to_contain_text('Review department budget')
+ page.screenshot(path=str(root/'ceo-finance-handoff.png'),full_page=True)
  # Real decisions require opening exact payload; no preview action can approve.
  page.locator('.studio-task summary').click();expect(page.get_by_text('Product launch',exact=False).first).to_be_visible()
  page.get_by_role('button',name='Approve action',exact=True).click()

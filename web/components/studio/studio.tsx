@@ -95,7 +95,7 @@ export default function Studio({
         seenEvents.current = new Set(next.events.map((e) => e.event_id));
         eventsInitialized.current = true;
       }
-      queue.current = queue.current.slice(-8);
+      queue.current = queue.current.slice(-32);
       const merged = {
         ...next,
         tasks: next.tasksReady ? next.tasks : latest.current.tasks,
@@ -135,7 +135,7 @@ export default function Studio({
     const interval = setInterval(() => {
       const next = queue.current.shift();
       if (next) setTransfer(next);
-    }, 3800);
+    }, 4200);
     return () => clearInterval(interval);
   }, []);
   useEffect(() => {
@@ -149,7 +149,7 @@ export default function Studio({
     const interval = setInterval(() => {
       index = (index + 1) % transfers.length;
       setPreviewTransfer(transfers[index] as Transfer);
-    }, 3900);
+    }, 4200);
     return () => clearInterval(interval);
   }, [preview]);
   async function decide(task: Task, decision: "approve" | "reject") {

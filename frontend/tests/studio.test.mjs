@@ -68,3 +68,40 @@ test("new persisted CEO plans display delegation from CEO", () => {
   assert.equal(transfer.receiver, "hr");
   assert.equal(transfer.label, "Task assigned");
 });
+
+test("budget delegation routes CEO to Finance, not Finance back to CEO", () => {
+  const task = {
+    id: "budget-assignment",
+    agent: "finance",
+    action_type: "budget_request",
+    objective: "Review department budget",
+    source: "ceo",
+    plan_id: "persisted-plan",
+    status: "pending_approval",
+  };
+  const [transfer] = observedChanges(new Map(), [task]);
+  assert.equal(transfer.sender, "ceo");
+  assert.equal(transfer.receiver, "finance");
+  assert.equal(transfer.title, "Review department budget");
+});
+test("a four-department plan preserves every assignment in snapshot order", () => {
+  const tasks = ["finance", "marketing", "hr", "operations"].map((agent) => ({
+    id: agent,
+    agent,
+    source: "ceo",
+    plan_id: "persisted-plan",
+    status: "pending_ceo_review",
+  }));
+  const transfers = observedChanges(new Map(), tasks);
+  assert.deepEqual(
+    transfers.map((t) => t.receiver),
+    ["finance", "marketing", "hr", "operations"],
+  );
+  assert.ok(transfers.every((t) => t.sender === "ceo"));
+});
+test("the visual preview starts with the requested CEO to Finance budget example", () => {
+  const first = previewTransfers()[0];
+  assert.equal(first.sender, "ceo");
+  assert.equal(first.receiver, "finance");
+  assert.match(first.title, /budget/i);
+});
