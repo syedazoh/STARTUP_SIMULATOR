@@ -32,6 +32,15 @@ class DecisionMemoryStore:
             )
         return self._collections[agent_id]
 
+    def _read_collection(self, agent_id: str):
+        # Text browsing/counts need no embedding function and create no collection.
+        try:
+            return self._client.get_collection(
+                name=f"agent_decisions_{agent_id}", embedding_function=None
+            )
+        except chromadb.errors.NotFoundError:
+            return None
+
     def add_decision(
         self,
         agent_id: str,
@@ -49,10 +58,11 @@ class DecisionMemoryStore:
         return doc_id
 
     def query_similar(self, agent_id: str, query_text: str, k: int = 3) -> List[Dict[str, Any]]:
-        collection = self._get_collection(agent_id)
-        count = collection.count()
-        if count == 0:
+        existing = self._read_collection(agent_id)
+        if existing is None or existing.count() == 0:
             return []
+        count = existing.count()
+        collection = self._get_collection(agent_id)
         results = collection.query(
             query_texts=[query_text],
             n_results=min(k, count),
@@ -70,7 +80,9 @@ class DecisionMemoryStore:
         inspector's default view. Chroma's .get() has no relevance ranking or
         recency ordering of its own, so this returns whatever order the
         collection yields and lets the caller decide whether to reverse it."""
-        collection = self._get_collection(agent_id)
+        collection = self._read_collection(agent_id)
+        if collection is None:
+            return []
         results = collection.get(limit=limit)
         documents = results.get("documents") or []
         metadatas = results.get("metadatas") or []

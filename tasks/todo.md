@@ -419,3 +419,5 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [ ] P3 release acceptance: cached-model build/evaluation, Jenkins controller run, production-volume restore, real HTTPS/Supabase and authorized AWS rollout.
 
 - [x] P1 correctness follow-up: saved HR/Operations context, validated predecessor results, delayed coordinator recovery and late-result rejection; 14 focused/real-process tests and restricted snapshot-read/write checks passed.
+
+- [x] P4 regression repair: empty/saved Chroma history works without model loading; semantic search remains explicit when unavailable, memory reads are bounded/non-blocking and tenant errors are preserved (5 focused checks passed). Model-backed retrieval gates remain open.
