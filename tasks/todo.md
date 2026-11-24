@@ -458,3 +458,7 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [x] Make sidebars scroll, add small role avatars, persistent pausable backgrounds and complete public/private footers; repair mobile task controls.
 - [ ] Complete Next parity for classic Marketing publishing/media/connected-account controls. Keep existing Vite screens available meanwhile.
 - [ ] Validate the owner's actual original Mongo database/account link locally using private configuration; disposable fixtures do not prove this connection.
+
+## Coordinated appearance and team setup — 24 November 2026
+- [x] Add validated owner-reported workforce storage, creation compatibility, tenant-scoped editing and distinct chat context; 25 focused offline backend tests passed.
+- [ ] Finish shared appearance presets, footer sculpture and team setup UI; verify both frontends before release.

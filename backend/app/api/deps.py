@@ -74,6 +74,7 @@ async def get_owned_business(
         starting_headcount=doc["starting_headcount"],
         starting_resources=doc["starting_resources"],
         enabled_agents=doc.get("enabled_agents", ["finance", "marketing", "hr", "operations", "ceo"]),
+        workforce=doc.get("workforce"),
         created_at=doc["created_at"],
     )
 
@@ -105,6 +106,7 @@ async def get_owned_task(
         starting_headcount=business_doc["starting_headcount"],
         starting_resources=business_doc["starting_resources"],
         enabled_agents=business_doc.get("enabled_agents", ["finance", "marketing", "hr", "operations", "ceo"]),
+        workforce=business_doc.get("workforce"),
         created_at=business_doc["created_at"],
     )
     return {"task": task_doc, "business": business}

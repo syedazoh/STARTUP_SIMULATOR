@@ -120,6 +120,8 @@ async def send_message(
 ) -> Dict[str, Any]:
     thread = await get_thread(db, business.id, agent)
     profile = await find_one(db["business_profiles"], {"business_id": business.id})
+    if business.workforce is not None:
+        profile = {**(profile or {}), "owner_reported_team_context_not_live_hr_state": business.workforce.model_dump()}
 
     runtime = await agent_registry.get_or_create(business)
     live_agent = runtime.agent_manager.agents.get(agent)

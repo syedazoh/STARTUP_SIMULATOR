@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request, status
 
 from ..deps import get_current_user, get_owned_business
 from ...models.auth_schemas import UserOut
-from ...models.business_schemas import BusinessCreate, BusinessOut
+from ...models.business_schemas import BusinessCreate, BusinessOut, Workforce
 
 router = APIRouter(prefix="/api/businesses", tags=["businesses"])
 
@@ -26,6 +26,7 @@ def _to_business_out(doc: dict) -> BusinessOut:
         starting_headcount=doc["starting_headcount"],
         starting_resources=doc["starting_resources"],
         enabled_agents=doc.get("enabled_agents", DEFAULT_ENABLED_AGENTS),
+        workforce=doc.get("workforce"),
         created_at=doc["created_at"],
     )
 
@@ -47,6 +48,7 @@ async def create_business(
         "starting_headcount": payload.starting_headcount,
         "starting_resources": payload.starting_resources,
         "enabled_agents": enabled_agents,
+        "workforce": payload.workforce.model_dump() if payload.workforce else None,
         "created_at": created_at,
     }
     await request.app.state.db["businesses"].insert_one(doc)
@@ -75,3 +77,13 @@ async def finances(
     return ledger.public_account(
         await ledger.account_for(request.app.state.db, business, runtime)
     )
+
+
+@router.put("/{business_id}/workforce", response_model=BusinessOut)
+async def update_workforce(payload: Workforce, request: Request, business: BusinessOut = Depends(get_owned_business)):
+    # Reported planning context only: do not modify runtime HR state or starting values.
+    await request.app.state.db["businesses"].update_one(
+        {"business_id": business.id, "owner_user_id": business.owner_user_id},
+        {"$set": {"workforce": payload.model_dump(), "workforce_updated_at": datetime.now(timezone.utc)}},
+    )
+    return business.model_copy(update={"workforce": payload})

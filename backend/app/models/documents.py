@@ -17,6 +17,8 @@ class UserDocument(BaseModel):
     created_at: datetime
 
 
+from .business_schemas import Workforce
+
 class BusinessDocument(BaseModel):
     business_id: str
     owner_user_id: str
@@ -26,6 +28,7 @@ class BusinessDocument(BaseModel):
     starting_customer_base: int
     starting_headcount: int
     starting_resources: int
+    workforce: Optional[Workforce] = None
     created_at: datetime
 
 
