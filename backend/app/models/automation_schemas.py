@@ -4,7 +4,7 @@ from datetime import timezone
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator
 
-Department = Literal["finance", "marketing", "hr", "operations", "ceo"]
+Department = Literal["finance", "marketing", "hr", "operations", "ceo", "support", "strategy"]
 Key = Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[\w-]+$")]
 
 
@@ -35,7 +35,7 @@ class DocumentIn(Input):
     key: Key
     title: str = Field(min_length=1, max_length=200, pattern=r"\S")
     text: str = Field(min_length=1, max_length=262144, pattern=r"\S")
-    departments: list[Department] = Field(min_length=1, max_length=5)
+    departments: list[Department] = Field(min_length=1, max_length=7)
     expected_version: int = Field(default=0, ge=0, strict=True)
 
 
@@ -46,5 +46,5 @@ class SearchIn(Input):
 
 
 class MCPGrantIn(Input):
-    departments: list[Department] = Field(min_length=1, max_length=5)
+    departments: list[Department] = Field(min_length=1, max_length=7)
     allow_proposals: bool = Field(default=False, strict=True)

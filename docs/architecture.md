@@ -33,3 +33,8 @@ CI: lint, types, unit tests, backend integration tests, approval/tenant tests, f
 
 ## Implemented bounded automation slice — 17 November 2026
 The runtime now hosts a Mongo durable queue worker and deadline scan in the existing **single API lifespan**, plus a private stateless MCP mount. This is deliberately not the separately scaled worker/scheduler topology proposed above: AgentRegistry still owns in-memory runtime state. Mongo claims/leases and task-outbox repair provide recovery; Redis contains optional wake hints only. No multi-replica or distributed simulation guarantee is made. Owner-scoped Next automation controls and `/api/businesses/{id}/automation` expose evidence. MCP uses 15-minute revocable business/department capabilities; it cannot approve or publish. Knowledge uses a separate versioned Mongo corpus, bounded authorized BM25/dense scoring and cached CrossEncoder reranking; Chroma decision memory remains. See README for configuration, rollback, implemented limits and checks; production routing/credentials/deployment remain manual.
+
+
+## Independent analysis workers — 24 November 2026
+
+See [distributed simulation](DISTRIBUTED_SIMULATION.md) for the implemented seven-role v1 message contract, role-specific claims, fencing, deadlines, recovery and authority boundaries. Existing API process owns AgentRegistry and all business execution; new workers construct no registry and commit only recommendations into durable leased jobs. This adds real cross-process analysis without claiming multi-replica execution correctness. Existing optional API loop reconciles predecessor results; authorized polling can repair coordination after restart.

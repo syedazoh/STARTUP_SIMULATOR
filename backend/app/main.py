@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import distributed as distributed_routes
 from .api.routes import automation as automation_routes
 from .mcp_server import Gateway, build_server
 from .api.routes import demo as demo_routes
@@ -48,6 +49,8 @@ async def _create_indexes(db) -> None:
     users.email (created lazily in auth.py's register). No-ops against the
     in-memory fallback (see ensure_index)."""
     await ensure_index(db["background_jobs"], [("status", 1), ("run_after", 1)])
+    await ensure_index(db["background_jobs"], [("kind", 1), ("payload.role", 1), ("status", 1), ("run_after", 1)])
+    await ensure_index(db["distributed_runs"], [("business_id", 1), ("created_ts", -1)])
     await ensure_index(db["background_jobs"], [("business_id", 1), ("created_ts", -1)])
     await ensure_index(
         db["knowledge_documents"],
@@ -200,6 +203,7 @@ if __name__ == "__main__":
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
+app.include_router(distributed_routes.router)
 app.include_router(automation_routes.router)
 app.include_router(automation_routes.task_router)
 app.mount("/mcp", Gateway())

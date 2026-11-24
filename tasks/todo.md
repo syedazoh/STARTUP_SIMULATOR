@@ -408,3 +408,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [ ] P4 Fresh workflow/retrieval/output/latency/resource evaluation, integrated browser rehearsal and final CI evidence.
 
 - [x] P0 build slice: reproduced/fixed web-only Three resolution; 27 tests/types/build/start, production workspace fixture browser and landing 3D/fallback; Vite 62 tests/lint/build. Remote CI lookup blocked (Forbidden).
+
+- [x] P1 initial distributed slice: seven actual role processes, versioned scoped messages, claim/retry/fence/poison/deadline/cancel tests, Support/Strategy artifacts, existing campaign approval/execution integration (29 focused checks passed).
+- [ ] P1 follow-up: current staffing/capacity services, richer arbitration and dashboard exposure; full seven-role/AI quality acceptance remains partial.

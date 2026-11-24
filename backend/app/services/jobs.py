@@ -56,9 +56,9 @@ async def wake():
         pass  # Mongo polling remains authoritative.
 
 
-async def enqueue(db, business_id, actor, kind, payload, key, *, clock=None):
+async def enqueue(db, business_id, actor, kind, payload, key, *, clock=None, identity_scope=None):
     persistent(db)
-    job_id = digest([business_id, kind, key])
+    job_id = digest([identity_scope or business_id, kind, key])
     now = time.time() if clock is None else clock
     doc = {
         "_id": job_id,
@@ -90,10 +90,11 @@ async def enqueue(db, business_id, actor, kind, payload, key, *, clock=None):
     return public(doc)
 
 
-async def claim(db, clock=None):
+async def claim(db, clock=None, *, role=None, lease_seconds=180):
     now = time.time() if clock is None else clock
     return await db["background_jobs"].find_one_and_update(
         {
+            **({"kind": "role_work", "payload.role": role} if role else {"kind": {"$ne": "role_work"}}),
             "$or": [
                 {
                     "status": {"$in": ["queued", "retry_scheduled"]},
@@ -106,7 +107,7 @@ async def claim(db, clock=None):
             "$set": {
                 "status": "running",
                 "lease_token": str(uuid4()),
-                "lease_until": now + 180,
+                "lease_until": now + lease_seconds,
                 "updated_ts": now,
             },
             "$inc": {"attempts": 1},
@@ -323,6 +324,10 @@ async def worker_loop(app):
             from .knowledge import recover_index_jobs
             from .deadlines import scan_deadlines
 
+            from .distributed import reconcile as reconcile_role_run
+            runs = await app.state.db["distributed_runs"].find({"status": "running"}).to_list(length=100)
+            for run in runs:
+                await reconcile_role_run(app.state.db, run)
             await recover_index_jobs(app.state.db)
             await reconcile(app.state.db)
             await scan_deadlines(app.state.db)

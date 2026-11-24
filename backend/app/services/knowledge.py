@@ -16,7 +16,7 @@ from ..config import settings
 from ..core.llm import get_groq_llm
 from .jobs import digest, enqueue, persistent
 
-ROLES = {"finance", "marketing", "hr", "operations", "ceo"}
+ROLES = {"finance", "marketing", "hr", "operations", "ceo", "support", "strategy"}
 STOP = set(
     "the a an is are of to in for and or what how does do our we can with about".split()
 )
@@ -122,7 +122,8 @@ async def submit_document(db, business, actor, payload):
     persistent(db)
     if not settings.background_jobs_enabled:
         raise HTTPException(503, "Enable BACKGROUND_JOBS_ENABLED before indexing")
-    if any(d not in business.enabled_agents for d in payload.departments):
+    # Support/Strategy are independent analysis roles, not in-memory executors.
+    if any(d not in set(business.enabled_agents) | {"support", "strategy"} for d in payload.departments):
         raise HTTPException(422, "Disabled department")
     chunks = chunk_document(payload.text, payload.title, 1)
     if not chunks:

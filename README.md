@@ -6,6 +6,10 @@ The [implementation matrix](docs/FYP_IMPLEMENTATION_MATRIX.md) distinguishes sou
 
 Next owns its Three.js loader in `web/components/landing/landing.tsx`; Vite supplies its own loader to the shared landing. A clean Next build needs only `npm ci` in `web`, with no `frontend/node_modules`. Shared landing/studio changes now trigger Next CI. Verify with `npm test`, `npm run build`, `npm run typecheck`, then `npm start` in `web`. The production workspace browser tests use disposable local identities/data, not your accounts. Current release/container selection remains under review; no AWS deployment is claimed.
 
+## Independent seven-role analysis
+
+[Distributed launch setup and acceptance](docs/DISTRIBUTED_SIMULATION.md): start seven separate `python -m app.role_worker --role ROLE` processes against the same MongoDB. Owner-scoped `/distributed-runs` coordinates a bounded synthetic launch with Marketing content, Finance constraints, staffing/capacity review, grounded-or-abstaining Support and Strategy comparison. Outputs are explicitly rule-based/extractive; this is not verified AI content quality. Workers propose only. Creating a campaign task still requires the existing CEO/owner/ledger execution path. Existing five-agent APIs remain compatible.
+
 ## Jobs, deadlines, private MCP and document RAG — 17 November 2026
 
 Plan: [automation and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md). In Next.js, open your business, then **Jobs, deadlines, knowledge & MCP**.
