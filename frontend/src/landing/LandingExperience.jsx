@@ -6,7 +6,7 @@ function Symbol({name, ...props}) {
  const paths={play:'m9 5 11 7-11 7Z',pause:'M8 5v14M16 5v14',arrow:'M5 12h14m-6-6 6 6-6 6',back:'M19 12H5m6-6-6 6 6 6',sun:'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',moon:'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z',sound:'m4 9 4 0 5-4v14l-5-4H4ZM17 8q5 4 0 8',muted:'m4 9 4 0 5-4v14l-5-4H4ZM17 9l5 6m0-6-5 6',close:'m6 6 12 12M6 18 18 6',cube:'m12 2 9 5v10l-9 5-9-5V7Zm0 10 9-5M12 12 3 7m9 5v10',expand:'M4 9V4h5m6 0h5v5m0 6v5h-5M9 20H4v-5',check:'m5 12 4 4L19 6'};
  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}><path d={paths[name]||paths.arrow}/></svg>;
 }
-export default function LandingExperience({signupHref='/signup',loginHref='/login'}) {
+export default function LandingExperience({signupHref='/signup',loginHref='/login',loadThree}) {
  const [theme,setTheme]=useState('dark'),[index,setIndex]=useState(0),[focused,setFocused]=useState(false),[tour,setTour]=useState(false),[audio,setAudio]=useState(true),[voiceStatus,setVoiceStatus]=useState(''),[sceneState,setSceneState]=useState('loading');
  const canvas=useRef(null),engine=useRef(null),dialog=useRef(null),manualTheme=useRef(false),observer=useRef(null);
  const current=useRef({theme,index,focused});current.current={theme,index,focused};
@@ -20,14 +20,14 @@ export default function LandingExperience({signupHref='/signup',loginHref='/logi
  },[]);
  useEffect(()=>{
   let disposed=false;
-  Promise.all([import('three'),import('../studio/scene.mjs')]).then(([THREE,{createStudio}])=>{
+  Promise.all([loadThree(),import('../studio/scene.mjs')]).then(([THREE,{createStudio}])=>{
    if(disposed||!canvas.current)return;
    engine.current=createStudio(THREE,canvas.current,{reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches,onSelect:id=>{const i=INTRODUCTIONS.findIndex(a=>a.id===id);if(i>=0){setIndex(i);setFocused(true)}}});
    engine.current.setTheme(current.current.theme);engine.current.select(INTRODUCTIONS[current.current.index].id);engine.current.showOnly(current.current.focused?INTRODUCTIONS[current.current.index].id:null);observer.current=new IntersectionObserver(entries=>engine.current?.setVisible(entries[0].isIntersecting));observer.current.observe(canvas.current);setSceneState('ready');
   }).catch(()=>{if(!disposed)setSceneState('unavailable')});
   const node=canvas.current;const lost=e=>{e.preventDefault();setSceneState('unavailable')};node?.addEventListener('webglcontextlost',lost);
   return()=>{disposed=true;observer.current?.disconnect();node?.removeEventListener('webglcontextlost',lost);engine.current?.dispose();engine.current=null};
- },[]);
+ },[loadThree]);
  useEffect(()=>{
   const root=document.documentElement;const oldScheme=root.style.colorScheme;root.style.colorScheme=theme;
   let meta=document.querySelector('meta[name="theme-color"]');const created=!meta;const oldColor=meta?.getAttribute('content');

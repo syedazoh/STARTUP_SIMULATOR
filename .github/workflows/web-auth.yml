@@ -1,9 +1,9 @@
 name: Next.js authentication
 on:
   push:
-    paths: ['web/**', '.github/workflows/web-auth.yml']
+    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', '.github/workflows/web-auth.yml']
   pull_request:
-    paths: ['web/**', '.github/workflows/web-auth.yml']
+    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', '.github/workflows/web-auth.yml']
 jobs:
   build:
     runs-on: ubuntu-latest

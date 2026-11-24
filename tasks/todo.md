@@ -396,3 +396,15 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 - [ ] Resolve production frontend packaging, provider permission acceptance, AWS staging, load/latency baselines and rollback before production deployment.
 
 - [x] Diagnose local Vite auth proxy refusal, document required FastAPI startup, improve proxy/missing-config feedback, correct Next immediate-session signup and preserve explicit legacy account linking. Add local setup diagnostics and auth regression/browser checks.
+
+## FYP submission execution — 24 November 2026
+Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; evidence: docs/FYP_IMPLEMENTATION_MATRIX.md.
+- [ ] P0 Clean web-only build, dependency-boundary regression and production browser acceptance.
+- [ ] P1 Independent role workers with durable versioned messages and real-process recovery/tenant/idempotency tests.
+- [ ] P1 Distinct Support and Strategy workflows without renaming five existing departments.
+- [ ] P2 Saved content/grounded drafts, owner revisions and tenant-safe CSV/JSON evidence download.
+- [ ] P2 Complete bounded seven-role scenario with persisted outcomes/reports and actual output modes.
+- [ ] P3 Next production image/Compose, Jenkins alignment, private networking/storage and recovery smoke.
+- [ ] P4 Fresh workflow/retrieval/output/latency/resource evaluation, integrated browser rehearsal and final CI evidence.
+
+- [x] P0 build slice: reproduced/fixed web-only Three resolution; 27 tests/types/build/start, production workspace fixture browser and landing 3D/fallback; Vite 62 tests/lint/build. Remote CI lookup blocked (Forbidden).

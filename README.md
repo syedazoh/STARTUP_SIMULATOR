@@ -1,5 +1,11 @@
 # Startup Simulator - Multi-Agent AI-powered Business Simulation Platform
 
+## FYP release verification — 24 November 2026
+
+The [implementation matrix](docs/FYP_IMPLEMENTATION_MATRIX.md) distinguishes source, local tests and unverified live requirements. The dependency-ordered [plan](tasks/plan.md) targets submission on 30 November; it is not a completion guarantee. No proposal PDF is present in this checkout.
+
+Next owns its Three.js loader in `web/components/landing/landing.tsx`; Vite supplies its own loader to the shared landing. A clean Next build needs only `npm ci` in `web`, with no `frontend/node_modules`. Shared landing/studio changes now trigger Next CI. Verify with `npm test`, `npm run build`, `npm run typecheck`, then `npm start` in `web`. The production workspace browser tests use disposable local identities/data, not your accounts. Current release/container selection remains under review; no AWS deployment is claimed.
+
 ## Jobs, deadlines, private MCP and document RAG — 17 November 2026
 
 Plan: [automation and knowledge](docs/AUTOMATION_KNOWLEDGE_PLAN.md). In Next.js, open your business, then **Jobs, deadlines, knowledge & MCP**.

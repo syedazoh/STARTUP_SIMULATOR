@@ -33,3 +33,16 @@ User-authorized scope: one synthetic product-launch scenario. Preserve the broad
 4. Next.js demo workspace, evidence inspection and archival reset.
 5. Focused/broader regression checks, local-fixture browser acceptance and documentation.
 Design and verification boundaries: docs/DATASET_SIMULATION.md. No production deployment or changes to real financial state.
+
+## FYP submission execution — 24–30 November 2026
+
+This extends the same unfinished project plan; it does not replace earlier unchecked requirements. Main baseline: d9e4b03 on 24 November. Submission target: 30 November. Accepted technical brief: the uploaded 24 November instructions; the accidental word before Persistent storage is ignored. No proposal PDF is present in the checkout, so proposal quotations/approval remain unverified. Preserve existing five agents and add distinct Support/Strategy workflows without renaming departments. Existing approved purple/glass presentation is retained during engineering; the brief's historical Emerald naming conflicts with current DESIGN.md and is recorded rather than triggering an unrelated redesign.
+
+Critical path and realistic dates (targets, not completion claims):
+- **24 Nov / P0:** reproduce web-only clean-install failure; repair host dependency ownership; run unit/types/build/start/browser gates. Baseline clean web install/tests pass, production build fails resolving three from shared frontend landing; backend baseline initially blocked by missing pytest in this execution environment.
+- **25–26 Nov / P1:** versioned business-scoped role-work contract, actual independent role workers using a durable queue; claims/fencing/retries/crash/cancel tests. Add Support ticket drafts/escalation and Strategy scenario recommendations as distinct read-only roles; retain one existing approval/ledger execution authority. Verify a real Mongo + cross-process scenario, not duplicated registries.
+- **27 Nov / P2:** expose artifacts/progress and safely downloadable JSON/CSV evidence; connect authorized retrieval/context and record rule/AI modes. Verify revisions change the proposal or explicitly block.
+- **28 Nov / P3:** select Next release packaging, private Compose topology, worker/API readiness/storage/recovery, Jenkins build/test path and rollback/operator instructions. Local images/smokes do not prove AWS/Jenkins execution.
+- **29–30 Nov / P4:** bounded seven-role scenario, baseline/comparison evaluation with honest model modes, resource/latency measurements, production browser rehearsal and final matrix/CI review.
+
+Each slice requires expected behavior, focused tests, diff/security review, corrections, integration evidence and its own commit. One slice must be accepted before expanding. Keep external Gmail/Meta/calendar extensions below core simulation/distribution/evaluation. No external communication, paid resources or deployment is authorized. Production provider keys, proposal PDF, Jenkins controller and AWS account access remain operator dependencies; continue independent local work while these are absent. Full live delivery and cloud/Jenkins proof cannot be guaranteed by 30 November without those inputs. Any missed gate remains partial/blocked, not silently removed.
