@@ -42,11 +42,13 @@ def main():
             db = admin.startup_simulator
             db.background_jobs.insert_one({'_id':'synthetic-job','status':'queued'})
             db.financial_accounts.insert_one({'_id':'synthetic-business','cash_minor':10000})
+            db.agent_snapshots.insert_one({'_id':'synthetic-snapshot','state':{'employee_count':2}})
+            assert worker.startup_simulator.agent_snapshots.find_one({'_id':'synthetic-snapshot'})['state']['employee_count']==2
             assert worker.startup_simulator.financial_accounts.find_one({'_id':'synthetic-business'})['cash_minor']==10000
             assert worker.startup_simulator.background_jobs.find_one_and_update({'_id':'synthetic-job'}, {'$set':{'status':'running'}},return_document=ReturnDocument.AFTER)['status']=='running'
             worker.startup_simulator.role_worker_health.update_one({'_id':'test-worker'},{'$set':{'heartbeat_ts':time.time()}},upsert=True)
             denied = []
-            for collection in ['financial_accounts','businesses','distributed_runs','tasks','credentials','users']:
+            for collection in ['financial_accounts','businesses','distributed_runs','agent_snapshots','tasks','credentials','users']:
                 try:
                     worker.startup_simulator[collection].update_one({'_id':'forbidden'},{'$set':{'test':True}},upsert=True)
                 except OperationFailure as exc:

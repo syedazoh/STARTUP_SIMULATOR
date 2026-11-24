@@ -417,3 +417,5 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 
 - [x] P3 local packaging slice: Next standalone/nonced CSP, minimal role-worker image, restricted authenticated Mongo, private ten-service workflow through owner execution, health checks, Mongo restore, Jenkins source path and operator runbook validated locally.
 - [ ] P3 release acceptance: cached-model build/evaluation, Jenkins controller run, production-volume restore, real HTTPS/Supabase and authorized AWS rollout.
+
+- [x] P1 correctness follow-up: saved HR/Operations context, validated predecessor results, delayed coordinator recovery and late-result rejection; 14 focused/real-process tests and restricted snapshot-read/write checks passed.

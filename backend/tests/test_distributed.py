@@ -138,3 +138,48 @@ def test_api_tenants_contracts_and_existing_approval_authority(accounts):
     assert approved.status_code == 200 and approved.json()['status'] == 'executed'
     report = c.get(root+'/'+run['run_id'], headers=h['alice']).json()
     assert report['task_status'] == 'executed' and report['recorded_outcome']
+
+@pytest.mark.asyncio
+async def test_completed_before_deadline_survives_delayed_reconciliation():
+    db, b = await setup()
+    run = await work.submit(db, b, LaunchIn(idempotency_key='delayed-summary'))
+    for role in ROLES:
+        await work.run_once(db, role)
+        if role != ROLES[-1]:
+            await work.read(db, b.id, run['run_id'])
+    last = await db['background_jobs'].find_one({'_id': work.job_id(run['run_id'], 'strategy')})
+    await db['distributed_runs'].update_one({'_id':run['run_id']}, {'$set': {'deadline_ts':last['updated_ts']+.005}})
+    await asyncio.sleep(.01)
+    assert (await work.read(db,b.id,run['run_id']))['status']=='ready_for_review'
+
+
+@pytest.mark.asyncio
+async def test_current_recorded_staffing_resources_and_predecessor_budget():
+    db, b = await setup()
+    for role,state in [('hr',{'employee_count':9}),('operations',{'resource_pool':70})]:
+        await db['agent_snapshots'].insert_one({'business_id':b.id,'agent_id':role+'_'+b.id,
+            'state':state,'timestamp':datetime.now(timezone.utc)})
+        await db['agent_snapshots'].insert_one({'business_id':'other','agent_id':role+'_'+b.id,
+            'state':{'employee_count':999,'resource_pool':999},'timestamp':datetime.now(timezone.utc)})
+    run=await work.submit(db,b,LaunchIn(idempotency_key='current-state'))
+    for role in ROLES:
+        await work.run_once(db,role)
+        run=await work.read(db,b.id,run['run_id'])
+    assert 'Latest recorded headcount: 9' in run['roles'][3]['result']['artifact']
+    assert 'Latest recorded resource pool: 70' in run['roles'][4]['result']['artifact']
+    assert 'Finance ceiling: 10000' in run['roles'][3]['result']['artifact']
+    assert 'Latest recorded headcount: 999' not in run['roles'][3]['result']['artifact']
+    assert 'Latest recorded resource pool: 999' not in run['roles'][4]['result']['artifact']
+
+@pytest.mark.asyncio
+async def test_result_completing_after_deadline_is_not_success(monkeypatch):
+    db,b=await setup()
+    run=await work.submit(db,b,LaunchIn(idempotency_key='late-result'))
+    handler=work.handle
+    async def expired(db,job):
+        result=await handler(db,job)
+        await db['distributed_runs'].update_one({'_id':run['run_id']},{'$set':{'deadline_ts':0}})
+        return result
+    monkeypatch.setattr(work,'handle',expired)
+    assert (await work.run_once(db,'ceo'))['status']=='dead_letter'
+    assert (await work.read(db,b.id,run['run_id']))['status']=='timed_out'

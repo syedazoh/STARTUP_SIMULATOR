@@ -76,8 +76,14 @@ async def reconcile(db, run):
             await terminate(db, run, run['status'])  # Repair a raced late enqueue.
         return
     if time.time() >= run['deadline_ts']:
-        await terminate(db, run, 'timed_out')
-        return
+        completed = await db['background_jobs'].find({'business_id':run['business_id'],
+            'kind':'role_work','payload.correlation_id':run['_id']}).to_list(length=8)
+        if ({j['_id'] for j in completed} != {job_id(run['_id'], r) for r in ROLES}
+            or any(j['status'] != 'succeeded' or j['updated_ts'] > run['deadline_ts'] for j in completed)):
+            await terminate(db, run, 'timed_out')
+            return
+        # Work completed in time; a delayed/restarted coordinator is not a timeout.
+
     previous = None
     for role in ROLES:
         item = await db['background_jobs'].find_one({'_id': job_id(run['_id'], role)})
@@ -148,6 +154,9 @@ async def handle(db, job):
             'business_id': job['business_id'], 'status': 'succeeded'})
         if not previous:
             raise HTTPException(409, 'Predecessor result is not ready')
+    previous_result = RoleResult.model_validate(previous['result']) if previous else None
+    if previous_result and previous_result.role != ROLES[index-1]:
+        raise HTTPException(422, 'Predecessor role mismatch')
     business = await db['businesses'].find_one({'business_id': job['business_id'],
         'owner_user_id': job['requested_by']})
     if not business:
@@ -168,15 +177,26 @@ async def handle(db, job):
             artifact=f'{spec.campaign_name}\nExplore our upcoming product launch. Ask the team for current availability and approved terms.\nSynthetic draft; no product performance, discount or customer claims are asserted.',
             recommended_budget_minor=spec.requested_budget_minor)
     elif role == 'finance':
-        result = dict(summary='Budget constrained' if budget < spec.requested_budget_minor else 'Budget within analysis cap',
+        if previous_result.recommended_budget_minor is None:
+            raise HTTPException(422, 'Marketing budget recommendation missing')
+        budget = min(previous_result.recommended_budget_minor, available // 10)
+        result = dict(summary='Budget constrained' if budget < previous_result.recommended_budget_minor else 'Budget within analysis cap',
             recommended_budget_minor=budget,
-            artifact=f'Available cash: {available} minor units. Requested: {spec.requested_budget_minor}. Recommended ceiling: {budget}. Reservations and approval are rechecked by the existing executor.')
+            artifact=f'Available cash: {available} minor units. Requested by Marketing: {previous_result.recommended_budget_minor}. Recommended ceiling: {budget}. Reservations and approval are rechecked by the existing executor.')
     elif role == 'hr':
+        snapshots = await db['agent_snapshots'].find({'business_id':job['business_id'],
+            'agent_id':'hr_'+job['business_id']}).sort('timestamp',-1).to_list(length=1)
+        count = snapshots[0].get('state',{}).get('employee_count') if snapshots else None
+        reference = f'Latest recorded headcount: {count} (as of {snapshots[0]["timestamp"]})' if type(count) is int and count >= 0 else f'Initial headcount reference: {business["starting_headcount"]}'
         result = dict(summary='Assess staffing implication without hiring automatically.',
-            artifact=f'Current initial headcount reference: {business["starting_headcount"]}. Launch requires an assigned support reviewer; any recruitment needs a separate approved task.')
+            artifact=f'{reference}. Finance ceiling: {previous_result.recommended_budget_minor} minor units. Launch requires an assigned support reviewer; any recruitment needs a separate approved task.')
     elif role == 'operations':
+        snapshots = await db['agent_snapshots'].find({'business_id':job['business_id'],
+            'agent_id':'operations_'+job['business_id']}).sort('timestamp',-1).to_list(length=1)
+        count = snapshots[0].get('state',{}).get('resource_pool') if snapshots else None
+        reference = f'Latest recorded resource pool: {count} (as of {snapshots[0]["timestamp"]})' if type(count) is int and count >= 0 else f'Initial resource reference: {business["starting_resources"]}'
         result = dict(summary='Check resource constraints before launch.',
-            artifact=f'Initial resource reference: {business["starting_resources"]}. Confirm fulfillment capacity before approval; this analysis does not reserve or consume resources.')
+            artifact=f'{reference}. HR assessment: {previous_result.summary} Confirm fulfillment capacity before approval; this analysis does not reserve or consume resources.')
     elif role == 'support':
         retrieval = await knowledge.search(db, job['business_id'], 'support', spec.ticket, limit=3)
         sources = retrieval['results']
@@ -206,6 +226,10 @@ async def run_once(db, role, *, lease_seconds=LEASE_SECONDS, timeout=HANDLER_TIM
         if job['attempts'] > job['max_attempts']:
             raise HTTPException(422, 'Retry budget exhausted')
         result = await asyncio.wait_for(handle(db, job), timeout=timeout)
+        run = await db['distributed_runs'].find_one({'_id':job['payload']['correlation_id'],
+            'business_id':job['business_id'],'requested_by':job['requested_by']})
+        if not run or run['status'] != 'running' or time.time() >= run['deadline_ts']:
+            raise HTTPException(409, 'Scenario ended before result completion')
         update = {'status': 'succeeded', 'result': result, 'error': None}
     except asyncio.CancelledError:
         # Leave the lease recoverable; shutdown does not claim work succeeded.

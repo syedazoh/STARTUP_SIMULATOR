@@ -7,7 +7,7 @@ const role = 'analysisWorker';
 const privileges = [
   {resource:{db:'startup_simulator',collection:'background_jobs'},actions:['find','update']},
   {resource:{db:'startup_simulator',collection:'role_worker_health'},actions:['find','insert','update']},
-  ...['businesses','distributed_runs','financial_accounts','knowledge_documents'].map(collection=>({resource:{db:'startup_simulator',collection},actions:['find']})),
+  ...['businesses','distributed_runs','financial_accounts','knowledge_documents','agent_snapshots'].map(collection=>({resource:{db:'startup_simulator',collection},actions:['find']})),
 ];
 if (target.getRole(role)) target.updateRole(role,{privileges,roles:[]});
 else target.createRole({role,privileges,roles:[]});
