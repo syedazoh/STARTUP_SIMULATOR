@@ -416,18 +416,20 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [ ] P2 acceptance remains partial: model-assisted Marketing/Support artifacts and comparable labelled AI-vs-rule output evaluation.
 
 - [x] P3 local packaging slice: Next standalone/nonced CSP, minimal role-worker image, restricted authenticated Mongo, private ten-service workflow through owner execution, health checks, Mongo restore, Jenkins source path and operator runbook validated locally.
-- [ ] P3 release acceptance: cached-model build/evaluation, Jenkins controller run, production-volume restore, real HTTPS/Supabase and authorized AWS rollout.
+- [ ] P3 release acceptance: Jenkins controller run, production-volume restore, real HTTPS/Supabase and authorized AWS rollout. Cached-model tests/hybrid evaluation are verified.
 
 - [x] P1 correctness follow-up: saved HR/Operations context, validated predecessor results, delayed coordinator recovery and late-result rejection; 14 focused/real-process tests and restricted snapshot-read/write checks passed.
 
-- [x] P4 regression repair: empty/saved Chroma history works without model loading; semantic search remains explicit when unavailable, memory reads are bounded/non-blocking and tenant errors are preserved (5 focused checks passed). Model-backed retrieval gates remain open.
+- [x] P4 regression repair: empty/saved Chroma history works without model loading; semantic search remains explicit when unavailable, memory reads are bounded/non-blocking and tenant errors are preserved (5 focused checks passed). Model-backed retrieval subsequently passed 50/50 with the approved model cache.
 
 - [x] P4 local evaluation: four held-out rule/output cases, real primary scenario, 100 concurrency-four protected reads, cold topology startup and complete ten-container snapshot; actual evidence/modes/limitations saved.
-- [ ] Remaining release gates: 9 model-cache failures and 48/50 fallback retrieval below 49; actual AI-assisted outputs/comparison, proposal PDF mapping, final remote CI, Jenkins controller, real HTTPS/Supabase/volume recovery and authorized AWS rollout.
+- [ ] Remaining release gates: actual AI-assisted outputs/comparison, proposal PDF mapping, Jenkins controller, real HTTPS/Supabase/volume recovery and authorized AWS rollout. Cached-model validation now passes 504/504 tests and 50/50 hybrid retrieval.
 
 - [x] Final main/CI evidence: native main push verified through b999c6e; official GitHub web pages show Frontend, Next, Docker wiring and Backend workflows successful, with configured backend hybrid/model gates.
-- [ ] Apply approved model-access network draft to the running machine under the owner's publication constraint; local model cache reproduction and real AI-generated output/comparison remain pending. Draft saved only; no environment publication performed.
+- [x] Apply approved model-access hosts: observed revision 9, public downloads and offline model-cache validation passed. Assistant did not publish the environment. Real AI-generated output/comparison remains a separate open gate.
 
 - [x] Approved host grant active (observed revision 9); public models downloaded without token; offline real-Mongo container suite 504/504 and required hybrid retrieval 50/50 passed. Earlier nine local cache failures resolved.
 - [x] Repair container test fixture wiring: read-only datasets/diagnostic mounts in Jenkins/Compose; provider key forced empty and memory/uploads isolated in the test profile. Existing assertions retained.
 - [ ] Remaining: actual new AI-generated artifact/comparison acceptance, proposal PDF mapping, real Jenkins controller, HTTPS/Supabase, production-volume recovery and authorized AWS deployment.
+
+- [x] Container fixture follow-up e750dd8: GitHub Docker Compose Wiring completed successfully; evidence: docs/evaluation/ci-e750dd8.json.
