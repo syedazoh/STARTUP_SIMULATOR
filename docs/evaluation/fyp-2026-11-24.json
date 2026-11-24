@@ -1,0 +1,217 @@
+{
+  "synthetic": true,
+  "python": "3.11.18",
+  "scenario_cases": 4,
+  "case_results": [
+    {
+      "case": "constrained_launch",
+      "actual_budget_minor": 10000,
+      "expected_budget_minor": 10000,
+      "budget_pass": true,
+      "support_pass": true,
+      "content_contract_pass": true,
+      "support_mode": "extractive_fallback",
+      "baseline_budget_minor": 500000,
+      "baseline_cash_safe": false,
+      "first_new_business_finance_read_ms": 25.57,
+      "seven_role_duration_seconds": 6.148
+    },
+    {
+      "case": "zero_capital",
+      "actual_budget_minor": 0,
+      "expected_budget_minor": 0,
+      "budget_pass": true,
+      "support_pass": true,
+      "content_contract_pass": true,
+      "support_mode": "abstention",
+      "baseline_budget_minor": 100,
+      "baseline_cash_safe": false,
+      "first_new_business_finance_read_ms": 18.38,
+      "seven_role_duration_seconds": 5.308
+    },
+    {
+      "case": "affordable_small_launch",
+      "actual_budget_minor": 10000,
+      "expected_budget_minor": 10000,
+      "budget_pass": true,
+      "support_pass": true,
+      "content_contract_pass": true,
+      "support_mode": "extractive_fallback",
+      "baseline_budget_minor": 10000,
+      "baseline_cash_safe": true,
+      "first_new_business_finance_read_ms": 20.477,
+      "seven_role_duration_seconds": 5.163
+    },
+    {
+      "case": "low_spend",
+      "actual_budget_minor": 2500,
+      "expected_budget_minor": 2500,
+      "budget_pass": true,
+      "support_pass": true,
+      "content_contract_pass": true,
+      "support_mode": "abstention",
+      "baseline_budget_minor": 2500,
+      "baseline_cash_safe": true,
+      "first_new_business_finance_read_ms": 19.634,
+      "seven_role_duration_seconds": 5.664
+    }
+  ],
+  "budget_pass": 4,
+  "baseline_cash_safe": 2,
+  "support_pass": 4,
+  "output_mode": "rule/template Marketing, extractive-or-abstaining Support; no LLM calls",
+  "ai_comparison": {
+    "status": "not_exercised",
+    "reason": "No verified provider key/model run; configured key intentionally empty in this isolated profile."
+  },
+  "warm_read": {
+    "endpoint": "owned /finances",
+    "samples": 100,
+    "concurrency": 4,
+    "p50_ms": 6.373,
+    "p95_ms": 8.788,
+    "error_rate": 0,
+    "transport": "new local loopback HTTP connection per request; native test JWT and real Mongo"
+  },
+  "limitations": [
+    "Expected labels check arithmetic, contracts, ACL and abstention; not factual entailment or business intelligence.",
+    "First new-business reads are not process-cold latency. Scenario duration includes polling and scheduling.",
+    "No live market data, model comparison, model-loaded memory benchmark or AWS sizing is established."
+  ],
+  "resource_snapshot": [
+    {
+      "BlockIO": "0B / 2.01MB",
+      "CPUPerc": "0.57%",
+      "Container": "077550ec7a120392a3bc8fe5cd7d59a15ee58ff7080123de66dee2fe3544f193",
+      "ID": "077550ec7a12",
+      "MemPerc": "1.22%",
+      "MemUsage": "415.6MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-backend-1",
+      "NetIO": "1.52MB / 608kB",
+      "PIDs": "28"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "1.37%",
+      "Container": "e4e60a0b30c0f775edc8c3c4c855bf434a722b95b329d5902f81fc46513c4e6a",
+      "ID": "e4e60a0b30c0",
+      "MemPerc": "0.17%",
+      "MemUsage": "59.3MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-ceo-1",
+      "NetIO": "53.7kB / 89kB",
+      "PIDs": "6"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "30.16%",
+      "Container": "4522cb4504c4155b2181f4134a4357ba6eaef44a9ff416bc30c795576ca9e5ee",
+      "ID": "4522cb4504c4",
+      "MemPerc": "0.29%",
+      "MemUsage": "100.5MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-finance-1",
+      "NetIO": "62.2kB / 91.6kB",
+      "PIDs": "7"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "0.00%",
+      "Container": "373e8320595b1fc0fad3d9a107d8fd9ef7f6dc83f22b644d4f5859fc01faa72c",
+      "ID": "373e8320595b",
+      "MemPerc": "0.13%",
+      "MemUsage": "45.65MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-frontend-1",
+      "NetIO": "726B / 126B",
+      "PIDs": "11"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "59.73%",
+      "Container": "9d9d1f78a396cc889f1bbae5d3c305a88287066d2c46fcc79e8baf47daaeb752",
+      "ID": "9d9d1f78a396",
+      "MemPerc": "0.35%",
+      "MemUsage": "118.4MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-hr-1",
+      "NetIO": "65.5kB / 96.3kB",
+      "PIDs": "10"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "57.29%",
+      "Container": "a41d5143fd44d176575acd8934d89c0ac673d56723bb19c4845822c583700faa",
+      "ID": "a41d5143fd44",
+      "MemPerc": "0.35%",
+      "MemUsage": "118.7MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-marketing-1",
+      "NetIO": "64.7kB / 96.4kB",
+      "PIDs": "10"
+    },
+    {
+      "BlockIO": "233kB / 5.33MB",
+      "CPUPerc": "2.11%",
+      "Container": "91a30c640b337a9ae693f3a095e2335a9a54956a57d0cd950b95d32d33d4d99d",
+      "ID": "91a30c640b33",
+      "MemPerc": "0.55%",
+      "MemUsage": "186.4MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-mongo-1",
+      "NetIO": "1.27MB / 1.96MB",
+      "PIDs": "64"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "18.58%",
+      "Container": "1866cda21c1f17dfc87049a3e321a3ffee17f19162e53d8f7a2339a33fdb32eb",
+      "ID": "1866cda21c1f",
+      "MemPerc": "0.25%",
+      "MemUsage": "86.61MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-operations-1",
+      "NetIO": "63.1kB / 94kB",
+      "PIDs": "7"
+    },
+    {
+      "BlockIO": "0B / 0B",
+      "CPUPerc": "53.04%",
+      "Container": "459b37f6387c6b2ea6031f170e27372baeb95eb7d83ae0530c403cd9ed50fe2c",
+      "ID": "459b37f6387c",
+      "MemPerc": "0.32%",
+      "MemUsage": "110.7MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-strategy-1",
+      "NetIO": "70.8kB / 94.6kB",
+      "PIDs": "7"
+    },
+    {
+      "BlockIO": "0B / 1.14MB",
+      "CPUPerc": "0.23%",
+      "Container": "08c509554e6eb341070732abda41f76758b1e9b83bfa572b4372302781b96e84",
+      "ID": "08c509554e6e",
+      "MemPerc": "0.67%",
+      "MemUsage": "229.4MiB / 33.29GiB",
+      "Name": "fyp-release-4afca4a822-support-1",
+      "NetIO": "66.6kB / 92.8kB",
+      "PIDs": "11"
+    }
+  ],
+  "resource_note": "Single post-workflow/reads snapshot, not peak RSS or model-loaded sizing; CPU percent uses Docker conventions.",
+  "topology_cold_start_seconds": 47.693,
+  "docker_storage_driver": "vfs",
+  "host": {
+    "cpu_count": 5,
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41"
+  },
+  "runtime_commit": "03013b4dba80a60dfa04240bb613f857593c3825",
+  "runtime_source_sha256": "9ceee86da25424626acc71f0f3f74d6af2f287d6d38742e2fb9630d454dd9e45",
+  "evaluation_source_sha256": "e1a042fb9e542bf9e437387d29bc0103d39eb88d283dd14bb66774ad2af7b92c",
+  "images": {
+    "BACKEND_IMAGE": {
+      "tag": "startup-simulator-backend:fyp-rules",
+      "bytes": 2128933713
+    },
+    "WORKER_IMAGE": {
+      "tag": "startup-simulator-role-worker:fyp-local",
+      "bytes": 218036471
+    },
+    "FRONTEND_IMAGE": {
+      "tag": "startup-simulator-next:fyp-local",
+      "bytes": 233024300
+    }
+  }
+}

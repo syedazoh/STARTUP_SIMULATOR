@@ -1,0 +1,592 @@
+{
+  "synthetic": true,
+  "cases": 50,
+  "baseline_pass": 48,
+  "pipeline_pass": 48,
+  "notes": "Retrieval coverage and department isolation only, not factual entailment or real customer quality.",
+  "results": [
+    {
+      "query": "expense claim receipt",
+      "department": "finance",
+      "expected_key": "expenses",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "expenses"
+      ]
+    },
+    {
+      "query": "expense submission deadline",
+      "department": "finance",
+      "expected_key": "expenses",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "expenses"
+      ]
+    },
+    {
+      "query": "receipt reimbursement",
+      "department": "finance",
+      "expected_key": "expenses",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "expenses"
+      ]
+    },
+    {
+      "query": "claims fourteen days",
+      "department": "finance",
+      "expected_key": "expenses",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "expenses"
+      ]
+    },
+    {
+      "query": "supplier invoice approval",
+      "department": "finance",
+      "expected_key": "invoices",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "invoices"
+      ]
+    },
+    {
+      "query": "invoice purchase order",
+      "department": "finance",
+      "expected_key": "invoices",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "invoices"
+      ]
+    },
+    {
+      "query": "finance manager invoices",
+      "department": "finance",
+      "expected_key": "invoices",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "invoices"
+      ]
+    },
+    {
+      "query": "invoice requirement",
+      "department": "finance",
+      "expected_key": "invoices",
+      "baseline_pass": false,
+      "pipeline_pass": false,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "campaign graphics colours",
+      "department": "marketing",
+      "expected_key": "brand",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "brand",
+        "campaign"
+      ]
+    },
+    {
+      "query": "brand review publication",
+      "department": "marketing",
+      "expected_key": "brand",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "brand"
+      ]
+    },
+    {
+      "query": "emerald ivory campaign",
+      "department": "marketing",
+      "expected_key": "brand",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "brand",
+        "campaign"
+      ]
+    },
+    {
+      "query": "graphics brand policy",
+      "department": "marketing",
+      "expected_key": "brand",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "brand"
+      ]
+    },
+    {
+      "query": "campaign proposal audience",
+      "department": "marketing",
+      "expected_key": "campaign",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "campaign",
+        "brand"
+      ]
+    },
+    {
+      "query": "proposal success metric",
+      "department": "marketing",
+      "expected_key": "campaign",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "campaign"
+      ]
+    },
+    {
+      "query": "campaign budget channel",
+      "department": "marketing",
+      "expected_key": "campaign",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "campaign",
+        "brand"
+      ]
+    },
+    {
+      "query": "marketing proposal requirements",
+      "department": "marketing",
+      "expected_key": "campaign",
+      "baseline_pass": false,
+      "pipeline_pass": false,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "hiring job description",
+      "department": "hr",
+      "expected_key": "hiring",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "hiring"
+      ]
+    },
+    {
+      "query": "interview scorecards selection",
+      "department": "hr",
+      "expected_key": "hiring",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "hiring"
+      ]
+    },
+    {
+      "query": "hiring first step",
+      "department": "hr",
+      "expected_key": "hiring",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "onboarding",
+        "hiring"
+      ]
+    },
+    {
+      "query": "scorecards meeting",
+      "department": "hr",
+      "expected_key": "hiring",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "hiring"
+      ]
+    },
+    {
+      "query": "employee onboarding checklist",
+      "department": "hr",
+      "expected_key": "onboarding",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "onboarding"
+      ]
+    },
+    {
+      "query": "mentor assignment week",
+      "department": "hr",
+      "expected_key": "onboarding",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "onboarding"
+      ]
+    },
+    {
+      "query": "new employee access",
+      "department": "hr",
+      "expected_key": "onboarding",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "onboarding"
+      ]
+    },
+    {
+      "query": "onboarding first week",
+      "department": "hr",
+      "expected_key": "onboarding",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "onboarding"
+      ]
+    },
+    {
+      "query": "inventory counting schedule",
+      "department": "operations",
+      "expected_key": "inventory",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "inventory"
+      ]
+    },
+    {
+      "query": "stock discrepancies register",
+      "department": "operations",
+      "expected_key": "inventory",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "inventory"
+      ]
+    },
+    {
+      "query": "inventory Friday",
+      "department": "operations",
+      "expected_key": "inventory",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "inventory"
+      ]
+    },
+    {
+      "query": "stock register counting",
+      "department": "operations",
+      "expected_key": "inventory",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "inventory"
+      ]
+    },
+    {
+      "query": "service incident assessment",
+      "department": "operations",
+      "expected_key": "incidents",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "incidents"
+      ]
+    },
+    {
+      "query": "incident coordinator",
+      "department": "operations",
+      "expected_key": "incidents",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "incidents"
+      ]
+    },
+    {
+      "query": "incident severity",
+      "department": "operations",
+      "expected_key": "incidents",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "incidents"
+      ]
+    },
+    {
+      "query": "service incident requirements",
+      "department": "operations",
+      "expected_key": "incidents",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "incidents"
+      ]
+    },
+    {
+      "query": "weekly board summary",
+      "department": "ceo",
+      "expected_key": "board",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "board"
+      ]
+    },
+    {
+      "query": "board unresolved risks",
+      "department": "ceo",
+      "expected_key": "board",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "board"
+      ]
+    },
+    {
+      "query": "department approval blockers",
+      "department": "ceo",
+      "expected_key": "board",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "board",
+        "delegation"
+      ]
+    },
+    {
+      "query": "board progress report",
+      "department": "ceo",
+      "expected_key": "board",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "board"
+      ]
+    },
+    {
+      "query": "delegation completion evidence",
+      "department": "ceo",
+      "expected_key": "delegation",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "delegation"
+      ]
+    },
+    {
+      "query": "assignment responsible department",
+      "department": "ceo",
+      "expected_key": "delegation",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "delegation",
+        "board"
+      ]
+    },
+    {
+      "query": "delegated objective",
+      "department": "ceo",
+      "expected_key": "delegation",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "delegation"
+      ]
+    },
+    {
+      "query": "assignment measurable evidence",
+      "department": "ceo",
+      "expected_key": "delegation",
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": [
+        "delegation"
+      ]
+    },
+    {
+      "query": "expense claim receipt",
+      "department": "hr",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "supplier invoice approval",
+      "department": "hr",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "campaign graphics colours",
+      "department": "operations",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "campaign proposal audience",
+      "department": "operations",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "hiring job description",
+      "department": "ceo",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "employee onboarding checklist",
+      "department": "ceo",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "inventory counting schedule",
+      "department": "finance",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "service incident assessment",
+      "department": "finance",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "weekly board summary",
+      "department": "marketing",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    },
+    {
+      "query": "delegation completion evidence",
+      "department": "marketing",
+      "expected_key": null,
+      "baseline_pass": true,
+      "pipeline_pass": true,
+      "mode": "lexical",
+      "reranker": "lexical_fallback",
+      "retrieved": []
+    }
+  ]
+}

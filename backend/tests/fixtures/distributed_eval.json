@@ -1,0 +1,11 @@
+{
+  "synthetic": true,
+  "description": "Held-out finite input/expected-rule labels, not model intelligence or real customer outcomes.",
+  "baseline": "Recommend the original requested budget unchanged; no retrieval or state constraints.",
+  "cases": [
+    {"id":"constrained_launch","capital_usd":1000,"requested_minor":500000,"expected_minor":10000,"seed":17,"policy":true,"support_mode":"extractive_fallback"},
+    {"id":"zero_capital","capital_usd":0,"requested_minor":100,"expected_minor":0,"seed":23,"policy":false,"support_mode":"abstention"},
+    {"id":"affordable_small_launch","capital_usd":10000,"requested_minor":10000,"expected_minor":10000,"seed":31,"policy":true,"support_mode":"extractive_fallback"},
+    {"id":"low_spend","capital_usd":1000,"requested_minor":2500,"expected_minor":2500,"seed":47,"policy":false,"support_mode":"abstention"}
+  ]
+}

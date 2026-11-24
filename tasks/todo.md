@@ -400,7 +400,7 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 ## FYP submission execution — 24 November 2026
 Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; evidence: docs/FYP_IMPLEMENTATION_MATRIX.md.
 - [x] P0 Clean web-only build, dependency-boundary regression and production browser acceptance (local/container; remote CI lookup remains pending).
-- [ ] P1 Independent role workers with durable versioned messages and real-process recovery/tenant/idempotency tests.
+- [x] P1 Independent role workers with durable versioned messages and real-process recovery/tenant/idempotency tests (also ten-service local container acceptance).
 - [ ] P1 Distinct Support and Strategy workflows without renaming five existing departments.
 - [ ] P2 Saved content/grounded drafts, owner revisions and tenant-safe CSV/JSON evidence download.
 - [ ] P2 Complete bounded seven-role scenario with persisted outcomes/reports and actual output modes.
@@ -421,3 +421,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [x] P1 correctness follow-up: saved HR/Operations context, validated predecessor results, delayed coordinator recovery and late-result rejection; 14 focused/real-process tests and restricted snapshot-read/write checks passed.
 
 - [x] P4 regression repair: empty/saved Chroma history works without model loading; semantic search remains explicit when unavailable, memory reads are bounded/non-blocking and tenant errors are preserved (5 focused checks passed). Model-backed retrieval gates remain open.
+
+- [x] P4 local evaluation: four held-out rule/output cases, real primary scenario, 100 concurrency-four protected reads, cold topology startup and complete ten-container snapshot; actual evidence/modes/limitations saved.
+- [ ] Remaining release gates: 9 model-cache failures and 48/50 fallback retrieval below 49; actual AI-assisted outputs/comparison, proposal PDF mapping, final remote CI, Jenkins controller, real HTTPS/Supabase/volume recovery and authorized AWS rollout.
