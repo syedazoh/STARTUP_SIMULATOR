@@ -39,6 +39,7 @@ function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
               contentStyle={{ fontSize: 14, borderRadius: 8 }}
             />
             <Line
+              isAnimationActive={false}
               type="monotone"
               dataKey={dataKey}
               stroke={color}

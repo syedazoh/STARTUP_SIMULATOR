@@ -242,3 +242,13 @@ The public nine-step messaging walkthrough and its source module were removed at
 The poster and “Watch the project video” now open a native modal and call play on the actual existing 62.6-second H.264 recording. Native controls support pause, seek and fullscreen; English captions remain available. Escape/Close pauses playback. A separate “Read the guide” link opens written onboarding. Playback failure exposes retry and recording download instead of pretending a guide link plays video. The recording uses synthetic data and has no audio track; it is not a new production-integrations demonstration.
 
 Public depth now includes a true Three.js metallic torus-knot sculpture behind glass, scoped to the hero area with capped pixel ratio and approximately 30fps rendering. Motion off leaves a static frame; offscreen/hidden views skip drawing; CSS atmosphere remains without WebGL. Both dark and light themes retain a clear reading area.
+
+## Reference-led command center — November 24, 2026
+
+The owner’s three supplied dashboard references establish the compact-sidebar/KPI/chart/action composition; the existing Executive Studio remains the visual authority. Next’s business dashboard uses a 230px sticky sidebar, a flexible content column and a 32px gap, tightening to 200px/22px at 1200px. At 760px it becomes a single bounded column with native horizontally scrolling navigation. The site header is hidden only on this dashboard to avoid duplicate branding.
+
+Scoped dashboard surfaces are deep plum (`#191420`), raised plum (`#241c30`), lines (`#3b2e49`), warm ink (`#f3eee6`) and readable muted lavender (`#c2b3d0`). Human attention uses beige (`#e4d4b8`) with dark plum text and an explicit action. Card radii are 12–14px. Body/compact controls remain 14–15px, headings 20–23px, metric values 25–35px and business headings 28–42px. Chart labels are HTML text at 14px, not scaled-down SVG text.
+
+Task workload and financial snapshots are labelled as such; unknown data stays unavailable. Financial values use simulator ledger units without inventing a currency, and chart geometry supports both sides of zero. The KPI/task/report data limits remain visible. The approval inbox shortcut navigates; it does not authorize work.
+
+Vite reuses its current app shell and charts, moves recorded-history analytics above operating controls and applies the same purple/off-white/beige hierarchy. History line animation is disabled to keep polled curves stable; the reduced-motion/3D behavior elsewhere is unchanged. The current surface brief is `.impeccable/briefs/command-center.md`.

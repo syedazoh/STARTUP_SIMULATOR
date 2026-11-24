@@ -18,7 +18,7 @@ import '../components/boardroom/boardroom.css'
 import './dashboard.css'
 
 const POLL_INTERVAL_MS=1800
-const ACCENTS={finance:'#4e977b',marketing:'#b185bb',hr:'#cc8b76',operations:'#bb8e56',ceo:'#c69d59'}
+const ACCENTS={finance:'#b8a0ff',marketing:'#dd98e8',hr:'#e5b8a2',operations:'#9eb6ed',ceo:'#d9c6a4'}
 const display=(value)=>value==null?'—':typeof value==='number'?value.toLocaleString():String(value)
 const displayEvent=(type)=>String(type||'event').replace(/_/g,' ').replace(/\./g,' • ')
 export default function Dashboard(){
@@ -64,6 +64,12 @@ export default function Dashboard(){
      <div className="hq-kpi"><span>OWNER REVIEWS</span><strong>{display(tasks.length)}</strong><small>Tasks awaiting action</small></div>
      <div className="hq-kpi"><span>RECORDED EVENTS</span><strong>{eventLoad==='succeeded'?display(events.length):'—'}</strong><small>Most recent 100 in memory</small></div>
    </div>
+   <section className="hq-analytics"><div className="hq-section-header"><div><span className="hq-kicker">SIMULATION TELEMETRY</span><h2>Business performance</h2></div><span className="hq-quiet-badge">From agent history</span></div>{metricError&&<p className="hq-alert">Could not retrieve one or more business metrics.</p>}
+   <div className="hq-chart-grid">
+     <AgentMetricChart title="Finance · Budget pool" data={toChartData(financeHistory,'budget_pool')} dataKey="budget_pool" color="#b8a0ff" valueFormatter={v=>Number(v).toLocaleString()}/>
+     <AgentMetricChart title="Marketing · Customer base" data={toChartData(marketingHistory,'customer_base')} dataKey="customer_base" color="#dd98e8"/>
+     <AgentMetricChart title="Marketing · Brand value" data={toChartData(marketingHistory,'brand_value')} dataKey="brand_value" color="#d9c6a4" valueFormatter={v=>v.toFixed(0)}/>
+   </div></section>
    <section className="hq-control-section"><div className="hq-control-title"><h2>Simulation control</h2><button type="button" onClick={()=>setShowControls(!showControls)}>{showControls?'Collapse':'Expand'} settings</button></div>{showControls&&<SimulationControls businessId={businessId}/>}</section>
    {(agentError||eventError)&&<p className="hq-alert" role="alert">Backend data unavailable or delayed. {agentError||eventError}. Values may be out of date.</p>}
    <section className="hq-command-brief">
@@ -90,12 +96,6 @@ export default function Dashboard(){
        </section>
      </div>
    </div>
-   <section className="hq-analytics"><div className="hq-section-header"><div><span className="hq-kicker">SIMULATION TELEMETRY</span><h2>Business performance</h2></div><span className="hq-quiet-badge">From agent history</span></div>{metricError&&<p className="hq-alert">Could not retrieve one or more business metrics.</p>}
-   <div className="hq-chart-grid">
-     <AgentMetricChart title="Finance · Budget pool" data={toChartData(financeHistory,'budget_pool')} dataKey="budget_pool" color="#1f6b57" valueFormatter={v=>'$'+Math.round(v/1000)+'k'}/>
-     <AgentMetricChart title="Marketing · Customer base" data={toChartData(marketingHistory,'customer_base')} dataKey="customer_base" color="#a88bc7"/>
-     <AgentMetricChart title="Marketing · Brand value" data={toChartData(marketingHistory,'brand_value')} dataKey="brand_value" color="#c69d59" valueFormatter={v=>v.toFixed(0)}/>
-   </div></section>
    {summary&&<EndOfRunSummary summary={summary}/>}
  </main>
 }

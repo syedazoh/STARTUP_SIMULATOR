@@ -267,6 +267,37 @@
         "integration": "Shared React component across Vite and Next; mirrored CSS required by separate PostCSS configurations",
         "routes": "Vite /register and authenticated /app redirect; Next /signup; both /login"
       }
+    },
+    "commandCenter": {
+      "scope": "Authenticated Next business overview; Vite command dashboard receives compatible hierarchy/palette refinements",
+      "source": [
+        "web/app/workspace/[businessId]/command-center.css",
+        "web/app/workspace/[businessId]/overview-charts.tsx",
+        "frontend/src/pages/dashboard.css"
+      ],
+      "palette": {
+        "surface": "#191420",
+        "raised": "#241c30",
+        "line": "#3b2e49",
+        "text": "#f3eee6",
+        "muted": "#c2b3d0",
+        "attention": "#e4d4b8",
+        "attentionInk": "#302337"
+      },
+      "layout": {
+        "sidebar": "230px; 200px at <=1200px",
+        "gap": "32px; 22px compact",
+        "mobile": "760px bounded single column, internally scrolling navigation",
+        "cards": "12\u201314px radius"
+      },
+      "type": {
+        "body": "14\u201315px",
+        "panelHeading": "20\u201323px",
+        "metric": "25\u201335px",
+        "chartLabel": "14px actual HTML text"
+      },
+      "dataTruth": "Existing authenticated snapshots and history only; no fabricated trends/currency, no approval on navigation",
+      "motion": "History charts disable stroke reveal during polling; existing boardroom motion remains unchanged"
     }
   },
   "components": [

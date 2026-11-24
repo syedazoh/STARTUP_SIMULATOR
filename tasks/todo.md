@@ -445,5 +445,7 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [x] Remove owner-rejected public messaging walkthrough, its unused module/styles and obsolete tests; retain authenticated communication features.
 - [x] Poster and explicit video button play the real project recording in a modal; separate written guide, captions, native playback/fullscreen, Escape pause and error recovery.
 - [x] Add scoped metallic Three.js background with reduced-motion/WebGL fallback; retain existing themes and agent introductions.
-- [ ] Dashboard redesign: incorporate the owner's forthcoming references before choosing the new dashboard composition.
+- [x] Dashboard references received and adapted: Next compact sidebar/KPI/chart/attention overview and Vite history-first dashboard in the existing black/purple/beige theme. Existing data/actions preserved; see docs/design/DASHBOARD_REFERENCE_UPDATE.md.
 Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
+
+- [x] Dashboard verification: Next local fake-provider route/approval check and five widths; Vite isolated API/history five widths; 90 existing unit tests, applicable lint/types/builds. No real account or provider side effects.
