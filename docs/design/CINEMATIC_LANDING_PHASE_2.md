@@ -1,5 +1,7 @@
 # Cinematic landing: chapters, references and launch handoffs
 
+Historical implementation record. The public messaging walkthrough was subsequently removed at the owner’s request; see LANDING_VIDEO_CORRECTION.md for current behavior.
+
 24 November 2026. Completes the public landing's second design phase; signed-in business execution, billing and deployment are outside this change.
 
 ## References actually used

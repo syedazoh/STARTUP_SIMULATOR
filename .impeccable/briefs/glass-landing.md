@@ -26,3 +26,6 @@ Phase 2 implemented: selectable expanded agent chapters and a nine-step syntheti
 
 ## Requested libraries — 24 November 2026
 Owner clarified Vengence UI (vengenceui.com) and Augment Code (augmentcode.com). Augment is not a UI library; no connection or use is claimed. Adapted Vengence staggerText and Skiper legacy ExpandedTabs with MIT notices; current Skiper website was blocked from this environment, so the specific legacy source and limitations are documented. Framer Motion imports belong to each app; shared UI receives app-owned primitives. Source/license notices ship with both public builds. Synthetic walkthrough selection never calls backend/provider APIs.
+
+## Superseding user correction — 24 November 2026
+Owner rejected the public launch-message walkthrough in a screenshot. Remove it from landing, preserve authenticated recorded collaboration. Replace misleading poster-to-guide navigation with actual video playback and a separate reading option. Implemented native project-video modal, retry/download recovery and real metallic 3D background; both controls use the existing 62.6-second captioned synthetic recording. Communication with the owner is English/Roman Urdu, never Hindi script. Dashboard visual overhaul awaits the references the owner said they will share; no dashboard redesign is claimed here.

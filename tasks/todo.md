@@ -440,3 +440,10 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [x] Phase 2: Skiper legacy expanded agent chapters, Vengence text reveal and nine-step synthetic launch handoffs with Framer Motion; five departments plus separate owner, manual/playback controls and motion/fallback handling. Evidence: docs/design/CINEMATIC_LANDING_PHASE_2.md.
 - [ ] Define paid plan names, prices, quotas and entitlements before subscription implementation. No billing claim from landing presentation.
 - [ ] Later: actual-device/browser and performance verification; existing Vite bundle-size concern remains.
+
+## Landing correction — 24 November 2026
+- [x] Remove owner-rejected public messaging walkthrough, its unused module/styles and obsolete tests; retain authenticated communication features.
+- [x] Poster and explicit video button play the real project recording in a modal; separate written guide, captions, native playback/fullscreen, Escape pause and error recovery.
+- [x] Add scoped metallic Three.js background with reduced-motion/WebGL fallback; retain existing themes and agent introductions.
+- [ ] Dashboard redesign: incorporate the owner's forthcoming references before choosing the new dashboard composition.
+Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
