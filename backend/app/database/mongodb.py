@@ -204,10 +204,8 @@ async def connect_to_mongo() -> None:
         if not settings.debug:
             raise RuntimeError("MongoDB is required in production") from exc
         logger.warning(
-            "MongoDB unavailable at %s (%s); using in-memory fallback. "
+            "MongoDB unavailable; using in-memory fallback. "
             "Data will NOT persist across restarts.",
-            settings.mongodb_url,
-            exc,
         )
         mongodb.client = None
         mongodb.db = InMemoryDatabase()

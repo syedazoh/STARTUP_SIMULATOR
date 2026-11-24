@@ -1,0 +1,9 @@
+# Existing pinned dependencies needed by read-only role handlers; no ML runtime.
+fastapi==0.141.1
+pydantic==2.13.4
+pydantic-settings==2.15.0
+motor==3.4.0
+pymongo==4.8.0
+langchain-core==1.5.3
+langchain-groq==1.1.3
+redis==6.4.0

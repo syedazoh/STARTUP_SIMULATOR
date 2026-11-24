@@ -8,4 +8,5 @@
 # reads those with {$VAR} at startup.
 FROM caddy:2-alpine
 
-COPY Caddyfile /etc/caddy/Caddyfile
+ARG CADDYFILE=Caddyfile
+COPY ${CADDYFILE} /etc/caddy/Caddyfile

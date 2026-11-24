@@ -1,0 +1,125 @@
+# Selected Next release topology. No host ports except Caddy; no deployment is implied.
+x-worker: &worker
+  image: ${WORKER_IMAGE:?set immutable role-worker WORKER_IMAGE tag}
+  restart: unless-stopped
+  environment: &worker-env
+    MONGODB_URL: mongodb://analysis_worker:${MONGO_WORKER_PASSWORD:?set distinct hex worker password}@mongo:27017/startup_simulator?authSource=startup_simulator
+    MONGODB_DB_NAME: startup_simulator
+    DEBUG: 'false'
+    # Unused API/vault keys must differ from backend authority secrets.
+    SECRET_KEY: ${WORKER_SECRET_KEY:?set independent worker-only key}
+    CREDENTIAL_MASTER_KEY: ${WORKER_CREDENTIAL_MASTER_KEY:?set independent worker-only Fernet key}
+    GROQ_API_KEY: ''
+    RAG_DENSE_ENABLED: ${RAG_DENSE_ENABLED:-true}
+    RAG_RERANKER_ENABLED: ${RAG_RERANKER_ENABLED:-true}
+    RAG_ALLOW_MODEL_DOWNLOAD: 'false'
+    HF_HUB_OFFLINE: '1'
+  depends_on:
+    mongo: {condition: service_healthy}
+  healthcheck:
+    test: ['CMD', 'python', '-m', 'app.role_worker', '--healthcheck']
+    interval: 15s
+    timeout: 5s
+    start_period: 30s
+    retries: 3
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?set hex-safe root username}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set hex root password}
+      MONGO_WORKER_PASSWORD: ${MONGO_WORKER_PASSWORD:?set distinct hex worker password}
+    volumes:
+      - mongo_data:/data/db
+      - ./docker/mongo/analysis-user.js:/docker-entrypoint-initdb.d/analysis-user.js:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet --username "$$MONGO_INITDB_ROOT_USERNAME" --password "$$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --eval "if (!db.adminCommand({ping:1}).ok) quit(1)"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  backend:
+    image: ${BACKEND_IMAGE:?set immutable BACKEND_IMAGE tag}
+    restart: unless-stopped
+    environment:
+      MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/?authSource=admin
+      MONGODB_DB_NAME: startup_simulator
+      CHROMA_PERSIST_DIR: /app/chroma_data
+      DEBUG: 'false'
+      SECRET_KEY: ${SECRET_KEY:?set deployment API signing key}
+      CREDENTIAL_MASTER_KEY: ${CREDENTIAL_MASTER_KEY:?set deployment Fernet key}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?set public HTTPS origin}
+      SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?set Supabase URL}
+      SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?set public Supabase key}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
+      BACKGROUND_JOBS_ENABLED: 'true'
+      RAG_DENSE_ENABLED: ${RAG_DENSE_ENABLED:-true}
+      RAG_RERANKER_ENABLED: ${RAG_RERANKER_ENABLED:-true}
+      RAG_ALLOW_MODEL_DOWNLOAD: 'false'
+      HF_HUB_OFFLINE: '1'
+      MCP_RESOURCE_URL: https://${APP_DOMAIN}/mcp/
+      MCP_ALLOWED_HOSTS: ${APP_DOMAIN}:*,backend:8000
+    volumes:
+      - chroma_data:/app/chroma_data
+      - upload_data:/app/uploads
+    depends_on:
+      mongo: {condition: service_healthy}
+    healthcheck:
+      test: ['CMD', 'python', '-c', "import json,urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=3))['mongo']=='connected'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 10
+  ceo:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'ceo']
+  marketing:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'marketing']
+  finance:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'finance']
+  hr:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'hr']
+  operations:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'operations']
+  support:
+    <<: *worker
+    image: ${BACKEND_IMAGE:?set immutable cached-model Support image tag}
+    command: ['python', '-m', 'app.role_worker', '--role', 'support']
+  strategy:
+    <<: *worker
+    command: ['python', '-m', 'app.role_worker', '--role', 'strategy']
+  frontend:
+    image: ${FRONTEND_IMAGE:?set immutable Next FRONTEND_IMAGE tag}
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+      APP_URL: https://${APP_DOMAIN}
+    depends_on:
+      backend: {condition: service_healthy}
+  caddy:
+    image: ${CADDY_IMAGE:?set immutable Next Caddy image tag}
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?set public DNS name}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME contact email}
+    ports: ['80:80', '443:443', '443:443/udp']
+    volumes: [caddy_data:/data, caddy_config:/config]
+    depends_on:
+      frontend: {condition: service_healthy}
+volumes:
+  # Explicit existing volume names prevent silently starting an empty database on cutover.
+  mongo_data: {external: true, name: '${MONGO_VOLUME_NAME:?identify existing backed-up Mongo volume or create an isolated new one}'}
+  chroma_data: {external: true, name: '${CHROMA_VOLUME_NAME:?identify existing Chroma volume}'}
+  upload_data: {external: true, name: '${UPLOAD_VOLUME_NAME:?identify existing upload volume}'}
+  caddy_data:
+  caddy_config:

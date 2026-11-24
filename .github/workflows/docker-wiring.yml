@@ -6,6 +6,12 @@ on:
     paths:
       - 'backend/**'
       - 'frontend/**'
+      - 'web/**'
+      - '.dockerignore'
+      - 'docker-compose.next.yml'
+      - 'Jenkinsfile'
+      - 'scripts/check_worker_permissions.py'
+      - 'scripts/smoke_next_release.py'
       - 'docker/**'
       - 'scripts/smoke_stack.py'
       - '.github/workflows/docker-wiring.yml'
@@ -14,6 +20,12 @@ on:
     paths:
       - 'backend/**'
       - 'frontend/**'
+      - 'web/**'
+      - '.dockerignore'
+      - 'docker-compose.next.yml'
+      - 'Jenkinsfile'
+      - 'scripts/check_worker_permissions.py'
+      - 'scripts/smoke_next_release.py'
       - 'docker/**'
       - 'scripts/smoke_stack.py'
       - '.github/workflows/docker-wiring.yml'
@@ -40,3 +52,38 @@ jobs:
           docker compose -p startup-wiring -f docker/docker-compose.yml logs --tail 100
           docker compose -p startup-wiring -f docker/docker-compose.yml down -v
           rm -f "$RUNNER_TEMP/startup-wiring.json"
+
+  next-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Next from web-only dependencies and shared sources
+        run: docker build -f web/Dockerfile -t startup-next:${{ github.sha }} .
+      - name: Verify unprivileged runtime and per-request CSP
+        run: |
+          docker run -d --name next-image -p 127.0.0.1:3030:3000 startup-next:${{ github.sha }}
+          python - <<'PYTHON'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  first = urllib.request.urlopen('http://127.0.0.1:3030/login', timeout=3)
+                  assert first.status == 200
+                  break
+              except Exception:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Next container did not become ready')
+          second = urllib.request.urlopen('http://127.0.0.1:3030/login', timeout=3)
+          a, b = first.headers['Content-Security-Policy'], second.headers['Content-Security-Policy']
+          assert "'nonce-" in a and a != b
+          assert 'private' in second.headers['Cache-Control']
+          PYTHON
+          test "$(docker inspect --format '{{.Config.User}}' next-image)" = node
+      - name: Verify isolated worker database authority and Mongo restore
+        run: |
+          python -m pip install pymongo==4.8.0
+          python scripts/check_worker_permissions.py
+      - name: Local runtime cleanup
+        if: always()
+        run: docker logs next-image; docker rm -f next-image

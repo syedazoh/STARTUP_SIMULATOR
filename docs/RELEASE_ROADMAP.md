@@ -41,3 +41,8 @@ Proposed staging budgets to agree and test: p95 warm local read APIs under 500ms
 ## Release gates
 
 Confirm provider choices/scopes, frontend to ship, AWS account/region, domain and controlled test identities. Complete external-adapter acceptance, build/security checks, backups/restore, health/metrics, load tests and rollback rehearsal. Then deploy staging, verify there, and request the authorized production rollout. See [deployment.md](deployment.md) and [LIVE_INTEGRATION_REVIEW.md](LIVE_INTEGRATION_REVIEW.md) for current implementation boundaries; their older evidence is not new live acceptance.
+
+
+## 24 November release-path update
+
+The new selected path is Next standalone, docker-compose.next.yml and the updated Jenkins stages, with separate restricted seven-role analysis workers. Existing Vite files are retained for compatibility; their Compose file is no longer the selected new release. See NEXT_RELEASE_RUNBOOK.md and FYP_IMPLEMENTATION_MATRIX.md for actual local acceptance and remaining model/controller/cloud dependencies. No AWS/ECR/Jenkins execution is inferred from source changes.

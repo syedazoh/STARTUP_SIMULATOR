@@ -1,3 +1,5 @@
+> **24 November 2026:** the selected new release is Next.js + one API + independent analysis workers. Use [NEXT_RELEASE_RUNBOOK.md](NEXT_RELEASE_RUNBOOK.md) and docker-compose.next.yml. The older Vite deployment instructions below remain historical compatibility guidance, not the new Jenkins target. No new live rollout is claimed.
+
 # Deployment Runbook (AWS EC2)
 
 There is no Terraform/IaC in this repo yet — this is a documented manual setup,

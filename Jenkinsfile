@@ -1,130 +1,113 @@
-// CD pipeline: build -> test -> push to ECR -> deploy to EC2 via docker-compose.prod.yml.
-// GitHub Actions (.github/workflows/) still runs fast PR-gating CI; this pipeline
-// runs on merges to main; publishing/deployment require an explicit opt-in.
-//
-// Required Jenkins credentials (Manage Jenkins > Credentials):
-//   aws-ecr-creds   - AWS access key/secret with ECR push permissions
-//   ec2-deploy-key  - SSH private key for the deploy user on the EC2 host
-//
-// Required Jenkins environment / parameters (set in the job configuration):
-//   AWS_ACCOUNT_ID, AWS_REGION, EC2_HOST, EC2_USER, EC2_DEPLOY_PATH, VITE_API_URL
-// (EC2_DEPLOY_PATH is where docker-compose.prod.yml + .env already live on the host —
-//  see docs/deployment.md for the one-time EC2 setup that puts them there.)
-// (VITE_API_URL is baked into the frontend bundle at build time, so set it to the
-//  public HTTPS origin, e.g. https://app.example.com — the caddy service serves
-//  /api/* from the same origin as the bundle.)
-
+// Selected release: Next standalone + one API authority + seven analysis workers.
+// Controller execution and AWS rollout require operator evidence; no deploy by default.
 pipeline {
     agent any
-
     parameters {
+        string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS region for the explicitly authorized release')
         booleanParam(name: 'DEPLOY_TO_PRODUCTION', defaultValue: false,
-            description: 'Explicitly publish images and deploy to EC2. Leave disabled during development.')
+            description: 'Explicitly publish immutable images and deploy the prepared Next topology.')
     }
-
-    environment {
-        AWS_REGION     = "${params.AWS_REGION ?: 'us-east-1'}"
-        ECR_REGISTRY   = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        BACKEND_IMAGE  = "${ECR_REGISTRY}/startup-simulator-backend"
-        FRONTEND_IMAGE = "${ECR_REGISTRY}/startup-simulator-frontend"
-        CADDY_IMAGE     = "${ECR_REGISTRY}/startup-simulator-caddy"
-        IMAGE_TAG      = "${env.GIT_COMMIT.take(7)}"
-    }
-
+    environment { AWS_REGION = "${params.AWS_REGION}" }
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Backend Image') {
-            steps {
-                dir('backend') {
-                    sh "docker build -t ${BACKEND_IMAGE}:${IMAGE_TAG} -t ${BACKEND_IMAGE}:latest ."
+        stage('Checkout') { steps { checkout scm } }
+        stage('Resolve immutable images') {
+            steps { script {
+                env.IMAGE_TAG = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                env.REGISTRY = env.AWS_ACCOUNT_ID ? "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com" : 'local'
+                env.BACKEND_IMAGE = "${env.REGISTRY}/startup-simulator-backend"
+                env.WORKER_IMAGE = "${env.REGISTRY}/startup-simulator-role-worker"
+                env.FRONTEND_IMAGE = "${env.REGISTRY}/startup-simulator-next"
+                env.CADDY_IMAGE = "${env.REGISTRY}/startup-simulator-caddy-next"
+                env.TEST_NETWORK = "startup-ci-${env.BUILD_TAG}".replaceAll('[^a-zA-Z0-9_.-]', '-')
+                env.TEST_MONGO = "${env.TEST_NETWORK}-mongo"
+                if (params.DEPLOY_TO_PRODUCTION && (!env.AWS_ACCOUNT_ID || !env.EC2_HOST || !env.EC2_USER || !env.EC2_DEPLOY_PATH)) {
+                    error('Publishing/deployment requires configured AWS account and EC2 destination')
                 }
-            }
+            } }
         }
-
-        stage('Test Backend') {
+        stage('Build backend and model caches') {
+            steps { sh 'docker build -t "$BACKEND_IMAGE:$IMAGE_TAG" backend' }
+        }
+        stage('Build minimal role worker') {
+            steps { sh 'docker build -f backend/Dockerfile.worker -t "$WORKER_IMAGE:$IMAGE_TAG" backend' }
+        }
+        stage('Test with real isolated Mongo') {
             steps {
-                // No real GROQ_API_KEY needed: every test replaces each agent's
-                // _structured_llm with a fake before exercising it.
-                sh "docker run --rm ${BACKEND_IMAGE}:${IMAGE_TAG} python -m pytest -q"
+                sh '''
+                    mkdir -p test-results
+                    docker network create "$TEST_NETWORK"
+                    docker run -d --name "$TEST_MONGO" --network "$TEST_NETWORK" mongo:7
+                    ready=0
+                    for attempt in $(seq 1 60); do
+                        if docker exec "$TEST_MONGO" mongosh --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then ready=1; break; fi
+                        sleep 1
+                    done
+                    test "$ready" = 1
+                    docker run --rm --network "$TEST_NETWORK" \
+                        -e MONGODB_INTEGRATION_URL="mongodb://$TEST_MONGO:27017" \
+                        -e GROQ_API_KEY= \
+                        -v "$WORKSPACE/test-results:/test-results" \
+                        "$BACKEND_IMAGE:$IMAGE_TAG" python -m pytest -q --junitxml=/test-results/backend.xml
+                    docker run --rm -e PYTHONPATH=/app "$BACKEND_IMAGE:$IMAGE_TAG" \
+                        python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output /tmp/knowledge-evaluation.json
+                '''
             }
         }
-
-        stage('Build Frontend Image') {
-            steps {
-                dir('frontend') {
-                    sh """
-                        docker build -f Dockerfile.prod \
-                            --build-arg VITE_API_URL=${VITE_API_URL} \
-                            -t ${FRONTEND_IMAGE}:${IMAGE_TAG} -t ${FRONTEND_IMAGE}:latest .
-                    """
-                }
-            }
+        stage('Build and test Next image') {
+            steps { sh 'docker build -f web/Dockerfile -t "$FRONTEND_IMAGE:$IMAGE_TAG" .' }
         }
-
-        stage('Build Caddy Image') {
-            steps {
-                // Tiny image that just bakes in the Caddyfile, so the TLS config
-                // ships with the commit instead of being synced onto the host.
-                dir('docker/caddy') {
-                    sh "docker build -t ${CADDY_IMAGE}:${IMAGE_TAG} -t ${CADDY_IMAGE}:latest ."
-                }
-            }
+        stage('Build and validate Next ingress') {
+            steps { sh '''
+                docker build --build-arg CADDYFILE=Caddyfile.next -t "$CADDY_IMAGE:$IMAGE_TAG" docker/caddy
+                docker run --rm -e APP_DOMAIN=example.invalid -e ACME_EMAIL=operator@example.invalid \
+                    "$CADDY_IMAGE:$IMAGE_TAG" caddy validate --config /etc/caddy/Caddyfile
+            ''' }
         }
-
-        stage('Push to ECR') {
+        stage('Rehearse selected private topology') {
+            steps { sh '''
+                SMOKE_WORKER_IMAGE="$WORKER_IMAGE:$IMAGE_TAG" \
+                SMOKE_BACKEND_IMAGE="$BACKEND_IMAGE:$IMAGE_TAG" \
+                SMOKE_FRONTEND_IMAGE="$FRONTEND_IMAGE:$IMAGE_TAG" \
+                SMOKE_CADDY_IMAGE="$CADDY_IMAGE:$IMAGE_TAG" \
+                  python3 scripts/smoke_next_release.py
+            ''' }
+        }
+        stage('Push immutable images') {
             when { expression { params.DEPLOY_TO_PRODUCTION == true } }
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds']]) {
-                    sh """
-                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                        docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${BACKEND_IMAGE}:latest
-                        docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-                        docker push ${FRONTEND_IMAGE}:latest
-                        docker push ${CADDY_IMAGE}:${IMAGE_TAG}
-                        docker push ${CADDY_IMAGE}:latest
-                    """
+                    sh '''
+                        aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+                        docker push "$BACKEND_IMAGE:$IMAGE_TAG"
+                        docker push "$WORKER_IMAGE:$IMAGE_TAG"
+                        docker push "$FRONTEND_IMAGE:$IMAGE_TAG"
+                        docker push "$CADDY_IMAGE:$IMAGE_TAG"
+                    '''
                 }
             }
         }
-
-        stage('Deploy to EC2') {
+        stage('Deploy prepared Next topology') {
             when { expression { params.DEPLOY_TO_PRODUCTION == true } }
             steps {
-                sshagent(credentials: ['ec2-deploy-key']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
-                            cd ${EC2_DEPLOY_PATH} &&
-                            export BACKEND_IMAGE=${BACKEND_IMAGE}:${IMAGE_TAG} &&
-                            export FRONTEND_IMAGE=${FRONTEND_IMAGE}:${IMAGE_TAG} &&
-                            export CADDY_IMAGE=${CADDY_IMAGE}:${IMAGE_TAG} &&
-                            docker compose -f docker-compose.prod.yml pull &&
-                            docker compose -f docker-compose.prod.yml up -d &&
-                            docker image prune -f
-                        '
-                    """
+                withCredentials([file(credentialsId: 'ec2-known-hosts', variable: 'KNOWN_HOSTS')]) {
+                    sshagent(credentials: ['ec2-deploy-key']) {
+                        sh '''
+                            # Operator values must be simple SSH identifiers/paths, never shell text.
+                            case "$EC2_USER@$EC2_HOST:$EC2_DEPLOY_PATH" in *[!a-zA-Z0-9_@./:-]*) exit 1;; esac
+                            ssh -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$KNOWN_HOSTS" "$EC2_USER@$EC2_HOST" \
+                              "cd '$EC2_DEPLOY_PATH' && BACKEND_IMAGE='$BACKEND_IMAGE:$IMAGE_TAG' WORKER_IMAGE='$WORKER_IMAGE:$IMAGE_TAG' FRONTEND_IMAGE='$FRONTEND_IMAGE:$IMAGE_TAG' CADDY_IMAGE='$CADDY_IMAGE:$IMAGE_TAG' bash scripts/deploy.sh"
+                        '''
+                    }
                 }
             }
         }
     }
-
     post {
-        success {
-            script {
-                if (params.DEPLOY_TO_PRODUCTION == true) {
-                    echo "Deployed ${IMAGE_TAG} to ${EC2_HOST}."
-                } else {
-                    echo "Build and tests completed. Production publishing and deployment were disabled."
-                }
-            }
+        always {
+            junit allowEmptyResults: true, testResults: 'test-results/*.xml'
+            sh 'if [ -n "$TEST_MONGO" ]; then docker rm -f "$TEST_MONGO" || true; fi; if [ -n "$TEST_NETWORK" ]; then docker network rm "$TEST_NETWORK" || true; fi'
         }
-        failure {
-            echo 'Pipeline failed — check the stage logs above. Nothing was deployed if Build/Test/Push failed; if Deploy itself failed, roll back per docs/deployment.md.'
-        }
+        success { echo 'Configured gates passed. Deployment occurs only when explicitly enabled; verify controller logs and application health.' }
+        failure { echo 'A release gate failed. Do not promote; preserve logs and follow the rollback runbook if a deployment was attempted.' }
     }
 }

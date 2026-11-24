@@ -1,13 +1,15 @@
 import "./globals.css";
+import { headers } from "next/headers";
 import "../components/studio/studio.css";
 import Icon from "../components/studio/icon";
 export const metadata = {
   title: "Startup Simulator | Owner workspace",
   description: "Your supervised startup workspace",
 };
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  await headers(); // Per-request nonce must never be reused from static HTML.
   return (
     <html lang="en">
       <body>

@@ -399,7 +399,7 @@ Implementation above supersedes the earlier November 16 entries that listed thes
 
 ## FYP submission execution — 24 November 2026
 Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; evidence: docs/FYP_IMPLEMENTATION_MATRIX.md.
-- [ ] P0 Clean web-only build, dependency-boundary regression and production browser acceptance.
+- [x] P0 Clean web-only build, dependency-boundary regression and production browser acceptance (local/container; remote CI lookup remains pending).
 - [ ] P1 Independent role workers with durable versioned messages and real-process recovery/tenant/idempotency tests.
 - [ ] P1 Distinct Support and Strategy workflows without renaming five existing departments.
 - [ ] P2 Saved content/grounded drafts, owner revisions and tenant-safe CSV/JSON evidence download.
@@ -414,3 +414,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 
 - [x] P2 dashboard/export slice: seven saved worker queues/artifacts/citations and existing owner-review path exposed in Next; bounded tenant-authorized CSV/JSON downloads with secret allowlist and formula protection. 22 focused backend checks, 27 web checks/types/build and production fixture browser flow passed.
 - [ ] P2 acceptance remains partial: model-assisted Marketing/Support artifacts and comparable labelled AI-vs-rule output evaluation.
+
+- [x] P3 local packaging slice: Next standalone/nonced CSP, minimal role-worker image, restricted authenticated Mongo, private ten-service workflow through owner execution, health checks, Mongo restore, Jenkins source path and operator runbook validated locally.
+- [ ] P3 release acceptance: cached-model build/evaluation, Jenkins controller run, production-volume restore, real HTTPS/Supabase and authorized AWS rollout.
