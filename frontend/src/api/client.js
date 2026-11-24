@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // Discard pre-session tokens; never persist bearer credentials in browser storage.
-localStorage.removeItem('simulator_token')
+try { localStorage.removeItem('simulator_token') } catch { /* Storage may be disabled; session tokens stay in memory. */ }
 const options = {
   baseURL: import.meta.env.VITE_API_URL || window.location.origin,
   withCredentials: true,

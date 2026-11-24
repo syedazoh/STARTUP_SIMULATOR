@@ -4,13 +4,14 @@ import { readFile } from 'node:fs/promises'
 import vm from 'node:vm'
 import axios from 'axios'
 
-async function clientModule() {
+async function clientModule(storageBlocked = false) {
   const instances = []
   const removed = []
   const context = vm.createContext({
     localStorage: { removeItem: (key) => removed.push(key) },
     navigator: {}, window: { location: { origin: 'https://example.test' } },
   })
+  if (storageBlocked) Object.defineProperty(context, 'localStorage', { get() { throw new Error('Storage disabled') } })
   const dependency = new vm.SyntheticModule(['default'], function () {
     this.setExport('default', { create(options) {
       const client = axios.create(options)
@@ -94,4 +95,14 @@ test('logout prevents an in-flight refresh from restoring a bearer token', async
   await api.endSession()
   release()
   await assert.rejects(restoring, /Session changed/)
+})
+
+// Regression: private/storage-blocked browsers must still load the public app.
+test('disabled browser storage does not prevent client initialization or create a bearer token', async () => {
+  const { instances: [client] } = await clientModule(true)
+  client.defaults.adapter = config => {
+    assert.equal(config.headers.Authorization, undefined)
+    return Promise.resolve(response(config))
+  }
+  await client.get('/public-status')
 })
