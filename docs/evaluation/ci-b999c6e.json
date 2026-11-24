@@ -1,0 +1,40 @@
+{
+  "commit": "b999c6ee4b36bff743f0b71502c5e82c7f388f1a",
+  "observed_at": "2026-11-24T12:04:56.608824+00:00",
+  "source": "Official GitHub Actions HTML for main and linked run pages; REST API host remains blocked",
+  "runs": [
+    {
+      "name": "Frontend Tests",
+      "id": "45388491681",
+      "conclusion": "success",
+      "url": "https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/45388491681"
+    },
+    {
+      "name": "Next.js authentication",
+      "id": "45388491713",
+      "conclusion": "success",
+      "url": "https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/45388491713"
+    },
+    {
+      "name": "Docker Compose Wiring",
+      "id": "45388491843",
+      "conclusion": "success",
+      "url": "https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/45388491843"
+    },
+    {
+      "name": "Backend Tests",
+      "id": "45388491683",
+      "conclusion": "success",
+      "url": "https://github.com/syedazoh/STARTUP_SIMULATOR/actions/runs/45388491683"
+    }
+  ],
+  "backend_configured_gates": [
+    "pytest with real Mongo integration",
+    "warm embedding and reranker caches",
+    "evaluate_knowledge.py --require-hybrid --min-pass 49"
+  ],
+  "limitations": [
+    "Workflow success verified; exact test count and retrieval artifact score not extracted from logs.",
+    "GitHub Actions success is not Jenkins controller, live provider or AWS deployment evidence."
+  ]
+}

@@ -424,3 +424,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 
 - [x] P4 local evaluation: four held-out rule/output cases, real primary scenario, 100 concurrency-four protected reads, cold topology startup and complete ten-container snapshot; actual evidence/modes/limitations saved.
 - [ ] Remaining release gates: 9 model-cache failures and 48/50 fallback retrieval below 49; actual AI-assisted outputs/comparison, proposal PDF mapping, final remote CI, Jenkins controller, real HTTPS/Supabase/volume recovery and authorized AWS rollout.
+
+- [x] Final main/CI evidence: native main push verified through b999c6e; official GitHub web pages show Frontend, Next, Docker wiring and Backend workflows successful, with configured backend hybrid/model gates.
+- [ ] Apply approved model-access network draft to the running machine under the owner's publication constraint; local model cache reproduction and real AI-generated output/comparison remain pending. Draft saved only; no environment publication performed.

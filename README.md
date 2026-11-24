@@ -366,3 +366,5 @@ Decision memory browsing and empty history do not require embedding weights. Non
 ## Reproducible local evaluation
 
 [24 November evaluation](docs/evaluation/fyp-2026-11-24.md) includes the real ten-service scenario, four held-out synthetic rule/output cases, 100 local protected reads at concurrency four and a resource snapshot. Reproduce with `python scripts/smoke_next_release.py --evaluation-output /tmp/fyp-evaluation.json` after building the documented local images. Observed local read p95 was 8.788 ms; this is not browser/model/AWS latency. Final backend: 495 passed, 9 cache-dependent failures. Retrieval fallback: 48/50, below the 49 gate. Model-assisted new outputs, model caches, real provider/controller/cloud acceptance remain incomplete; do not promote this as a fully accepted release.
+
+All four GitHub Actions workflows for pushed commit b999c6e succeeded; [CI evidence](docs/evaluation/ci-b999c6e.json) links each run. This includes the backend workflow's configured cached-model/hybrid gates. Local model-cache reproduction remains restricted; CI does not imply Jenkins, real-provider or AWS acceptance.
