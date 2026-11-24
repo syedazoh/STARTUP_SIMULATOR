@@ -378,3 +378,5 @@ Container tests need repository assets alongside the image's backend tests: moun
 
 ### Finding existing companies and agent workspaces
 See [Local startup and account recovery](docs/LOCAL_ACCOUNT_RECOVERY.md) for the original Supabase/Mongo configuration, Windows commands, account linking and the five Next agent routes. Next runs on 3000; classic Vite tools on 5173 remain available for Marketing publishing/media/account controls.
+
+Appearance presets and owner-reported employee breakdown are documented in [Appearance and team setup](docs/design/APPEARANCE_AND_TEAM.md). Use the existing company before creating a replacement; personalizing its appearance does not change its data.

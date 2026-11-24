@@ -305,6 +305,21 @@
       "avatars": "Shared procedural Three.js role identity, not simulated execution evidence",
       "navigation": "Scrollable desktop sidebars; reachable mobile agent links",
       "classicParity": "Marketing publishing/media/connected accounts remain in Vite"
+    },
+    "appearancePresets": {
+      "default": "Executive Glass",
+      "alternatives": [
+        "Pearl Water",
+        "Monolith"
+      ],
+      "modes": [
+        "system",
+        "light",
+        "dark"
+      ],
+      "scope": "local-browser presentation only",
+      "footer": "beige faceted 3D globe, no avatar",
+      "motion": "persistent toggle; OS reduced motion overrides"
     }
   },
   "components": [

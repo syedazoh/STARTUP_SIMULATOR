@@ -94,3 +94,9 @@ npm run dev
 ```
 
 Open http://localhost:5173 and sign in with the original native login. Agent routes are `/b/<business-id>/agents/<role>`. Backend/provider permissions and setup still apply; access to a screen does not prove live email or social publishing is configured.
+
+
+## Personalize and describe your team
+Use **Appearance** at the top-right to choose Executive Glass, Pearl Water or Monolith, color mode and decorative motion. Preferences stay in this browser; Reset appearance restores defaults.
+
+Next: open your existing company’s Command center → **Team setup**. Classic: **Business Profile** → Team setup. For a new company, add departments/roles in the creation form. Unallocated employees remain “Not assigned yet”. These human staffing details are reported planning context, not a change to simulation HR headcount or permission to hire.

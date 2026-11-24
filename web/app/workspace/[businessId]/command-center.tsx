@@ -1,4 +1,5 @@
 "use client";
+import WorkforceEditor from "../../../components/workforce-editor";
 import Avatar from "../../../components/agent-avatar";
 import Icon from "../../../components/studio/icon";
 import OverviewCharts from "./overview-charts";
@@ -271,6 +272,7 @@ export default function CommandCenter({
             <Icon name="signal" />
             Overview
           </a>
+          <a href="#team-setup">Team setup</a>
           <a href="#departments">
             <Icon name="cube" />
             Departments
@@ -416,6 +418,7 @@ export default function CommandCenter({
             <small>Approval can execute an eligible action.</small>
           </aside>
         </div>
+        {!initialDepartment&&<WorkforceEditor business={business}/>}
         {agentTools}
         <section className="card wide" id="departments">
           <h2>{initialDepartment?`${labels[initialDepartment]} tasks and proposals`:"Your five departments"}</h2>
@@ -462,6 +465,7 @@ export default function CommandCenter({
                         ? "Task count unavailable"
                         : `${tasks.filter((t) => t.agent === key).length} recent tasks`}
                     </p>
+                    <div className="department-work-summary"><span>{data.tasks.error?'—':tasks.filter(t=>t.agent===key&&t.status==='pending_approval').length} awaiting owner</span><span>{data.tasks.error?'—':tasks.filter(t=>t.agent===key&&['pending_ceo','approved','queued','running','executing'].includes(t.status)).length} in progress / review</span></div><a href={`/workspace/${encodeURIComponent(business.id)}/agents/${key}`}>Open {labels[key]} workspace →</a>
                     <details>
                       <summary>Recorded agent state</summary>
                       <Evidence

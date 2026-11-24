@@ -461,4 +461,5 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 
 ## Coordinated appearance and team setup — 24 November 2026
 - [x] Add validated owner-reported workforce storage, creation compatibility, tenant-scoped editing and distinct chat context; 25 focused offline backend tests passed.
-- [ ] Finish shared appearance presets, footer sculpture and team setup UI; verify both frontends before release.
+- [x] Finish shared appearance presets, avatar-free beige footer sculpture, dashboard role links and team setup in both frontends; verify 97 frontend tests, builds/types/lint, browser variants/video/profile and Docker packaging.
+- [ ] Owner validates original Supabase/Mongo business access locally, then completes the presentation acceptance and authorized AWS deployment (docs/RELEASE_PLAN_2026_11.md).

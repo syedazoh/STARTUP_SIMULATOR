@@ -1,3 +1,5 @@
+import FooterSculpture from '../appearance/FooterSculpture'
+import {useAppearance} from '../appearance/Appearance'
 import Atmosphere from '../landing/Atmosphere';
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -12,6 +14,7 @@ const agentLinks=[['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],
 const primary=[['dashboard','◫','Command Center'],['boardroom','◉','3D Boardroom'],['decision-log','☷','Decision History'],['memory-inspector','◇','Agent Memory'],['profile','▤','Business Profile']]
 export default function Layout(){
  const { businessId }=useParams()
+ const {preferences,theme}=useAppearance()
  const dispatch=useDispatch()
  const navigate=useNavigate()
  const [open,setOpen]=useState(false)
@@ -35,6 +38,6 @@ export default function Layout(){
      </nav>
      <div className="hq-sidebar-footer"><Link to="/getting-started">Product demo &amp; quick start</Link>{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>
    </aside>
-   <div className="hq-workspace"><div className="classic-workspace-effects"><Atmosphere loadThree={loadThree} enabled={backgroundMotion&&!reduced} theme="dark"/></div><Outlet key={businessId}/><footer className="classic-workspace-footer"><div><Link to={`/b/${businessId}/dashboard`}>Startup Simulator</Link><h2>Your direction.<br/><em>A whole team behind it.</em></h2><p>Open the proposal, make the decision, then follow the recorded result.</p></div><nav aria-label="Workspace footer"><Link to={`/b/${businessId}/dashboard`}>Command center</Link><Link to={`/b/${businessId}/boardroom`}>3D Boardroom</Link><Link to={`/b/${businessId}/agents/ceo`}>CEO workspace</Link><Link to="/getting-started">Video & written guide</Link></nav></footer><button className="classic-motion-toggle" disabled={reduced} aria-pressed={backgroundMotion&&!reduced} onClick={()=>{setBackgroundMotion(!backgroundMotion);try{localStorage.setItem('startup-workspace-motion',backgroundMotion?'off':'on')}catch{}}}>Background motion {backgroundMotion&&!reduced?'on':'off'}</button></div>
+   <div className="hq-workspace"><div className="classic-workspace-effects"><Atmosphere loadThree={loadThree} enabled={backgroundMotion&&preferences.motion&&!reduced} theme={theme}/></div><Outlet key={businessId}/><footer className="classic-workspace-footer"><FooterSculpture loadThree={loadThree}/><div><Link to={`/b/${businessId}/dashboard`}>Startup Simulator</Link><h2>Your direction.<br/><em>A whole team behind it.</em></h2><p>Open the proposal, make the decision, then follow the recorded result.</p></div><nav aria-label="Workspace footer"><Link to={`/b/${businessId}/dashboard`}>Command center</Link><Link to={`/b/${businessId}/boardroom`}>3D Boardroom</Link><Link to={`/b/${businessId}/agents/ceo`}>CEO workspace</Link><Link to="/getting-started">Video & written guide</Link></nav></footer><button className="classic-motion-toggle" disabled={reduced||!preferences.motion} aria-pressed={backgroundMotion&&preferences.motion&&!reduced} onClick={()=>{setBackgroundMotion(!backgroundMotion);try{localStorage.setItem('startup-workspace-motion',backgroundMotion?'off':'on')}catch{}}}>Background motion {backgroundMotion&&preferences.motion&&!reduced?'on':'off'}</button></div>
  </div>
 }

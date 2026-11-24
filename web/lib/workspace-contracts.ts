@@ -38,7 +38,10 @@ export type Task = {
   decided_at?: string | null;
   executed_at?: string | null;
 };
+export type Workforce = {total_headcount:number;positions:{department:string;role:string;count:number;employment_type:string}[]};
 export type Business = {
+  workforce?:Workforce|null;
+  starting_headcount?:number;
   id: string;
   company_name: string;
   industry: string;
@@ -152,6 +155,7 @@ export function businessPayload(form: FormData) {
     ),
     starting_headcount: number(form, "starting_headcount", 0, 1e6, true),
     starting_resources: number(form, "starting_resources", 0, 1e9, true),
+    ...(form.has("workforce")?{workforce:workforcePayload(form)}:{}),
     enabled_agents: [...departments],
   };
 }
@@ -210,4 +214,13 @@ export function utcInstant(value: string) {
     : `${value}Z`;
   const date = new Date(normalized);
   return Number.isNaN(date.valueOf()) ? null : date;
+}
+
+export function workforcePayload(form:FormData):Workforce {
+ const raw=form.get('workforce');if(typeof raw!=='string'||raw.length>30000)throw new Error('Team data is missing or too large.');
+ let data:Workforce;try{data=JSON.parse(raw)}catch{throw new Error('Invalid team data.');}
+ if(!data||!Number.isInteger(data.total_headcount)||data.total_headcount<0||data.total_headcount>1e6||!Array.isArray(data.positions)||data.positions.length>50)throw new Error('Enter a valid headcount and up to 50 team groups.');
+ const seen=new Set<string>();let total=0;
+ const positions=data.positions.map(row=>{if(!row||typeof row.department!=='string'||typeof row.role!=='string'||!row.department.trim()||!row.role.trim()||row.department.trim().length>100||row.role.trim().length>100||!Number.isInteger(row.count)||row.count<1||row.count>1e6||!['unspecified','full_time','part_time','contract','intern'].includes(row.employment_type))throw new Error('Each team group needs a department, role, whole-number count and employment type.');const key=JSON.stringify([row.department.trim().toLowerCase(),row.role.trim().toLowerCase(),row.employment_type]);if(seen.has(key))throw new Error('Combine duplicate department, role and employment groups.');seen.add(key);total+=row.count;return {department:row.department.trim(),role:row.role.trim(),count:row.count,employment_type:row.employment_type}});
+ if(total>data.total_headcount)throw new Error('Department counts exceed total headcount.');return {total_headcount:data.total_headcount,positions};
 }

@@ -1,0 +1,10 @@
+"use client";
+import {useRef,useState} from 'react';
+import {useRouter} from 'next/navigation';
+import WorkforceFields from '../../frontend/src/appearance/WorkforceFields';
+import {saveWorkforce} from '../app/workspace/actions';
+import type {Business,Workforce} from '../lib/workspace-contracts';
+export default function WorkforceEditor({business}:{business:Business}){
+ const [total,setTotal]=useState(business.workforce?.total_headcount??business.starting_headcount??0),[positions,setPositions]=useState<Workforce['positions']>(business.workforce?.positions||[]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');const inFlight=useRef(false),router=useRouter();
+ return <details className="card wide workforce-editor" id="team-setup"><summary>Team setup · reported employee breakdown</summary><h2>The people behind your company.</h2><p>Owner-reported planning context. Updating it does not change the simulation’s HR headcount, starting values, salaries or approvals.</p>{!business.workforce&&<p>No breakdown saved yet. Your existing starting headcount is preserved.</p>}<form onSubmit={async e=>{e.preventDefault();if(inFlight.current)return;inFlight.current=true;setBusy(true);setError('');setNotice('');try{const result=await saveWorkforce(business.id,new FormData(e.currentTarget));if(!result.ok)setError(result.error);else{setNotice('Employee breakdown saved. Agents can read this as reported planning context.');router.refresh()}}catch{setError('Could not save. Refresh before retrying.')}finally{inFlight.current=false;setBusy(false)}}}><label>Reported total employees<input name="reported_total" type="number" min="0" max="1000000" step="1" value={total} onChange={e=>setTotal(Number(e.target.value))} required/></label><WorkforceFields total={total} positions={positions} onChange={setPositions}/>{error&&<p className="error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}<button disabled={busy}>{busy?'Saving…':'Save employee breakdown'}</button></form></details>;
+}

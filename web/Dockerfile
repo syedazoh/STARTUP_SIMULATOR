@@ -15,6 +15,7 @@ COPY frontend/tests/studio.test.mjs ./frontend/tests/studio.test.mjs
 COPY frontend/src/studio ./frontend/src/studio
 COPY frontend/src/landing ./frontend/src/landing
 COPY frontend/src/onboarding ./frontend/src/onboarding
+COPY frontend/src/appearance ./frontend/src/appearance
 COPY frontend/src/config/agentConfig.js ./frontend/src/config/agentConfig.js
 COPY frontend/src/components/boardroom ./frontend/src/components/boardroom
 WORKDIR /app/web

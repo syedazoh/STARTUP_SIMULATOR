@@ -1,4 +1,5 @@
 "use client";
+import {useAppearance} from "../../../frontend/src/appearance/Appearance";
 import { useEffect, useRef, useState } from "react";
 import {
   AGENTS,
@@ -8,6 +9,8 @@ import type { Transfer } from "./types";
 import Icon from "./icon";
 
 type Engine = {
+  setTheme:(value:string)=>void;
+  setReducedMotion:(value:boolean)=>void;
   showOnly: (id: string | null) => void;
   select: (id: string) => void;
   playTransfer: (t: Transfer | null) => void;
@@ -29,6 +32,7 @@ export default function Scene({
   transfer: Transfer | null;
   onRecorded?: (t: Transfer) => void;
 }) {
+  const {theme,preferences}=useAppearance();
   const canvas = useRef<HTMLCanvasElement>(null),
     labels = useRef<HTMLDivElement>(null),
     engine = useRef<Engine | null>(null);
@@ -102,6 +106,8 @@ export default function Scene({
       engine.current = null;
     };
   }, [view]);
+  useEffect(()=>{engine.current?.setTheme(theme)},[theme,ready,view]);
+  useEffect(()=>{const reduced=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>engine.current?.setReducedMotion(reduced.matches||!preferences.motion);update();reduced.addEventListener('change',update);return()=>reduced.removeEventListener('change',update)},[preferences.motion,ready,view]);
   useEffect(() => { engine.current?.showOnly(focusAgent); }, [focusAgent, ready, view]);
   useEffect(() => {
     engine.current?.select(selected);

@@ -1,3 +1,4 @@
+import ReportedTeam from '../components/ReportedTeam'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
@@ -67,6 +68,7 @@ function BusinessProfile() {
           </p>
         </div>
 
+        <ReportedTeam businessId={businessId}/>
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
           <fieldset className="space-y-3">
             <legend className="text-sm font-semibold text-gray-800 mb-2">Brand</legend>

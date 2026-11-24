@@ -1,4 +1,6 @@
 import "./globals.css";
+import "../components/appearance.css";
+import Appearance from "../components/appearance";
 import "../components/agent-avatar.css";
 import { headers } from "next/headers";
 import "../components/studio/studio.css";
@@ -16,6 +18,7 @@ export default async function Layout({
   return (
     <html lang="en">
       <body>
+        <Appearance/>
         <WorkspaceVisuals/>
         <header className="site-header">
           <a href="/" className="site-brand">

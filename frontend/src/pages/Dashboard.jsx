@@ -73,7 +73,7 @@ export default function Dashboard(){
    <section className="hq-control-section"><div className="hq-control-title"><h2>Simulation control</h2><button type="button" onClick={()=>setShowControls(!showControls)}>{showControls?'Collapse':'Expand'} settings</button></div>{showControls&&<SimulationControls businessId={businessId}/>}</section>
    {(agentError||eventError)&&<p className="hq-alert" role="alert">Backend data unavailable or delayed. {agentError||eventError}. Values may be out of date.</p>}
    <section className="hq-command-brief">
-     <div><span className="hq-kicker">EXECUTIVE COLLABORATION</span><h2>Your AI team is in session.</h2><p>Follow real agent discussions in the dedicated immersive boardroom. Here you can focus on budgets, tasks, performance and approvals.</p><div className="hq-command-agent-row">{EXECUTIVES.map(agent=><span key={agent.id} className="hq-command-agent-pill"><i style={{background:agent.color}}/>{agent.label}</span>)}</div></div>
+     <div><span className="hq-kicker">EXECUTIVE COLLABORATION</span><h2>Your AI team is in session.</h2><p>Follow real agent discussions in the dedicated immersive boardroom. Here you can focus on budgets, tasks, performance and approvals.</p><div className="hq-command-agent-row">{EXECUTIVES.map(agent=><Link key={agent.id} to={`/b/${businessId}/agents/${agent.id}`} className="hq-command-agent-pill"><i style={{background:agent.color}}/>{agent.label} · {tasks.filter(t=>t.agent===agent.id).length} pending reviews</Link>)}</div></div>
      <Link className="hq-command-boardroom-link" to={`/b/${businessId}/boardroom`}>Enter 3D Boardroom <span aria-hidden="true">↗</span></Link>
    </section>
    <div className="hq-bottom-grid">

@@ -1,4 +1,5 @@
 "use client";
+import WorkforceFields from "../../../frontend/src/appearance/WorkforceFields";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBusiness } from "./actions";
@@ -6,6 +7,7 @@ export default function CreateBusiness() {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const router = useRouter();
+  const [headcount,setHeadcount]=useState(2),[positions,setPositions]=useState([]);
   return (
     <details className="card wide">
       <summary>Create a business</summary>
@@ -74,7 +76,8 @@ export default function CreateBusiness() {
               min="0"
               max="1000000"
               step="1"
-              defaultValue="2"
+              value={headcount}
+              onChange={e=>setHeadcount(Number(e.target.value))}
               required
             />
           </label>
@@ -91,6 +94,7 @@ export default function CreateBusiness() {
             />
           </label>
         </div>
+        <WorkforceFields total={headcount} positions={positions} onChange={setPositions}/>
         {error && (
           <p role="alert" className="error">
             {error}

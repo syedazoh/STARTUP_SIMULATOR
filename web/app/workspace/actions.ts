@@ -1,6 +1,6 @@
 "use server";
 import { backend } from "../../lib/backend";
-import { businessPayload } from "../../lib/workspace-contracts";
+import { businessPayload, workforcePayload } from "../../lib/workspace-contracts";
 export async function createBusiness(form: FormData) {
   try {
     const business = await backend("/api/businesses", {
@@ -16,3 +16,5 @@ export async function createBusiness(form: FormData) {
     };
   }
 }
+
+export async function saveWorkforce(businessId:string,form:FormData){try{const business=await backend(`/api/businesses/${encodeURIComponent(businessId)}/workforce`,{method:'PUT',body:JSON.stringify(workforcePayload(form))});return {ok:true as const,workforce:business.workforce}}catch(error){return {ok:false as const,error:error instanceof Error?error.message:'Team could not be saved.'}}}

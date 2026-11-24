@@ -1,3 +1,4 @@
+import WorkforceFields from '../appearance/WorkforceFields'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
@@ -90,6 +91,7 @@ function Setup() {
   const [business, setBusiness] = useState(BUSINESS_DEFAULTS)
   const [profile, setProfile] = useState(PROFILE_DEFAULTS)
   const [businessId, setBusinessId] = useState(null)
+  const [positions,setPositions]=useState([])
 
   const inputClass = 'w-full border rounded px-3 py-2 text-sm'
   const meta = STEP_META[step]
@@ -124,6 +126,7 @@ function Setup() {
         starting_customer_base: business.startingCustomerBase,
         starting_headcount: business.startingHeadcount,
         starting_resources: business.startingResources,
+        workforce:{total_headcount:business.startingHeadcount,positions},
       }))
       if (!createBusiness.fulfilled.match(created)) return
       savedId = created.payload.id
@@ -217,6 +220,7 @@ function Setup() {
                 className={inputClass}
               />
             </div>
+            <WorkforceFields total={business.startingHeadcount} positions={positions} onChange={setPositions}/>
           </div>
         )
 
@@ -379,6 +383,7 @@ function Setup() {
                 ['Resources', business.startingResources],
               ]}
             />
+            <SummaryBlock title="Human team" items={positions.length?positions.map(row=>[`${row.department} · ${row.role}`,`${row.count} · ${row.employment_type.replaceAll('_',' ')}`]):[['Allocation','Not assigned yet']]}/>
             <SummaryBlock
               title="Brand"
               items={[

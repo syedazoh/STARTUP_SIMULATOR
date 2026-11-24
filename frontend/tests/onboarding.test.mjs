@@ -17,7 +17,7 @@ async function setupForm(step, existingId = null) {
   save.fulfilled = { match: (r) => r.type === 'saved' }
   const overrides = {
     react: { default: React, useState: (initial) => {
-      const values = [step, business, initial, existingId]
+      const values = [step, business, initial, existingId, [{department:"Engineering",role:"Engineer",count:1,employment_type:"full_time"}]]
       const value = values[hook++]
       return [value, () => {}]
     } },
@@ -63,6 +63,8 @@ test('final submit saves the latest edited numbers and uses the returned busines
   await form.props.onSubmit({ preventDefault() {} })
   assert.equal(calls[0].payload.company_name, 'Back-edited name')
   assert.equal(calls[0].payload.starting_budget, 2345)
+  assert.equal(calls[0].payload.workforce.total_headcount,1)
+  assert.equal(calls[0].payload.workforce.positions[0].role,'Engineer')
   assert.equal(calls[1].payload.businessId, 'created-business')
   assert.deepEqual(navigations, ['/b/created-business/dashboard'])
 })

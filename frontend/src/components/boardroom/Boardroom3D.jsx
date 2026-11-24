@@ -1,4 +1,5 @@
 import "../../studio/collaboration.css";
+import {useAppearance} from "../../appearance/Appearance";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import {
@@ -25,6 +26,7 @@ export default function Boardroom3D({
   selected = "ceo",
   showApprovalLabel = false,
 }) {
+  const {theme,preferences}=useAppearance();
   const canvas = useRef(null),
     labels = useRef(null),
     engine = useRef(null);
@@ -68,6 +70,8 @@ export default function Boardroom3D({
       engine.current = null;
     };
   }, [mode]);
+  useEffect(()=>{engine.current?.setTheme(theme)},[theme,mode]);
+  useEffect(()=>{const reduced=matchMedia('(prefers-reduced-motion: reduce)');const update=()=>engine.current?.setReducedMotion(reduced.matches||!preferences.motion);update();reduced.addEventListener('change',update);return()=>reduced.removeEventListener('change',update)},[preferences.motion,mode]);
   useEffect(() => {
     engine.current?.select(selected);
   }, [selected, mode]);

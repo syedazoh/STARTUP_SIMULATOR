@@ -1,18 +1,21 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Atmosphere from './Atmosphere';
+import {useAppearance} from '../appearance/Appearance';
+import FooterSculpture from '../appearance/FooterSculpture';
 import {ExpandedAgentTabs,StaggerText} from './ui/ReferenceComponents';
-import { INTRODUCTIONS, nextIntroduction, initialTheme } from './agents.mjs';
+import { INTRODUCTIONS, nextIntroduction } from './agents.mjs';
 
 function Symbol({name, ...props}) {
  const paths={play:'m9 5 11 7-11 7Z',pause:'M8 5v14M16 5v14',arrow:'M5 12h14m-6-6 6 6-6 6',back:'M19 12H5m6-6-6 6 6 6',sun:'M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0',moon:'M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z',sound:'m4 9 4 0 5-4v14l-5-4H4ZM17 8q5 4 0 8',muted:'m4 9 4 0 5-4v14l-5-4H4ZM17 9l5 6m0-6-5 6',close:'m6 6 12 12M6 18 18 6',cube:'m12 2 9 5v10l-9 5-9-5V7Zm0 10 9-5M12 12 3 7m9 5v10',expand:'M4 9V4h5m6 0h5v5m0 6v5h-5M9 20H4v-5',check:'m5 12 4 4L19 6'};
  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}><path d={paths[name]||paths.arrow}/></svg>;
 }
 export default function LandingExperience({signupHref='/signup',loginHref='/login',loadThree,animation}) {
- const [theme,setTheme]=useState('dark'),[index,setIndex]=useState(0),[focused,setFocused]=useState(false),[tour,setTour]=useState(false),[audio,setAudio]=useState(true),[voiceStatus,setVoiceStatus]=useState(''),[sceneState,setSceneState]=useState('loading');
+ const {preferences,theme,update:changeAppearance}=useAppearance();
+ const [index,setIndex]=useState(0),[focused,setFocused]=useState(false),[tour,setTour]=useState(false),[audio,setAudio]=useState(true),[voiceStatus,setVoiceStatus]=useState(''),[sceneState,setSceneState]=useState('loading');
  const [motionEnabled,setMotionEnabled]=useState(true),[systemReduced,setSystemReduced]=useState(false);
- const motion=motionEnabled&&!systemReduced;
- const canvas=useRef(null),engine=useRef(null),dialog=useRef(null),manualTheme=useRef(false),observer=useRef(null),videoDialog=useRef(null),video=useRef(null);
+ const motion=motionEnabled&&preferences.motion&&!systemReduced;
+ const canvas=useRef(null),engine=useRef(null),dialog=useRef(null),observer=useRef(null),videoDialog=useRef(null),video=useRef(null);
  const [videoError,setVideoError]=useState(false);
  const current=useRef({theme,index,focused,motion});current.current={theme,index,focused,motion};
  const agent=INTRODUCTIONS[index];
@@ -25,13 +28,6 @@ export default function LandingExperience({signupHref='/signup',loginHref='/logi
  },[]);
  useEffect(()=>{engine.current?.setReducedMotion(!motion);if(!motion)setTour(false)},[motion]);
  useEffect(()=>{
-  const preference=matchMedia('(prefers-color-scheme: dark)');let stored=null;
-  try{stored=localStorage.getItem('startup-landing-theme')}catch{/* Private browsing can disable storage. */}
-  manualTheme.current=stored==='light'||stored==='dark';setTheme(initialTheme(stored,preference.matches));
-  const update=()=>{if(!manualTheme.current)setTheme(preference.matches?'dark':'light')};preference.addEventListener('change',update);
-  return()=>preference.removeEventListener('change',update);
- },[]);
- useEffect(()=>{
   let disposed=false;
   Promise.all([loadThree(),import('../studio/scene.mjs')]).then(([THREE,{createStudio}])=>{
    if(disposed||!canvas.current)return;
@@ -42,11 +38,10 @@ export default function LandingExperience({signupHref='/signup',loginHref='/logi
   return()=>{disposed=true;observer.current?.disconnect();node?.removeEventListener('webglcontextlost',lost);engine.current?.dispose();engine.current=null};
  },[loadThree]);
  useEffect(()=>{
-  const root=document.documentElement;const oldScheme=root.style.colorScheme;root.style.colorScheme=theme;
   let meta=document.querySelector('meta[name="theme-color"]');const created=!meta;const oldColor=meta?.getAttribute('content');
   if(!meta){meta=document.createElement('meta');meta.setAttribute('name','theme-color');document.head.append(meta)}
   meta.setAttribute('content',theme==='dark'?'#0d0a13':'#f4f0e9');
-  return()=>{root.style.colorScheme=oldScheme;if(created)meta.remove();else if(oldColor!==null)meta.setAttribute('content',oldColor)};
+  return()=>{if(created)meta.remove();else if(oldColor!==null)meta.setAttribute('content',oldColor)};
  },[theme]);
  useEffect(()=>{engine.current?.setTheme(theme)},[theme]);
  useEffect(()=>{engine.current?.select(agent.id);engine.current?.showOnly(focused?agent.id:null)},[agent.id,focused]);
@@ -66,8 +61,8 @@ export default function LandingExperience({signupHref='/signup',loginHref='/logi
   const stop=()=>{if(document.hidden){setTour(false);window.speechSynthesis?.cancel();video.current?.pause()}};document.addEventListener('visibilitychange',stop);window.addEventListener('pagehide',stop);
   return()=>{document.removeEventListener('visibilitychange',stop);window.removeEventListener('pagehide',stop);window.speechSynthesis?.cancel()};
  },[]);
- function toggleTheme(){const value=theme==='dark'?'light':'dark';manualTheme.current=true;setTheme(value);try{localStorage.setItem('startup-landing-theme',value)}catch{/* Theme still works without storage. */}}
- function toggleMotion(){const value=!motionEnabled;setMotionEnabled(value);try{localStorage.setItem('startup-landing-motion',value?'on':'off')}catch{/* Motion still works without storage. */}}
+ function toggleTheme(){changeAppearance({mode:theme==='dark'?'light':'dark'})}
+ function toggleMotion(){const value=!motion;setMotionEnabled(value);changeAppearance({motion:value});try{localStorage.setItem('startup-landing-motion',value?'on':'off')}catch{/* Motion still works without storage. */}}
  function playDemo(){setTour(false);window.speechSynthesis?.cancel();setVideoError(false);videoDialog.current?.showModal();video.current?.play().catch(()=>setVideoError(true))}
  function retryVideo(){setVideoError(false);video.current?.load();video.current?.play().catch(()=>setVideoError(true))}
  function choose(i){setIndex(i);setFocused(true)}
@@ -106,7 +101,7 @@ export default function LandingExperience({signupHref='/signup',loginHref='/logi
   </section>
   <section className="launch-plans" id="plans" aria-labelledby="launch-plans-title"><div className="launch-plans-heading"><h2 id="launch-plans-title">Start with a simulation.<br/>Find your next step.</h2><p>Explore the workflow before deciding what your startup needs.</p></div><div className="launch-plan-grid"><article className="launch-free launch-glass"><div className="launch-plan-title"><h3>Free</h3><span>Demo simulation</span></div><p>Meet the team. Explore the walkthrough. Create a company to try the synthetic launch workflow.</p><a className="launch-primary" href={signupHref}>Create your free demo account <Symbol name="arrow"/></a><p className="launch-demo-note">Synthetic outcomes. No real emails, posts or spending from the demo.</p></article><article className="launch-future"><h3>What comes next</h3><p>Further plans are being defined. Features, limits and pricing will be shared when they are ready.</p><span className="launch-planned">Planned</span></article></div></section>
   <section className="launch-close launch-glass"><h2>There’s a team<br/>behind your next move.</h2><a className="launch-primary" href={signupHref}>Take your seat <Symbol name="arrow"/></a><p>This page is an illustrative introduction. Sign in to see your business’s recorded work.</p></section>
-  <footer className="launch-footer launch-footer-expanded"><div><a href="/">Startup Simulator</a><h2>Give your next idea<br/><em>room to grow.</em></h2><p>Five departments. One shared direction. Every important decision returns to you.</p></div><nav aria-label="Footer navigation"><a href="#executives">Meet the team</a><a href="#demo">Project video</a><a href="/getting-started">Read the guide</a><a href="#plans">Free demo & plans</a><a href={loginHref}>Sign in</a><a href={signupHref}>Create your company</a></nav><div className="launch-footer-bottom"><span>Your company. Your direction.</span><span>Synthetic demonstrations are labelled throughout.</span></div></footer>
+  <footer className="launch-footer launch-footer-expanded"><FooterSculpture loadThree={loadThree}/><div><a href="/">Startup Simulator</a><h2>Give your next idea<br/><em>room to grow.</em></h2><p>Five departments. One shared direction. Every important decision returns to you.</p></div><nav aria-label="Footer navigation"><a href="#executives">Meet the team</a><a href="#demo">Project video</a><a href="/getting-started">Read the guide</a><a href="#plans">Free demo & plans</a><a href={loginHref}>Sign in</a><a href={signupHref}>Create your company</a></nav><div className="launch-footer-bottom"><span>Your company. Your direction.</span><span>Synthetic demonstrations are labelled throughout.</span></div></footer>
   <dialog className="launch-video-dialog launch-glass" ref={videoDialog} aria-labelledby="launch-video-title" onClose={()=>video.current?.pause()}><div className="launch-video-heading"><h2 id="launch-video-title">See Startup Simulator in action.</h2><button className="launch-icon" aria-label="Close project video" onClick={()=>videoDialog.current?.close()}><Symbol name="close"/></button></div><video ref={video} controls playsInline preload="none" poster="/media/quick-start-poster.jpg" aria-label="Startup Simulator project demo" onPlaying={()=>setVideoError(false)} onError={()=>setVideoError(true)}><source src="/media/quick-start.mp4" type="video/mp4"/><track kind="captions" src="/media/quick-start.vtt" srcLang="en" label="English" default/>Your browser cannot play this video.</video>{videoError&&<p className="launch-video-error" role="alert">The video could not start. <button onClick={retryVideo}>Retry video</button> or <a href="/media/quick-start.mp4" download>download the recording</a>.</p>}<p>Company setup, planning, department work, owner approval and the simulated result. Captioned screen recording using synthetic data; no audio track.</p><a href="/getting-started">Prefer reading? Open the written guide →</a></dialog>
   <dialog className="launch-dialog launch-glass" ref={dialog} aria-labelledby="launch-dialog-title"><button className="launch-icon launch-dialog-close" aria-label="Close overview" onClick={()=>dialog.current?.close()}><Symbol name="close"/></button><h2 id="launch-dialog-title">A clear path from idea to decision.</h2><p>The CEO coordinates the team. Finance reviews resources, Marketing proposes campaigns, HR evaluates staffing, and Operations plans capacity.</p><p>In your workspace, the boardroom shows recorded tasks and communication. You inspect actions requiring approval before the backend executes them.</p><p>The landing tour is a visual introduction. It creates no tasks, sends no messages and spends no money.</p><a className="launch-primary" href={signupHref}>Create your startup <Symbol name="arrow"/></a></dialog>
  </main>;

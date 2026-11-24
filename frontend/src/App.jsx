@@ -1,3 +1,5 @@
+import Appearance from './appearance/Appearance'
+import './appearance/appearance.css'
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
@@ -46,6 +48,7 @@ function App() {
   return (
     <BrowserRouter>
       <UnauthorizedHandler />
+      <Appearance/>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Landing />} />
