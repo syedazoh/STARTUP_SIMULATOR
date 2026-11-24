@@ -1,6 +1,6 @@
 # Cinematic landing proposal
 
-Status: phase 1 implemented, 24 November 2026, after the owner said “start working on it.” Used the stated default: public landing first and cinematic product direction. Commercial entitlements remain unimplemented.
+Status: phases 1–2 implemented, 24 November 2026, after the owner said “start working on it.” Used the stated default: public landing first and cinematic product direction. Commercial entitlements remain unimplemented.
 
 ## Objective
 Turn Startup Simulator's public arrival into an immersive, understandable introduction that guides visitors toward a free demo simulation, then explains the path to future plans. Keep the established black/purple/warm off-white identity and existing light theme.
@@ -39,7 +39,7 @@ Use the existing Next/Vite shared landing and Three.js renderer. Preserve workin
 Check 320, 390, 768, 1100 and 1440px; dark/light; reduced motion and explicit motion off; keyboard navigation; speech unavailable; WebGL unavailable; storage blocked; hidden/offscreen behavior. Run applicable Next tests/types/build and Vite lint/tests/build. Confirm public preview makes no task/provider mutations. These checks have not been run for this proposal because no UI was changed.
 
 ## Decisions still needed
-- Current slice: public landing only, cinematic product composition. Signed-in redesign and richer agent chapters are later phases.
+- Current slice: public landing only, cinematic product composition. Agent chapters and the synthetic walkthrough are implemented; signed-in redesign remains outside this landing scope.
 - Later: free demo account requirement; paid plan names, prices, quotas and actual entitlements. None are invented here.
 
 ## Inspected evidence

@@ -1,0 +1,14 @@
+// Synthetic explanatory sequence only. No backend IDs, commands or approvals.
+export const LAUNCH_STEPS = [
+ {id:'brief',sender:'ceo',receiver:'marketing',title:'Give the launch a direction',label:'Launch brief',detail:'The CEO shares a product-launch objective with Marketing. The proposal still needs review.',artifact:'Launch objective and campaign brief'},
+ {id:'campaign',sender:'marketing',receiver:'finance',title:'Put the campaign on the table',label:'Campaign proposal',detail:'Marketing sends its proposed campaign and requested budget to Finance. A request is not an approved expense.',artifact:'Campaign draft and budget request'},
+ {id:'staffing',sender:'finance',receiver:'hr',title:'Check the people behind the plan',label:'Staffing budget review',detail:'Finance asks HR to check staffing needs against the proposed allocation before the launch proceeds.',artifact:'Staffing requirements and cost review'},
+ {id:'coverage',sender:'hr',receiver:'operations',title:'Connect people to delivery',label:'Support coverage',detail:'HR shares proposed launch support coverage with Operations, which checks the delivery plan.',artifact:'Proposed coverage and delivery dependencies'},
+ {id:'readiness',sender:'operations',receiver:'ceo',title:'Bring the readiness review together',label:'Readiness review',detail:'Operations returns its resource and readiness assessment to the CEO. Missing requirements remain blockers.',artifact:'Readiness assessment'},
+ {id:'approval',sender:'ceo',receiver:'owner',title:'The final call belongs to you',label:'Owner review requested',detail:'The owner inspects the exact proposal, its mode and its cost. CEO review does not authorize execution.',artifact:'Proposal awaiting owner approval'},
+ {id:'owner-preview',sender:'owner',receiver:'marketing',title:'Preview the approval handoff',label:'Illustrative owner approval',detail:'This illustrates an owner-approved proposal returning to Marketing. Selecting this step grants no real authority.',artifact:'Illustrative approval — no action authorized'},
+ {id:'execution',sender:'marketing',receiver:'operations',title:'Rehearse the launch',label:'Simulated execution',detail:'Marketing and Operations coordinate an illustrative launch. No email, social post, advertisement or purchase is sent.',artifact:'Synthetic execution outcome'},
+ {id:'report',sender:'operations',receiver:'ceo',title:'Close the loop with evidence',label:'Outcome report',detail:'Operations returns the simulated result. The CEO reviews the outcome alongside the original plan; synthetic results are never real-world performance.',artifact:'CEO summary of the synthetic result'},
+];
+export function nextLaunchStep(index,direction=1){return Math.max(0,Math.min(LAUNCH_STEPS.length-1,index+direction))}
+export function participantName(id){return id==='owner'?'You · Owner':id==='ceo'?'CEO':id==='hr'?'HR':id.charAt(0).toUpperCase()+id.slice(1)}

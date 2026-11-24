@@ -22,4 +22,7 @@ STORY: Invitation and floor → existing agent player → workflow explanation �
 FIRST VIEWPORT: Readable large invitation, executive floor and demo action on desktop; phones stack the floor immediately after the headline.
 FORM: Code-led extension of the existing glass landing, pinned to the user-supplied references and established brand. Launcher unavailable; no concept roll/comp or independent review claimed.
 
-Phase 2 remains: richer agent chapters and an explicit synthetic launch handoff walkthrough. Commercial entitlements/paid billing remain a separate undecided scope.
+Phase 2 implemented: selectable expanded agent chapters and a nine-step synthetic launch handoff walkthrough, including all five departments and a separate owner station. Commercial entitlements/paid billing remain a separate undecided scope.
+
+## Requested libraries — 24 November 2026
+Owner clarified Vengence UI (vengenceui.com) and Augment Code (augmentcode.com). Augment is not a UI library; no connection or use is claimed. Adapted Vengence staggerText and Skiper legacy ExpandedTabs with MIT notices; current Skiper website was blocked from this environment, so the specific legacy source and limitations are documented. Framer Motion imports belong to each app; shared UI receives app-owned primitives. Source/license notices ship with both public builds. Synthetic walkthrough selection never calls backend/provider APIs.

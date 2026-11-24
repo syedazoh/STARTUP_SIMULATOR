@@ -218,7 +218,10 @@
         "player": "Previous, play/pause, next and narration toggle; visible live caption plus expandable transcript.",
         "overview": "User-opened native dialog with labelled heading, close control and native Escape dismissal.",
         "demoEntry": "Existing synthetic-recording poster opens public /getting-started; account-scoped demo retains existing registration",
-        "plans": "Free demo account CTA; further plans explicitly Planned without fabricated prices/quotas or checkout"
+        "plans": "Free demo account CTA; further plans explicitly Planned without fabricated prices/quotas or checkout",
+        "agentChapters": "MIT-adapted Skiper legacy ExpandedTabs; department names always visible, selected role expands; native pressed-state buttons",
+        "heroReveal": "MIT-adapted Vengence staggerText; visible SSR default and one screen-reader alternative",
+        "launchWalkthrough": "Nine explicitly synthetic routed steps; existing shared Three renderer, route names, explanations/artifacts and native manual/playback controls; no business effects"
       },
       "breakpoints": {
         "wide": "1600px",
@@ -240,7 +243,9 @@
         "theme": "250ms",
         "reducedMotion": "Disables landing CSS animation/transitions, smooth tour scrolling and renderer idle animation",
         "visibility": "IntersectionObserver gates scene rendering; hidden tab/pagehide stops narration and tour",
-        "preference": "startup-landing-motion on/off; OS reduced motion overrides; shared renderer setReducedMotion cancels idle RAF; no automatic department advance when off"
+        "preference": "startup-landing-motion on/off; OS reduced motion overrides; shared renderer setReducedMotion cancels idle RAF; no automatic department advance when off",
+        "engine": "App-owned framer-motion 12.23.24 primitives; motion-dom 12.23.23 and motion-utils 12.23.6 pinned to avoid incompatible newer transitive exports",
+        "walkthrough": "5.2s per step only after user starts playback and section is visible; stops at end/hidden document/reduced motion; manual selection stays available"
       },
       "accessibility": {
         "focus": "3px accent outline with 4px offset",

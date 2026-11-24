@@ -10,6 +10,13 @@ const fs=require('node:fs');
  const errors=[],mutations=[];
  for(const colorScheme of ['dark','light']){
   const context=await browser.newContext({colorScheme,viewport:{width:1440,height:1000}});
+  await context.addInitScript(()=>{
+   window.__landingDrawCount=0;
+   for(const Type of [window.WebGLRenderingContext,window.WebGL2RenderingContext]){
+    if(!Type)continue;const draw=Type.prototype.drawElements;
+    Type.prototype.drawElements=function(...args){window.__landingDrawCount++;return draw.apply(this,args)};
+   }
+  });
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
   page.on('request',r=>{if(!['GET','HEAD'].includes(r.method()))mutations.push(r.url())});
   await page.goto(base);await page.getByRole('button',{name:'Motion on',exact:true}).waitFor();
@@ -18,10 +25,39 @@ const fs=require('node:fs');
   for(const width of [1440,1100,768,390,320]){
    await page.setViewportSize({width,height:1000});await page.waitForTimeout(120);await page.evaluate(()=>scrollTo(0,0));
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow ${width}/${colorScheme}`);
+   await page.locator('.launch-film').scrollIntoViewIfNeeded();
+   await page.locator('.launch-film img').evaluate(img=>img.decode());
+   await page.evaluate(()=>scrollTo(0,0));
    await page.screenshot({path:`${shots}/${colorScheme}-${width}.png`,fullPage:true});
   }
+  await page.getByRole('button',{name:'Explore HR chapter',exact:true}).click();
+  await page.getByRole('heading',{name:'Build the team behind the idea.'}).waitFor();
+  const meeting=page.locator('.launch-walkthrough');await meeting.scrollIntoViewIfNeeded();
+  await page.waitForFunction(()=>!document.querySelector('.launch-meeting-fallback'));
+  assert.ok(await page.getByRole('button',{name:'Previous walkthrough step'}).isDisabled());
+  await page.getByRole('button',{name:'Next walkthrough step'}).click();
+  assert.match(await page.locator('.launch-meeting-route').innerText(),/Marketing.*Finance/s);
+  await page.getByRole('button',{name:/Owner review requested/}).click();
+  assert.match(await page.locator('.launch-meeting-route').innerText(),/CEO.*You · Owner/s);
+  await page.getByRole('button',{name:/Illustrative owner approval/}).click();
+  assert.match(await page.locator('.launch-meeting-route').innerText(),/You · Owner.*Marketing/s);
+  await page.getByRole('button',{name:/Outcome report/}).click();
+  assert.ok(await page.getByRole('button',{name:'Next walkthrough step'}).isDisabled());
+  await page.getByRole('button',{name:'Play walkthrough',exact:true}).click();
+  await page.getByRole('button',{name:'Pause walkthrough',exact:true}).waitFor();
+  if(colorScheme==='dark'){
+   await page.waitForFunction(()=>document.querySelector('.launch-handoff-steps button[aria-current=step] strong')?.textContent==='Campaign proposal');
+  }
+  await page.getByRole('button',{name:'Pause walkthrough',exact:true}).click();
+  const paused=await page.locator('.launch-handoff-steps button[aria-current=step]').innerText();
+  await page.waitForTimeout(5500);assert.equal(await page.locator('.launch-handoff-steps button[aria-current=step]').innerText(),paused);
+  await meeting.screenshot({path:`${shots}/${colorScheme}-walkthrough.png`});
   await page.getByRole('button',{name:'Motion on',exact:true}).click();
   assert.equal(await page.locator('.launch-page').getAttribute('data-motion'),'off');
+  await page.waitForTimeout(300);const draws=await page.evaluate(()=>window.__landingDrawCount);
+  assert.ok(draws>0);await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.__landingDrawCount),draws,'Motion off must stop WebGL draws');
+  assert.ok(await page.getByRole('button',{name:'Play walkthrough',exact:true}).isDisabled());
+  await page.getByRole('button',{name:'Next walkthrough step'}).click();
   // The canvas remains interactive and static with motion off.
   await page.getByRole('button',{name:'Finance',exact:true}).click();
   await page.getByRole('heading',{name:'Make the ambition add up.'}).waitFor();
@@ -50,12 +86,13 @@ const fs=require('node:fs');
   Object.defineProperty(window,'speechSynthesis',{value:undefined});
  });
  const f=await fallback.newPage();await f.goto(base);await f.getByText('3D is unavailable on this device.',{exact:false}).waitFor();
+ await f.getByText('3D is unavailable. Follow every handoff',{exact:false}).waitFor();
  await f.getByRole('button',{name:'HR',exact:true}).click();await f.getByRole('heading',{name:'Build the team behind the idea.'}).waitFor();
  await f.getByRole('button',{name:'Switch to dark mode'}).click();await f.getByRole('button',{name:'Motion on',exact:true}).click();
  await f.getByRole('button',{name:'Play introduction',exact:true}).click();await f.getByText('Voice unavailable here. Follow the captions.').waitFor();
  await f.getByRole('button',{name:'Close captions and pause tour'}).click();
  await f.screenshot({path:`${shots}/fallback.png`,fullPage:true});await fallback.close();
  assert.deepEqual(errors,[]);assert.deepEqual(mutations,[]);
- console.log('PASS: 10 theme/viewport combinations; persistent theme/motion; OS changes; agent selection; demo routes; dialog; WebGL/storage/voice fallbacks; no page errors or public mutations.');
+ console.log('PASS: 10 theme/viewport combinations; persistent theme/motion; OS changes; agent selection; demo routes; dialog; WebGL/storage/voice fallbacks; chapters and all walkthrough controls, autoplay/pause and owner handoff; no page errors or public mutations.');
  } finally { await browser.close() }
 })().catch(e=>{console.error(e);process.exit(1)});

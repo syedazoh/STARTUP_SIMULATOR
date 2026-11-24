@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import vm from 'node:vm'
 import React from 'react'
 import * as router from 'react-router-dom'
+import * as animation from 'framer-motion'
 import { transformWithEsbuild } from 'vite'
 
 async function loadJSX(path, overrides = {}) {
@@ -17,6 +18,7 @@ async function loadJSX(path, overrides = {}) {
     let exports = overrides[specifier]
     if (!exports) {
       if (specifier === 'react') exports = { default: React, useEffect: () => {}, useState: (initial) => [initial, () => {}], useMemo: (factory) => factory(), useRef: (initial) => ({ current: initial }) }
+      else if (specifier === 'framer-motion') exports = animation
       else if (specifier === 'react-router-dom') exports = router
       else if (specifier === 'react-redux') exports = { useDispatch: () => () => {}, useSelector: () => ({}) }
       else if (specifier.endsWith('/palette')) exports = { STATUS: { good: 'green' } }

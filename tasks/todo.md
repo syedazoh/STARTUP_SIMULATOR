@@ -437,6 +437,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 ## Cinematic landing — 24 November 2026
 - [x] Phase 1: public cinematic hero/3D, sticky navigation, persistent motion preference/OS override, existing captioned-demo entry and Free/Planned presentation shared by Next and Vite.
 - [x] Verify Next types/27 tests/build; Vite lint/63 tests/build; Chromium five-width dark/light and preference/demo/dialog/3D-storage-voice fallback checks. Evidence: docs/design/CINEMATIC_LANDING_PHASE_1.md.
-- [ ] Phase 2: richer agent chapters and explicit synthetic launch handoff walkthrough.
+- [x] Phase 2: Skiper legacy expanded agent chapters, Vengence text reveal and nine-step synthetic launch handoffs with Framer Motion; five departments plus separate owner, manual/playback controls and motion/fallback handling. Evidence: docs/design/CINEMATIC_LANDING_PHASE_2.md.
 - [ ] Define paid plan names, prices, quotas and entitlements before subscription implementation. No billing claim from landing presentation.
 - [ ] Later: actual-device/browser and performance verification; existing Vite bundle-size concern remains.
