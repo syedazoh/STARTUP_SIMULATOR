@@ -1,4 +1,5 @@
 "use client";
+import Avatar from "../../../components/agent-avatar";
 import Icon from "../../../components/studio/icon";
 import OverviewCharts from "./overview-charts";
 import "./command-center.css";
@@ -169,12 +170,16 @@ function DepartmentFields({ department }: { department: Operator }) {
 export default function CommandCenter({
   business,
   initial,
+  initialDepartment,
+  agentTools,
 }: {
   business: Business;
   initial: Workspace;
+  initialDepartment?: Department;
+  agentTools?: React.ReactNode;
 }) {
   const [data, setData] = useState(initial),
-    [department, setDepartment] = useState<Department | "all">("all");
+    [department, setDepartment] = useState<Department | "all">(initialDepartment || "all");
   const [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [error, setError] = useState("");
@@ -237,7 +242,7 @@ export default function CommandCenter({
       setBusy(false);
     }
   }
-  const tasks = data.tasks.data;
+  const tasks = initialDepartment ? data.tasks.data.filter(t=>t.agent===initialDepartment) : data.tasks.data;
   const visible = tasks.filter(
     (t) => department === "all" || t.agent === department,
   );
@@ -262,7 +267,7 @@ export default function CommandCenter({
           <small>{business.industry}</small>
         </div>
         <nav aria-label="Command center navigation">
-          <a href="#overview" aria-current="page">
+          <a href="#overview" aria-current={initialDepartment?undefined:"page"}>
             <Icon name="signal" />
             Overview
           </a>
@@ -270,7 +275,7 @@ export default function CommandCenter({
             <Icon name="cube" />
             Departments
           </a>
-          <a href="#ceo-plans">
+          <a href={initialDepartment?`/workspace/${encodeURIComponent(business.id)}#ceo-plans`:"#ceo-plans"}>
             <Icon name="list" />
             Goals & plans
           </a>
@@ -294,6 +299,7 @@ export default function CommandCenter({
             <Icon name="play" />
             Launch laboratory
           </a>
+          <div className="command-agent-heading">Agent workspaces</div>{departments.map(role=><a key={role} aria-current={initialDepartment===role?'page':undefined} href={`/workspace/${encodeURIComponent(business.id)}/agents/${role}`}><Icon name="cube"/>{labels[role]}</a>)}
         </nav>
         <div className="command-sidebar-bottom">
           <a href="/getting-started">Product demo & guide</a>
@@ -310,10 +316,9 @@ export default function CommandCenter({
           <div className="command-breadcrumb">
             Workspace <span>/</span> Overview
           </div>
-          <h1>{business.company_name}</h1>
+          <h1>{initialDepartment?`${labels[initialDepartment]} workspace`:business.company_name}</h1>
           <p>
-            Your business, in focus. Review the work, the resources and the next
-            decision.
+            {initialDepartment?`${business.company_name} · Department tasks, proposals, settings and saved conversations.`:"Your business, in focus. Review the work, the resources and the next decision."}
           </p>
           <a
             className="command-boardroom-link"
@@ -322,6 +327,7 @@ export default function CommandCenter({
             Open 3D Boardroom <Icon name="chevron" />
           </a>
         </section>
+        {initialDepartment&&<div className="agent-workspace-intro"><Avatar agent={initialDepartment} caption={`${labels[initialDepartment]} avatar`}/><div><h2>Your {labels[initialDepartment]} working space</h2><p>{initialDepartment==="ceo"?"Use the planning form below to review goals and assignments. CEO review is separate from your final owner approval.":"Use the proposal form below for simulated work. Review execution mode and reasoning policy before sending requests."} Open Automation & knowledge for jobs, deadlines and documents.</p><a href={`/workspace/${encodeURIComponent(business.id)}/automation`}>Open automation & knowledge</a></div></div>}
         <p className="demo-label">
           Simulation workspace · Department actions change simulated business
           state. Real email, hiring, purchasing and social publication are not
@@ -404,19 +410,19 @@ export default function CommandCenter({
                   ? "Review the exact proposal before authorizing an action."
                   : "No owner decisions in the loaded task snapshot."}
             </p>
-            <a href="#tasks" onClick={() => setDepartment("all")}>
+            <a href="#tasks" onClick={() => setDepartment(initialDepartment || "all")}>
               Open approval inbox <Icon name="chevron" />
             </a>
             <small>Approval can execute an eligible action.</small>
           </aside>
         </div>
+        {agentTools}
         <section className="card wide" id="departments">
-          <h2>Your five departments</h2>
+          <h2>{initialDepartment?`${labels[initialDepartment]} tasks and proposals`:"Your five departments"}</h2>
           <p>
-            Select a department to see its tasks and proposal form. CEO planning
-            remains separate from owner authorization.
+{initialDepartment?"This page shows the selected department. Use Agent workspaces in the sidebar to open another role.":"Select a department to see its tasks and proposal form. CEO planning remains separate from owner authorization."}
           </p>
-          <div className="department-nav" aria-label="Department filters">
+          {!initialDepartment&&<div className="department-nav" aria-label="Department filters">
             <button
               aria-pressed={department === "all"}
               className="secondary"
@@ -435,7 +441,7 @@ export default function CommandCenter({
                 {business.enabled_agents.includes(key) ? "" : "· disabled"}
               </button>
             ))}
-          </div>
+          </div>}
           {data.agents.error ? (
             <p role="alert" className="error">
               Agent status: {data.agents.error}
@@ -497,7 +503,7 @@ export default function CommandCenter({
               </form>
             )}
         </section>
-        <section className="card wide" id="ceo-plans">
+        {(!initialDepartment||initialDepartment==="ceo")&&<section className="card wide" id="ceo-plans">
           <h2>CEO plans and delegation</h2>
           <p>
             Generate a draft, review every assignment, then activate it.
@@ -605,7 +611,7 @@ export default function CommandCenter({
             <p>No CEO plans yet.</p>
           )}
           <small>Latest 100 saved plans.</small>
-        </section>
+        </section>}
         <section className="card wide" id="tasks">
           <h2>
             {department === "all"
@@ -826,8 +832,8 @@ export default function CommandCenter({
             <p role="alert" className="error">
               {data.reports.error}
             </p>
-          ) : data.reports.data.length ? (
-            data.reports.data.map((report) => (
+          ) : (initialDepartment?data.reports.data.filter(r=>r.department===initialDepartment):data.reports.data).length ? (
+            (initialDepartment?data.reports.data.filter(r=>r.department===initialDepartment):data.reports.data).map((report) => (
               <article className="work-item" key={report.report_id}>
                 <h3>{report.objective}</h3>
                 <p>

@@ -1,4 +1,5 @@
 "use server";
+import {linkFailure} from "../lib/account-link";
 import { redirect } from "next/navigation";
 import { supabase } from "../lib/supabase";
 import { authConfigurationIssue, authErrorCode, signupDestination } from "../lib/auth-state";
@@ -53,8 +54,9 @@ export async function linkAccount(form: FormData) {
   } = await client.auth.getSession();
   if (!session) redirect("/login");
   const url = process.env.BACKEND_URL || "http://127.0.0.1:8000";
-  const credentials = fields(form);
+  const credentials = fields(form,"/workspace");
   let linked = false;
+  let failure="link_backend";
   try {
     const res = await fetch(`${url}/api/auth/login`, {
       method: "POST",
@@ -77,6 +79,7 @@ export async function linkAccount(form: FormData) {
           signal: AbortSignal.timeout(12000),
         });
         linked = result.ok;
+        if(!linked)failure=linkFailure(result.status,"link");
       } finally {
         await fetch(`${url}/api/auth/logout`, {
           method: "POST",
@@ -85,11 +88,11 @@ export async function linkAccount(form: FormData) {
             "X-Requested-With": "XMLHttpRequest",
           },
           signal: AbortSignal.timeout(12000),
-        });
+        }).catch(()=>{});
       }
-    }
+    }else failure=linkFailure(res.status,"login");
   } catch {
-    linked = false;
+    failure="link_backend";
   }
-  redirect(linked ? "/workspace" : "/workspace?error=link");
+  redirect(linked ? "/workspace?linked=1" : `/workspace?error=${failure}`);
 }

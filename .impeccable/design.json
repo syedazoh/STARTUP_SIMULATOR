@@ -298,6 +298,13 @@
       },
       "dataTruth": "Existing authenticated snapshots and history only; no fabricated trends/currency, no approval on navigation",
       "motion": "History charts disable stroke reveal during polling; existing boardroom motion remains unchanged"
+    },
+    "agentWorkspaceContinuity": {
+      "routes": "Five business-scoped working spaces; selection distinct from boardroom focus",
+      "motion": "Decorative fixed full-scroll background; persistent pause and OS reduced-motion override",
+      "avatars": "Shared procedural Three.js role identity, not simulated execution evidence",
+      "navigation": "Scrollable desktop sidebars; reachable mobile agent links",
+      "classicParity": "Marketing publishing/media/connected accounts remain in Vite"
     }
   },
   "components": [

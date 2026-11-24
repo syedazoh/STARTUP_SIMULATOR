@@ -8,6 +8,8 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
   if(path==='/api/auth/me')return route.fulfill({json:{id:'fixture-owner',email:'fixture@example.com'}});
   if(path.endsWith('/simulation/status'))return route.fulfill({json:{is_running:false,is_paused:false,tick_count:12}});
   if(path.includes('simulation-runs'))return route.fulfill({json:[]});
+  if(/\/agents\/(ceo|finance|marketing|hr|operations)$/.test(path))return route.fulfill({json:{agent_id:path.split('/').pop(),agent_name:path.split('/').pop(),decision_count:2}});
+  if(path.endsWith('/finances'))return route.fulfill({json:{cash:10000,reserved:0,available:10000,revenue:0,expenses:0,monthly_payroll_commitment:0}});
   if(path.endsWith('/profile'))return route.fulfill({json:{}});
   if(path.endsWith('/history'))return route.fulfill({json:[5,4,3,2,1].map(i=>({state:{budget_pool:10000-i*200,customer_base:i*20,brand_value:i*5},synthetic:true}))});
   const response=await fetch('http://127.0.0.1:8012'+path+url.search);return route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});
@@ -15,5 +17,8 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.goto('http://127.0.0.1:5173/b/studio-business/dashboard');await page.getByRole('heading',{name:'Your startup at a glance.'}).waitFor({timeout:10000}).catch(async error=>{console.log(page.url(),(await page.locator('body').innerText()).slice(0,1500),errors);throw error});await page.locator('.recharts-line').first().waitFor();
  fs.mkdirSync('/tmp/dashboard-reference',{recursive:true});
  for(const width of [1440,1100,768,390,320]){await page.setViewportSize({width,height:1050});await page.evaluate(()=>scrollTo(0,0));await page.waitForTimeout(150);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`overflow ${width}`);await page.screenshot({path:`/tmp/dashboard-reference/vite-${width}.png`,fullPage:true})}
+ for(const [role,label] of [['finance','Finance'],['marketing','Marketing'],['hr','HR'],['operations','Operations'],['ceo','CEO']]){await page.goto(`http://127.0.0.1:5173/b/studio-business/agents/${role}`);await page.getByRole('heading',{name:`${label} Agent`,exact:true}).waitFor({timeout:10000}).catch(async error=>{console.log('Role failure',role,page.url(),(await page.locator('body').innerText()).slice(0,2000),errors);throw error});await page.locator('.agent-presence[data-scene=ready]').waitFor();assert.equal(await page.locator('.classic-workspace-footer').count(),1)}
+ await page.setViewportSize({width:1440,height:600});assert.ok(await page.locator('.hq-sidebar nav').evaluate(e=>e.scrollHeight>e.clientHeight));await page.locator('.hq-sidebar nav').evaluate(e=>{e.scrollTop=e.scrollHeight});await page.locator('.hq-sidebar nav').getByRole('link',{name:'Operations',exact:true}).click();await page.getByRole('heading',{name:'Operations Agent',exact:true}).waitFor();
+ await page.locator('.classic-workspace-footer').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/dashboard-reference/classic-agent-footer.png'});
  assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS: Vite dashboard charts with isolated synthetic API, 5 widths, no page errors or business writes.');
  }finally{await browser.close()}})().catch(e=>{console.error(e);process.exit(1)});

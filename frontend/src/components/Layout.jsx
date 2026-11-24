@@ -1,4 +1,5 @@
-import { useLayoutEffect, useState } from 'react'
+import Atmosphere from '../landing/Atmosphere';
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router-dom'
 import { logout } from '../store/slices/authSlice'
@@ -6,6 +7,7 @@ import { clearBusinesses, setActiveBusiness } from '../store/slices/businessSlic
 import BusinessSwitcher from './BusinessSwitcher'
 import './layout.css'
 
+const loadThree=()=>import('three')
 const agentLinks=[['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],['hr','HR'],['operations','Operations']]
 const primary=[['dashboard','◫','Command Center'],['boardroom','◉','3D Boardroom'],['decision-log','☷','Decision History'],['memory-inspector','◇','Agent Memory'],['profile','▤','Business Profile']]
 export default function Layout(){
@@ -13,6 +15,8 @@ export default function Layout(){
  const dispatch=useDispatch()
  const navigate=useNavigate()
  const [open,setOpen]=useState(false)
+ const [backgroundMotion,setBackgroundMotion]=useState(true),[reduced,setReduced]=useState(false)
+ useEffect(()=>{const preference=matchMedia('(prefers-reduced-motion: reduce)');setReduced(preference.matches);try{setBackgroundMotion(localStorage.getItem('startup-workspace-motion')!=='off')}catch{}const update=()=>setReduced(preference.matches);preference.addEventListener('change',update);return()=>preference.removeEventListener('change',update)},[])
  const logoutError=useSelector(s=>s.auth.error)
  const isAdmin=useSelector(s=>s.auth.user?.role==='admin')
  useLayoutEffect(()=>{dispatch(setActiveBusiness(businessId));setOpen(false)},[businessId,dispatch])
@@ -31,6 +35,6 @@ export default function Layout(){
      </nav>
      <div className="hq-sidebar-footer"><Link to="/getting-started">Product demo &amp; quick start</Link>{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>
    </aside>
-   <div className="hq-workspace"><Outlet key={businessId}/></div>
+   <div className="hq-workspace"><div className="classic-workspace-effects"><Atmosphere loadThree={loadThree} enabled={backgroundMotion&&!reduced} theme="dark"/></div><Outlet key={businessId}/><footer className="classic-workspace-footer"><div><Link to={`/b/${businessId}/dashboard`}>Startup Simulator</Link><h2>Your direction.<br/><em>A whole team behind it.</em></h2><p>Open the proposal, make the decision, then follow the recorded result.</p></div><nav aria-label="Workspace footer"><Link to={`/b/${businessId}/dashboard`}>Command center</Link><Link to={`/b/${businessId}/boardroom`}>3D Boardroom</Link><Link to={`/b/${businessId}/agents/ceo`}>CEO workspace</Link><Link to="/getting-started">Video & written guide</Link></nav></footer><button className="classic-motion-toggle" disabled={reduced} aria-pressed={backgroundMotion&&!reduced} onClick={()=>{setBackgroundMotion(!backgroundMotion);try{localStorage.setItem('startup-workspace-motion',backgroundMotion?'off':'on')}catch{}}}>Background motion {backgroundMotion&&!reduced?'on':'off'}</button></div>
  </div>
 }

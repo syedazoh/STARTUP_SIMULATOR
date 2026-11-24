@@ -624,3 +624,5 @@ body:has(.command-layout) > .site-header {
   align-items: center;
   min-height: 44px;
 }
+
+.command-sidebar{height:calc(100dvh - 48px);min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:auto;scrollbar-color:#a68bcb #22192e}.command-sidebar>*{flex-shrink:0}.command-agent-heading{font-size:14px;color:#c2b3d0;padding:24px 10px 8px}.command-sidebar::-webkit-scrollbar{width:9px}.command-sidebar::-webkit-scrollbar-thumb{background:#a68bcb;border-radius:8px;border:2px solid #22192e}.command-sidebar::-webkit-scrollbar-track{background:#22192e}@media(max-width:760px){.command-sidebar{height:auto;overflow:visible;scrollbar-gutter:auto}.command-agent-heading{display:none}.command-sidebar nav::-webkit-scrollbar{height:8px}}

@@ -374,3 +374,7 @@ All four GitHub Actions workflows for pushed commit b999c6e succeeded; [CI evide
 The approved restricted host grant is active. Public embedding/reranker models downloaded without a Hugging Face token. [Cached-model evidence](docs/evaluation/model-cache-2026-11-24.json): **504 backend tests passed**, no failures/skips, with real Mongo integration and HF_HUB_OFFLINE=1; required hybrid retrieval **50/50** versus lexical baseline **48/50**. Cached revisions and exact modes are recorded; this is retrieval coverage, not generated-content entailment or business success. No environment publication or deployment was performed.
 
 Container tests need repository assets alongside the image's backend tests: mount `datasets` read-only at `/datasets` and `scripts` read-only at `/scripts`. Jenkins and the development Compose test profile now do this. The test profile forces an empty provider key and uses temporary memory/upload storage, preserving user data. Production application and fixture schemas/assertions are unchanged.
+
+
+### Finding existing companies and agent workspaces
+See [Local startup and account recovery](docs/LOCAL_ACCOUNT_RECOVERY.md) for the original Supabase/Mongo configuration, Windows commands, account linking and the five Next agent routes. Next runs on 3000; classic Vite tools on 5173 remain available for Marketing publishing/media/account controls.

@@ -93,11 +93,51 @@ async def activate_demo_plan(bid:str,pid:str):
 @app.get('/api/businesses/{bid}/ceo/reports')
 async def demo_reports(bid:str):return []
 @app.get('/api/businesses/{bid}/finances')
-async def demo_finances(bid:str):return {'available':10000,'revenue':0,'expenses':0,'monthly_payroll_commitment':0}
+async def demo_finances(bid:str):return {'cash':10000,'reserved':0,'available':10000,'revenue':0,'expenses':0,'monthly_payroll_commitment':0}
 
 for task in tasks:
  task.setdefault('source','demo_fixture')
  task.setdefault('business_id','studio-business')
  task.setdefault('ceo_authorized',True)
+
+# Agent workspace fixtures: isolated dictionaries, never a live provider/database.
+mode_records={role:{'mode':'manual','auto_thresholds':{'auto_approve_max':None}} for role in ['finance','marketing','hr','operations']}
+policy_records={role:{'enabled':False,'auto_approve_max':None,'auto_deny_min':None} for role in mode_records}
+chat_records={role:[] for role in ['ceo',*mode_records]}
+ui_updates=[]
+@app.get('/api/businesses/{bid}/agents/{role}/mode')
+async def fixture_mode(bid:str,role:str):
+ if role not in mode_records:raise HTTPException(404,'Unknown mode')
+ return mode_records[role]
+@app.put('/api/businesses/{bid}/agents/{role}/mode')
+async def fixture_mode_save(bid:str,role:str,request:Request):
+ mode_records[role]=await request.json();ui_updates.append({'business':bid,'role':role,'kind':'mode'});return mode_records[role]
+@app.get('/api/businesses/{bid}/agents/{role}/policy')
+async def fixture_policy(bid:str,role:str):
+ if role not in policy_records:raise HTTPException(404,'Unknown policy')
+ return policy_records[role]
+@app.put('/api/businesses/{bid}/agents/{role}/policy')
+async def fixture_policy_save(bid:str,role:str,request:Request):
+ policy_records[role]=await request.json();ui_updates.append({'business':bid,'role':role,'kind':'policy'});return policy_records[role]
+@app.get('/api/businesses/{bid}/agents/{role}/history')
+async def fixture_history(bid:str,role:str):return [{'state':{'budget_pool':10000,'revenue':0,'expenses':0,'customer_base':20,'brand_value':5,'employee_count':2,'team_morale':80,'resource_pool':100,'operational_efficiency':75},'synthetic':True}]
+@app.get('/api/businesses/{bid}/agents/{role}/chat')
+async def fixture_chat(bid:str,role:str):return {'messages':chat_records[role]}
+@app.post('/api/businesses/{bid}/agents/{role}/chat')
+async def fixture_chat_send(bid:str,role:str,request:Request):
+ content=(await request.json())['content'];failed=content=='fixture-ai-error'
+ chat_records[role].extend([{'role':'owner','content':content,'created_at':now()},{'role':'agent','content':'Fixture AI unavailable' if failed else 'Synthetic fixture reply only. No provider or task executed.','created_at':now()}])
+ ui_updates.append({'business':bid,'role':role,'kind':'chat'});return {'thread':{'messages':chat_records[role]},'task':None,'ai_error':'Fixture AI unavailable' if failed else None}
+@app.get('/__fixture__/agent-state')
+async def fixture_agent_state():return {'updates':ui_updates,'modes':mode_records,'policies':policy_records}
+@app.post('/api/auth/login')
+async def fixture_original_login(request:Request):
+ data=await request.json()
+ if data.get('email')!=user['email'] or data.get('password')!='fixture-password':raise HTTPException(401,'Original credentials not accepted')
+ return {'access_token':token}
+@app.post('/api/auth/link-supabase')
+async def fixture_link():return user
+@app.post('/api/auth/logout')
+async def fixture_original_logout():return {}
 
 if __name__=='__main__':uvicorn.run(app,host='127.0.0.1',port=8012)

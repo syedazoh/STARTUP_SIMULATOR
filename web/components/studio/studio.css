@@ -1462,3 +1462,6 @@
 .studio-activity .room-filters button{background:#2b1c39;color:#f0e1fc;border:1px solid #9375ad;padding:9px 13px}
 .studio-activity .room-filters button[aria-pressed="true"]{background:#54386d;border-color:#d9befb}
 @media(max-width:700px){.studio-roster{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.studio-activity .studio-section-title h2{flex-basis:100%}.studio-activity .studio-section-title>span{margin-left:auto}}
+
+/* Every department remains reachable when the viewport is short. */
+.studio-sidebar{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;scrollbar-width:auto;scrollbar-color:#a68bcb #22192e}.studio-sidebar>*{flex-shrink:0}.studio-sidebar::-webkit-scrollbar{width:9px}.studio-sidebar::-webkit-scrollbar-thumb{background:#a68bcb;border:2px solid #22192e;border-radius:8px}.studio-workspace-links{display:grid;gap:6px;margin-top:18px}.studio-workspace-links a,.studio-agent-open{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;color:#d7c1ee;font-size:14px;min-height:44px;border-radius:8px}.studio-workspace-links a:hover{background:#2b2039}@media(max-width:700px){.studio-sidebar{overflow:visible;scrollbar-gutter:auto}.studio-workspace-links{grid-column:1/-1;display:flex;overflow-x:auto;max-width:100%;min-width:0;margin-top:0}.studio-workspace-links a{flex-shrink:0}}

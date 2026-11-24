@@ -1,6 +1,9 @@
 import "./globals.css";
+import "../components/agent-avatar.css";
 import { headers } from "next/headers";
 import "../components/studio/studio.css";
+import WorkspaceVisuals from "../components/workspace-visuals";
+import WorkspaceFooter from "../components/workspace-footer";
 import Icon from "../components/studio/icon";
 export const metadata = {
   title: "Startup Simulator | Owner workspace",
@@ -13,6 +16,7 @@ export default async function Layout({
   return (
     <html lang="en">
       <body>
+        <WorkspaceVisuals/>
         <header className="site-header">
           <a href="/" className="site-brand">
             <Icon name="studio" /> Startup Simulator
@@ -20,6 +24,7 @@ export default async function Layout({
           <span>Your executive workspace</span>
         </header>
         <div className="site-main">{children}</div>
+        <WorkspaceFooter/>
       </body>
     </html>
   );

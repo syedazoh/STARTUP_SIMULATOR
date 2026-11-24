@@ -449,3 +449,12 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 
 - [x] Dashboard verification: Next local fake-provider route/approval check and five widths; Vite isolated API/history five widths; 90 existing unit tests, applicable lint/types/builds. No real account or provider side effects.
+
+
+## Agent workspace recovery — 24 November 2026
+- [x] Restore dedicated Next CEO/Finance/Marketing/HR/Operations routes and working navigation.
+- [x] Reuse scoped chat/history, department mode/policy and existing proposal/approval services; validate writes and guard repeated submits.
+- [x] Explain original Supabase identity versus native account and Mongo business records; distinguish account-link failures.
+- [x] Make sidebars scroll, add small role avatars, persistent pausable backgrounds and complete public/private footers; repair mobile task controls.
+- [ ] Complete Next parity for classic Marketing publishing/media/connected-account controls. Keep existing Vite screens available meanwhile.
+- [ ] Validate the owner's actual original Mongo database/account link locally using private configuration; disposable fixtures do not prove this connection.

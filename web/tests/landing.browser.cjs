@@ -59,7 +59,7 @@ const fs=require('node:fs');
   await page.getByRole('button',{name:'See how it works',exact:true}).click();
   assert.ok(await page.locator('dialog:not(.launch-video-dialog)').evaluate(e=>e.open));await page.keyboard.press('Escape');
   assert.ok(!await page.locator('dialog:not(.launch-video-dialog)').evaluate(e=>e.open));
-  await page.getByRole('link',{name:'Read the guide',exact:true}).click();await page.waitForURL('**/getting-started');
+  await page.locator('.launch-demo').getByRole('link',{name:'Read the guide',exact:true}).click();await page.waitForURL('**/getting-started');
   assert.equal(await page.locator('video source').getAttribute('src'),'/media/quick-start.mp4');
   await context.close();
  }

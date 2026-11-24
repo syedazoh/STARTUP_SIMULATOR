@@ -80,7 +80,7 @@ function TaskCard({ businessId, task }) {
             className="w-full border rounded px-2 py-1 text-xs"
           />
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               disabled={busy || task.status === 'needs_changes'}

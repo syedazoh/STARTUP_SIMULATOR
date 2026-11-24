@@ -1,3 +1,5 @@
+import '../studio/avatar.css';
+import AgentAvatar from '../studio/AgentAvatar';
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import apiClient from '../api/client'
@@ -18,6 +20,7 @@ import { CATEGORICAL } from '../theme/palette'
 import { toChartData } from '../utils/chartData'
 import useVisiblePolling from '../hooks/useVisiblePolling'
 
+const loadThree=()=>import('three')
 const POLL_INTERVAL_MS = 1500
 const CHART_COLORS = [CATEGORICAL.blue, CATEGORICAL.orange, CATEGORICAL.aqua]
 
@@ -48,11 +51,12 @@ function AgentDetail() {
   useVisiblePolling(poll, POLL_INTERVAL_MS, [businessId, agentKey])
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="agent-classic-workspace min-h-screen bg-gray-50">
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <h1 className="text-2xl font-bold text-gray-900">
           {config ? config.label : 'CEO'} Agent
         </h1>
+        <AgentAvatar agent={agentKey} loadThree={loadThree} caption={`${config?.label||'CEO'} avatar`}/>
         {agentKey === 'ceo' && <CEOSupervision key={businessId} businessId={businessId} />}
         <DepartmentTasks key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey === 'ceo' ? undefined : agentKey} />
         {agentKey === 'finance' && <FinancialSummary key={businessId} businessId={businessId} />}

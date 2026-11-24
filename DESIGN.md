@@ -252,3 +252,7 @@ Scoped dashboard surfaces are deep plum (`#191420`), raised plum (`#241c30`), li
 Task workload and financial snapshots are labelled as such; unknown data stays unavailable. Financial values use simulator ledger units without inventing a currency, and chart geometry supports both sides of zero. The KPI/task/report data limits remain visible. The approval inbox shortcut navigates; it does not authorize work.
 
 Vite reuses its current app shell and charts, moves recorded-history analytics above operating controls and applies the same purple/off-white/beige hierarchy. History line animation is disabled to keep polled curves stable; the reduced-motion/3D behavior elsewhere is unchanged. The current surface brief is `.impeccable/briefs/command-center.md`.
+
+
+### Agent workspace continuity
+Company navigation exposes five dedicated working spaces independently of boardroom avatar selection. Role-local instructions distinguish CEO planning from department proposal/mode/policy tools. Small shared procedural Three.js avatars identify roles without pretending to execute business work. Desktop sidebar navigation scrolls within the viewport; mobile navigation remains reachable. The fixed decorative background continues through the page footer, behind readable surfaces; a persistent pause control and OS reduced-motion override stop animation. Public and private footers expose useful existing navigation. Classic Marketing tools remain explicitly identified until Next parity is complete.

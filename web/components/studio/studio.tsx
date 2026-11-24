@@ -297,6 +297,7 @@ export default function Studio({
             </button>
           ))}
         </nav>
+        <nav className="studio-workspace-links" aria-label="Agent working spaces">{AGENTS.map(a=><a key={a.id} href={`/workspace/${encodeURIComponent(businessId)}/agents/${a.id}`}>{a.label} workspace <Icon name="chevron" size={14}/></a>)}</nav>
         <div className="studio-sidebar-footer">
           <Icon name="signal" size={17} />
           <div>
@@ -435,6 +436,7 @@ export default function Studio({
                     : "Awaiting backend"}
                 </span>
               </section>
+              <p><a className="studio-agent-open" href={`/workspace/${encodeURIComponent(businessId)}/agents/${selected}`}>Open {agent.label} working space <Icon name="chevron" size={14}/></a></p>
               <div className="studio-state-details">
                 <details>
                   <summary>
