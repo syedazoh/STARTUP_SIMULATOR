@@ -463,3 +463,5 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [x] Add validated owner-reported workforce storage, creation compatibility, tenant-scoped editing and distinct chat context; 25 focused offline backend tests passed.
 - [x] Finish shared appearance presets, avatar-free beige footer sculpture, dashboard role links and team setup in both frontends; verify 97 frontend tests, builds/types/lint, browser variants/video/profile and Docker packaging.
 - [ ] Owner validates original Supabase/Mongo business access locally, then completes the presentation acceptance and authorized AWS deployment (docs/RELEASE_PLAN_2026_11.md).
+
+- [x] Keep explicit light/dark toggle plus Appearance on every UI route, including after scroll/navigation and inside immersive boardroom; cover guide/setup/admin theme surfaces and keyboard access. Next 16-route disposable acceptance and classic agent/profile checks passed.

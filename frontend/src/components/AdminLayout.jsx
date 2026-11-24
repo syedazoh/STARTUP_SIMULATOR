@@ -17,7 +17,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="admin-app min-h-screen bg-gray-50 flex">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
         <div className="px-4 py-5 border-b border-gray-100">
           <h1 className="text-lg font-bold text-gray-900">Admin</h1>

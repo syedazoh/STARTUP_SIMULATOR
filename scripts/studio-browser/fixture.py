@@ -33,6 +33,8 @@ async def get_business(bid:str):return business
 @app.put('/api/businesses/{bid}/workforce')
 async def fixture_workforce(bid:str,request:Request):
  business['workforce']=await request.json();return business
+@app.get('/api/businesses/{bid}/demo')
+async def fixture_demo(bid:str):return {'imports':[]}
 @app.get('/api/businesses/{bid}/agents')
 async def agents(bid:str):return {r:{'agent_id':r,'decision_count':i+2,'status':'working' if r=='operations' else 'idle'} for i,r in enumerate(['ceo','finance','marketing','hr','operations'])}
 @app.get('/api/businesses/{bid}/tasks')

@@ -123,6 +123,7 @@ export default function Scene({
   }, [following, ready]);
   useEffect(() => {
     if (!immersive) return;
+    window.dispatchEvent(new CustomEvent('startup-immersive-change',{detail:section.current}));
     const prior = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     section.current?.querySelector<HTMLButtonElement>("button")?.focus();
@@ -133,8 +134,8 @@ export default function Scene({
       }
       if (e.key === "Tab") {
         const items = Array.from(
-          section.current?.querySelectorAll<HTMLButtonElement>(
-            "button:not(:disabled)",
+          section.current?.querySelectorAll<HTMLElement>(
+            "button:not(:disabled),summary,input:not(:disabled),select:not(:disabled)",
           ) || [],
         ).filter((el) => el.offsetParent !== null);
         if (!items.length) return;
@@ -151,6 +152,7 @@ export default function Scene({
     };
     document.addEventListener("keydown", keys);
     return () => {
+      window.dispatchEvent(new CustomEvent('startup-immersive-change',{detail:null}));
       document.body.style.overflow = prior;
       document.removeEventListener("keydown", keys);
     };

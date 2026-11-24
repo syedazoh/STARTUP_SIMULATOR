@@ -259,3 +259,5 @@ Company navigation exposes five dedicated working spaces independently of boardr
 
 ### Coordinated appearance presets
 Keep one information architecture across Executive Glass, Pearl Water and Monolith. Presets change surface treatment and decorative geometry, never controls, authority or data. Light/dark/system mode is independent of preset. Use warm beige geometry and violet accents; preserve high contrast for actions and simulation labels. Footer geometry is a single faceted globe with an orbit, no repeated avatars. Appearance preferences are local-browser settings with reset and OS reduced-motion override. Team setup describes owner-reported human staff separately from AI roles and live simulation state.
+
+The global display rail always exposes a direct light/dark action beside Appearance, with reserved header space on phones and desktops. It remains reachable while scrolling and moves into the immersive boardroom dialog to preserve keyboard access. Presets and theme preferences share the same browser state on every route.

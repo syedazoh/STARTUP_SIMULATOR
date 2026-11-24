@@ -69,3 +69,37 @@ html[data-appearance] .public-app{background:var(--app-bg)!important;color:var(-
 html[data-appearance] .public-app :is(.bg-white,.public-header,.public-nav){background:var(--app-panel)!important;color:var(--app-ink)!important}
 html[data-appearance] .public-app :is(.text-gray-900,.text-gray-800){color:var(--app-ink)!important}
 html[data-appearance] .public-app :is(.text-gray-400,.text-gray-500,.text-gray-600,.text-gray-700){color:var(--app-muted)!important}
+
+/* Persistent display controls are separate from route content and immersive chrome. */
+body:has(.appearance-dock){padding-top:64px}
+.appearance-dock{position:fixed;inset:0 0 auto;z-index:250;min-height:64px;padding:10px 16px;display:flex;justify-content:flex-end;align-items:flex-start;gap:8px;background:var(--app-panel,#1b1424);border-bottom:1px solid var(--app-line,#685076);color:var(--app-ink,#f3eee6)}
+.appearance-dock .appearance-control{position:relative;inset:auto;z-index:auto}
+.appearance-dock .theme-quick-toggle{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--app-line,#685076);border-radius:10px;padding:9px 14px;background:var(--app-raised,#2a2037);color:var(--app-ink,#f3eee6);font:14px/1.5 'Studio Sans',Inter,system-ui,sans-serif;cursor:pointer}
+.appearance-dock :is(button,summary):focus-visible{outline:3px solid var(--app-accent,#c5a4ed);outline-offset:2px}
+html[data-appearance] .launch-page .launch-nav{padding:16px 22px}
+html[data-appearance] .site-header{padding-right:24px}
+html[data-appearance] .studio-scene.is-immersive .scene-topline{top:80px}
+html[data-appearance] .hq-sidebar{top:64px;height:calc(100dvh - 64px);min-height:0}
+@media(min-width:1000px){html[data-appearance] .command-sidebar,html[data-appearance] .studio-sidebar{top:80px;height:calc(100dvh - 96px);min-height:0}}
+@media(max-width:800px){html[data-appearance] .launch-page .launch-nav{padding:12px 15px}}
+@media(max-width:700px){.appearance-dock{padding:10px 12px}.appearance-dock .theme-quick-toggle{font-size:12px;padding:9px 12px}}
+
+/* Legacy setup, guide and boardroom surfaces also follow the shared theme. */
+html[data-appearance] :is(.setup-app,.admin-app,.studio-root){--panel:var(--app-panel);background:var(--app-bg);color:var(--app-ink)}
+html[data-appearance] :is(.setup-app,.admin-app) :is(.bg-white,.bg-gray-50,.bg-gray-100){background:var(--app-panel)!important}
+html[data-appearance] :is(.setup-app,.admin-app) :is(.text-gray-900,.text-gray-800,.text-gray-700){color:var(--app-ink)!important}
+html[data-appearance] :is(.setup-app,.admin-app) :is(.text-gray-600,.text-gray-500,.text-gray-400){color:var(--app-muted)!important}
+html[data-appearance] :is(.setup-app,.admin-app) :is(input,select,textarea){background:var(--app-input);color:var(--app-ink);border-color:var(--app-line)}
+html[data-appearance] :is(.quick-start,.quick-start-entry){background:var(--app-panel);color:var(--app-ink);border-color:var(--app-line)}
+html[data-appearance] .quick-start :is(h2,strong){color:var(--app-ink)}
+html[data-appearance] .quick-start :is(p,li){color:var(--app-muted)}
+html[data-appearance] .quick-start :is(a,summary){color:var(--app-link)}
+html[data-appearance] .studio-root :is(h1,h2,h3,strong,dt,dd){color:var(--app-ink)}
+html[data-appearance] .studio-root :is(p,small,.studio-header,.studio-status-strip,.studio-page-title>p,.studio-wordmark,.studio-team-heading,.studio-no-events){color:var(--app-muted)}
+html[data-appearance] .studio-root :is(.studio-selected,.studio-task,.scene-bottomline,.scene-loading,.studio-accessible-team,.scene-labels>button,.scene-view-controls button,.preview-button,.room-filters button){background:var(--app-panel);color:var(--app-ink);border-color:var(--app-line)}
+html[data-appearance] .studio-root :is(.studio-primary-nav a,.studio-team-nav button,.studio-sidebar-footer a){color:var(--app-link)}
+html[data-appearance] :is(.immersive-room,.immersive-room-detail,.room-conversation,.boardroom-shell,.boardroom-toolbar,.boardroom-transfer){background:var(--app-panel)!important;color:var(--app-ink)!important;border-color:var(--app-line)!important}
+html[data-appearance] :is(.immersive-room h1,.immersive-room h2,.boardroom-transfer strong){color:var(--app-ink)!important}
+html[data-appearance] :is(.immersive-room-header p,.boardroom-toolbar span,.boardroom-transfer>span,.boardroom-transfer small){color:var(--app-muted)!important}
+
+html[data-appearance] .studio-page-title em{color:var(--app-accent)}

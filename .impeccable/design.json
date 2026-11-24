@@ -319,7 +319,8 @@
       ],
       "scope": "local-browser presentation only",
       "footer": "beige faceted 3D globe, no avatar",
-      "motion": "persistent toggle; OS reduced motion overrides"
+      "motion": "persistent toggle; OS reduced motion overrides",
+      "controls": "Persistent global light/dark action and Appearance; accessible inside immersive boardroom"
     }
   },
   "components": [
