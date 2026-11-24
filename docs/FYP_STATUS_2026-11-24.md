@@ -13,7 +13,7 @@ The verified implementation and evaluation are pushed to main through runtime/ev
 
 ## Tests and actual results
 
-Local final backend: **495 passed, 9 failed**. The nine failures require uncached semantic decision-memory weights; model warmup received a proxy 403. Original semantic tests were retained. Existing retrieval fallback: **48/50**, below its **49** gate; never relabelled hybrid or passed.
+Current local container backend: **504 passed, no failures/errors/skips**, with real Mongo integration and offline model cache. Required hybrid retrieval: **50/50**, above its **49** gate; lexical baseline **48/50**. Earlier pre-access results (495 passed/9 cache failures and 48/50 fallback) remain recorded as history. See [cached-model evidence](evaluation/model-cache-2026-11-24.json).
 
 Next: **27 unit tests**, types, clean production build and actual unprivileged-container browser checks passed. Vite: **62 tests**, lint/build passed. Browser checks covered auth, business creation, owner review/execution, delegation, reload/isolation, 3D/fallback, seven-role outputs/downloads/report and phone/tablet layouts, with explicitly local identity/mock-Mongo fixtures. Actual distribution was separately verified with real Mongo/processes and the full container topology.
 
@@ -23,14 +23,14 @@ Four held-out synthetic HTTP/container cases passed arithmetic, content-contract
 
 New Marketing/Support workflows produce rule/template/extractive artifacts. Actual AI-generated content and a comparable AI-versus-rule quality evaluation remain incomplete; no non-placeholder Groq key is configured here. Semantic entailment or business intelligence is not established by retrieval/contract tests.
 
-Local model-cache reproduction remains blocked by the running environment's enforced allowlist. The approved Hugging Face/GitHub API host entries were saved only to its draft. Live revision still reports no custom grants and the tool flags requires_publish=true; no runtime application or environment publication is claimed. GitHub web status inspection works without that API grant.
+Approved restricted host grants became active at observed revision 9. Public model downloads succeeded without a token; offline reruns resolved the model-cache gate. GitHub API connectivity is also available. No environment publication was performed by the assistant. The updated Jenkins/Compose test commands mount repository datasets/diagnostic helpers read-only; the full unmodified suite passed with those required assets present.
 
 Exact proposal-PDF mapping, real Supabase/HTTPS/provider acceptance, production-volume recovery, loaded-model resource measurements, Jenkins controller execution and authorized AWS deployment remain unverified. Gmail/Meta/calendar remain lower-priority extensions.
 
 ## Exact operator steps
 
-1. Apply the approved host grant through environment settings, respecting the current no-publish instruction. The saved draft itself is not active. If publication is the only offered activation path, that requires a separate owner decision; none was performed.
-2. Once model access is active, warm the embedding/reranker cache with `cd backend && PYTHONPATH=. python scripts/warm_knowledge_models.py`, then rerun the full suite and `PYTHONPATH=. python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output /tmp/hybrid-evaluation.json`. Keep the same warmed cache available to tests/runtime. Do not disable assertions or lower the threshold.
+1. The approved host grant is active and model validation is complete. Preserve the warmed cache for repeatable offline tests; exact model revisions are recorded in the cached-model evidence.
+2. To reproduce on another machine, warm the embedding/reranker cache with `cd backend && PYTHONPATH=. python scripts/warm_knowledge_models.py`, then rerun the full suite and `PYTHONPATH=. python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output /tmp/hybrid-evaluation.json`. Keep the same warmed cache available to tests/runtime. Do not disable assertions or lower the threshold.
 3. Configure the Groq key privately in the supported environment/backend configuration, never in chat or Git. Finish and evaluate the new AI-generated artifact paths with actual model modes and citations; do not call the current templates AI-generated.
 4. Provide the proposal PDF for exact alignment when available. Review the seven-role assumption with the appropriate project reviewer; no supervisor approval is inferred.
 5. Follow [the release runbook](NEXT_RELEASE_RUNBOOK.md): identify/back up exact existing volumes, apply reviewed worker grants, configure Supabase callbacks/domain, validate an isolated restore and configure Jenkins/ECR/SSH known-host requirements. Run Jenkins with DEPLOY_TO_PRODUCTION=false first and retain its build URL/results.
@@ -55,4 +55,4 @@ Backend CI includes real-Mongo pytest, model warmup and required hybrid evaluati
 
 ## Remaining risks and next priority
 
-Keep one API execution authority: the existing AgentRegistry is not a multi-replica state store. Read-only distributed recommendations are not independent authorization. Current resource observations omit loaded models and are not small-EC2 sizing evidence. The critical path to 30 November is active model access/credentials → actual AI-output evaluation → full release/controller gates → isolated staging/recovery → authorized deployment. The date cannot be guaranteed while those inputs and acceptance gates remain open.
+Keep one API execution authority: the existing AgentRegistry is not a multi-replica state store. Read-only distributed recommendations are not independent authorization. Current resource observations omit loaded models and are not small-EC2 sizing evidence. The critical path to 30 November is remaining model/API credentials and actual AI-output evaluation → full release/controller gates → isolated staging/recovery → authorized deployment. The date cannot be guaranteed while the remaining credentials and deployment acceptance gates remain open.

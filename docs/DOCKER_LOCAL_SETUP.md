@@ -84,3 +84,8 @@ The fixes were checked with clean Linux npm installation, frontend tests/build/l
 Frontend CI additionally builds the development Docker image and checks its HTTP server and Docker-DNS API proxy against a clearly labelled backend stub. That check validates the frontend container; it does not replace a complete FastAPI/MongoDB Compose test.
 
 The `Docker Compose Wiring` CI job builds the full isolated stack and runs `scripts/smoke_stack.py` before and after restarting the backend. It checks real MongoDB session/business/snapshot persistence and the refresh/logout flow. Its cleanup deletes only the disposable CI project volumes; do not copy `down -v` into normal local recovery commands.
+
+
+### Container test assets and isolation — 24 November 2026
+
+The test profile mounts repository datasets and diagnostic scripts read-only at `/datasets` and `/scripts`, matching the tests' repository-relative paths. It forces an empty Groq key and uses tmpfs for Chroma/upload test output so test runs do not write those records into the source bind. Full image testing with warmed model cache and real isolated Mongo passed 504 tests; hybrid retrieval passed 50/50. Jenkins uses the same explicit test asset mounts. No assertions or fixture requirements were removed.

@@ -427,3 +427,7 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 
 - [x] Final main/CI evidence: native main push verified through b999c6e; official GitHub web pages show Frontend, Next, Docker wiring and Backend workflows successful, with configured backend hybrid/model gates.
 - [ ] Apply approved model-access network draft to the running machine under the owner's publication constraint; local model cache reproduction and real AI-generated output/comparison remain pending. Draft saved only; no environment publication performed.
+
+- [x] Approved host grant active (observed revision 9); public models downloaded without token; offline real-Mongo container suite 504/504 and required hybrid retrieval 50/50 passed. Earlier nine local cache failures resolved.
+- [x] Repair container test fixture wiring: read-only datasets/diagnostic mounts in Jenkins/Compose; provider key forced empty and memory/uploads isolated in the test profile. Existing assertions retained.
+- [ ] Remaining: actual new AI-generated artifact/comparison acceptance, proposal PDF mapping, real Jenkins controller, HTTPS/Supabase, production-volume recovery and authorized AWS deployment.

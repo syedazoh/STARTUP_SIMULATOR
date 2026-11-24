@@ -47,6 +47,8 @@ pipeline {
                         -e MONGODB_INTEGRATION_URL="mongodb://$TEST_MONGO:27017" \
                         -e GROQ_API_KEY= \
                         -v "$WORKSPACE/test-results:/test-results" \
+                        -v "$WORKSPACE/datasets:/datasets:ro" \
+                        -v "$WORKSPACE/scripts:/scripts:ro" \
                         "$BACKEND_IMAGE:$IMAGE_TAG" python -m pytest -q --junitxml=/test-results/backend.xml
                     docker run --rm -e PYTHONPATH=/app "$BACKEND_IMAGE:$IMAGE_TAG" \
                         python scripts/evaluate_knowledge.py --require-hybrid --min-pass 49 --output /tmp/knowledge-evaluation.json

@@ -1,0 +1,65 @@
+{
+  "observed_at": "2026-11-24T13:14:29.781788+00:00",
+  "network": {
+    "observed_revision": "9",
+    "mode": "restricted",
+    "state": "enforced",
+    "allowed_hosts": [
+      "*.hf.co",
+      "*.huggingface.co",
+      "api.github.com",
+      "huggingface.co"
+    ],
+    "package_manager_preset_retained": true
+  },
+  "backend": {
+    "tests": 504,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 504,
+    "seconds": 163.416,
+    "python": "3.11.18",
+    "pytest": "9.0.3",
+    "real_mongo_integration": true,
+    "hf_hub_offline": true,
+    "groq_key_supplied": false
+  },
+  "retrieval": {
+    "cases": 50,
+    "baseline_pass": 48,
+    "pipeline_pass": 50,
+    "required_minimum": 49,
+    "require_hybrid": true,
+    "model_cache_used_offline": true,
+    "reranker_modes": [
+      "cross_encoder",
+      "lexical_fallback"
+    ]
+  },
+  "models": [
+    {
+      "model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "revisions": [
+        "233902d25c440f23af6f7d6e94d2946bac0bee0a"
+      ]
+    },
+    {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "revisions": [
+        "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
+      ]
+    }
+  ],
+  "cache_path": "/workspace/.cache/fyp-huggingface",
+  "test_assets": {
+    "datasets": "/datasets, read-only repository fixture mount",
+    "diagnostic_scripts": "/scripts, read-only repository fixture mount"
+  },
+  "image_id": "sha256:7153610da2d95fcfed97673e2a026164b9c88b7922be9d61a5324968ba3973ab",
+  "limitations": [
+    "No live Groq content generation or provider communication was exercised.",
+    "Retrieval coverage is not factual entailment or business success.",
+    "No environment publication, Jenkins controller run or AWS rollout was performed."
+  ]
+}

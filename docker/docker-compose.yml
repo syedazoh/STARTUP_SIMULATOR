@@ -93,11 +93,17 @@ services:
       MONGODB_URL: mongodb://mongo:27017
       MONGODB_DB_NAME: startup_simulator_test
       CHROMA_PERSIST_DIR: /app/chroma_data
-      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_API_KEY: ""
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       DEBUG: "true"
     volumes:
       - ../backend:/app
+      - ../datasets:/datasets:ro
+      - ../scripts:/scripts:ro
+    # Keep test memories/uploads off the source bind and user data.
+    tmpfs:
+      - /app/chroma_data
+      - /app/uploads
     command: python -m pytest -q
 
 volumes:
