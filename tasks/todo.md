@@ -411,3 +411,6 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 
 - [x] P1 initial distributed slice: seven actual role processes, versioned scoped messages, claim/retry/fence/poison/deadline/cancel tests, Support/Strategy artifacts, existing campaign approval/execution integration (29 focused checks passed).
 - [ ] P1 follow-up: current staffing/capacity services, richer arbitration and dashboard exposure; full seven-role/AI quality acceptance remains partial.
+
+- [x] P2 dashboard/export slice: seven saved worker queues/artifacts/citations and existing owner-review path exposed in Next; bounded tenant-authorized CSV/JSON downloads with secret allowlist and formula protection. 22 focused backend checks, 27 web checks/types/build and production fixture browser flow passed.
+- [ ] P2 acceptance remains partial: model-assisted Marketing/Support artifacts and comparable labelled AI-vs-rule output evaluation.

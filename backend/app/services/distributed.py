@@ -72,6 +72,8 @@ async def terminate(db, run, status):
 
 async def reconcile(db, run):
     if run['status'] != 'running':
+        if run['status'] in {'cancelled', 'blocked', 'timed_out'}:
+            await terminate(db, run, run['status'])  # Repair a raced late enqueue.
         return
     if time.time() >= run['deadline_ts']:
         await terminate(db, run, 'timed_out')

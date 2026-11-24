@@ -36,6 +36,7 @@ export default async function BusinessWorkspace({
           Jobs, deadlines, knowledge &amp; MCP →
         </a>
       </p>
+      <p><a href={`/workspace/${encodeURIComponent(businessId)}/distributed`}>Seven-role launch simulation &amp; evidence →</a></p>
       <CommandCenter
         business={business}
         initial={await readWorkspace(businessId)}

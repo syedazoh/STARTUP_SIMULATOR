@@ -1,7 +1,7 @@
 import "server-only";
 import { apiError } from "./api-errors";
 import { supabase } from "./supabase";
-export async function backend(path: string, init: RequestInit = {}) {
+export async function backendResponse(path: string, init: RequestInit = {}) {
   if (!path.startsWith("/api/") || path.includes(".."))
     throw new Error("Invalid API path");
   const client = await supabase();
@@ -41,5 +41,8 @@ export async function backend(path: string, init: RequestInit = {}) {
     throw new Error(
       apiError(res.status, await res.json().catch(() => null), path),
     );
-  return res.json();
+  return res;
+}
+export async function backend(path: string, init: RequestInit = {}) {
+  return (await backendResponse(path, init)).json();
 }

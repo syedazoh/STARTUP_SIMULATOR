@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .api.routes import exports as exports_routes
 from .api.routes import distributed as distributed_routes
 from .api.routes import automation as automation_routes
 from .mcp_server import Gateway, build_server
@@ -203,6 +204,7 @@ if __name__ == "__main__":
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
+app.include_router(exports_routes.router)
 app.include_router(distributed_routes.router)
 app.include_router(automation_routes.router)
 app.include_router(automation_routes.task_router)

@@ -9,7 +9,7 @@ import os
 if os.environ.get("SIMULATOR_BROWSER_TEST") != "1":
     raise SystemExit("Set SIMULATOR_BROWSER_TEST=1 for this disposable fixture only")
 
-import base64, json, time, uuid, threading
+import base64, json, time, uuid, threading, asyncio
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -167,6 +167,22 @@ class Model:
 
 
 llm._cached_groq_llm = lambda *a: Model()
+
+# UI fixture only: exercise durable role service calls against mocked Mongo.
+# Real worker-process evidence lives in integration/test_distributed_processes.py.
+from app.services import jobs, distributed
+from app.models.distributed_schemas import ROLES
+original_worker = jobs.worker_loop
+async def fixture_worker(app):
+    async def role_loop():
+        while True:
+            for role in ROLES:
+                await distributed.run_once(app.state.db, role)
+            await asyncio.sleep(.1)
+    async with asyncio.TaskGroup() as group:
+        group.create_task(original_worker(app))
+        group.create_task(role_loop())
+jobs.worker_loop = fixture_worker
 threading.Thread(
     target=lambda: uvicorn.run(
         provider, host="127.0.0.1", port=8101, log_level="warning"

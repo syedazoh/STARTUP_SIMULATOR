@@ -1,9 +1,9 @@
 name: Next.js authentication
 on:
   push:
-    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', '.github/workflows/web-auth.yml']
+    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', 'frontend/src/onboarding/**', 'frontend/src/components/boardroom/**', 'backend/tests/workspace_browser_fixture.py', '.github/workflows/web-auth.yml']
   pull_request:
-    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', '.github/workflows/web-auth.yml']
+    paths: ['web/**', 'frontend/src/landing/**', 'frontend/src/studio/**', 'frontend/src/onboarding/**', 'frontend/src/components/boardroom/**', 'backend/tests/workspace_browser_fixture.py', '.github/workflows/web-auth.yml']
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -74,6 +74,8 @@ jobs:
                   raise SystemExit('Service did not start: ' + url)
           PYTHON
       - run: node tests/workspace.browser.cjs
+        working-directory: web
+      - run: node tests/distributed.browser.cjs
         working-directory: web
       - run: node tests/automation.browser.cjs
         working-directory: web

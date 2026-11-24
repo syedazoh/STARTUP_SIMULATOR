@@ -424,7 +424,7 @@ export default function Automation({
                 required
               />
             </label>
-            <Scopes departments={departments} />
+            <Scopes departments={[...new Set([...departments, "support", "strategy"])]} />
             <button disabled={!data?.enabled || !data?.durable}>
               Queue document indexing
             </button>
@@ -469,7 +469,7 @@ export default function Automation({
             </label>
             <label htmlFor="knowledge-department">Department</label>
             <select id="knowledge-department" name="department">
-              {departments.map((d) => (
+              {[...new Set([...departments, "support", "strategy"])].map((d) => (
                 <option key={d}>{d}</option>
               ))}
             </select>
