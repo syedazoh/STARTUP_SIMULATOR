@@ -28,3 +28,64 @@
 .launch-page .launch-live-caption,.launch-page .launch-dialog{background:var(--launch-readable-glass)}
 /* Fixed backdrop filters can corrupt WebGL composition; the readable tint supplies the glass. */
 .launch-page .launch-live-caption{backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* Public cinematic arrival; authenticated workspaces keep their own visual system. */
+.launch-page{--launch-bg:#0d0a13;--launch-ink:#f5efe5;--launch-muted:#c6bbd3;--launch-glass:rgba(35,26,48,.62);--launch-edge:rgba(213,192,238,.24);--launch-button:#e9d9be;--launch-button-ink:#251b2e;--launch-readable-glass:rgba(26,19,37,.97);scrollbar-color:var(--launch-accent) var(--launch-bg)}
+.launch-page[data-theme=light]{--launch-bg:#f4f0e9;--launch-ink:#291e35;--launch-muted:#62536f;--launch-glass:rgba(255,252,248,.65);--launch-button:#59327f;--launch-button-ink:#fff7ff;--launch-readable-glass:rgba(252,248,245,.97)}
+.launch-atmosphere{background:radial-gradient(ellipse at 75% 13%,#8258ad30,transparent 34%)}
+.launch-atmosphere>div{display:none}
+.launch-skip{position:absolute;top:10px;left:24px;z-index:50;padding:12px 20px;background:var(--launch-button);color:var(--launch-button-ink)!important;transform:translateY(-180%)}
+.launch-skip:focus{transform:none}
+.launch-nav{position:sticky;top:16px;z-index:20;background:var(--launch-readable-glass);padding:12px 20px}
+.launch-nav nav{gap:25px}
+.launch-nav-actions{gap:16px}
+.launch-page .launch-motion{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--launch-edge);border-radius:9px;background:transparent;font-size:14px;white-space:nowrap}
+.launch-motion svg{width:16px;height:16px}
+.launch-page .launch-motion:disabled{opacity:1;color:var(--launch-muted)}
+.launch-hero{min-height:660px;min-height:min(740px,80svh);margin:35px auto 0;gap:36px;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}
+.launch-hero h1{font-size:clamp(50px,6.2vw,92px);font-weight:550;line-height:1.04;letter-spacing:-.04em;max-width:10ch;text-wrap:balance}
+.launch-hero h1 em{color:var(--launch-accent)}
+.launch-hero-copy>p{font-size:17px;max-width:43ch;margin-top:27px;line-height:1.8}
+.launch-hero .launch-stage{background:linear-gradient(150deg,var(--launch-soft),var(--launch-glass));border-radius:16px}
+.launch-canvas{height:560px}
+.launch-manifesto{display:flex;align-items:center;gap:24px;justify-content:space-between;max-width:1520px;margin:28px auto 48px;padding:22px 0;border-top:1px solid var(--launch-edge);border-bottom:1px solid var(--launch-edge);font-size:14px}
+.launch-manifesto>span{font-size:16px;font-weight:600}
+.launch-manifesto p{color:var(--launch-muted)}
+.launch-manifesto a{display:flex;align-items:center;gap:12px;min-height:44px}
+.launch-introduction{background:var(--launch-glass)}
+.launch-demo{max-width:1520px;margin:130px auto;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:70px;align-items:center;scroll-margin-top:120px}
+.launch-demo h2,.launch-plans h2{font-size:clamp(34px,3.8vw,56px);line-height:1.14;font-weight:500;text-wrap:balance}
+.launch-demo h2 em{font-style:normal;color:var(--launch-accent)}
+.launch-demo-copy>p{margin-top:24px;color:var(--launch-muted)}
+.launch-demo-copy ul{list-style:none;margin:28px 0;padding:0;display:grid;gap:12px;font-size:15px}
+.launch-demo-copy li{display:flex;gap:12px;align-items:start}
+.launch-demo-copy li svg{color:var(--launch-accent);margin-top:3px}
+.launch-page p.launch-demo-note{font-size:14px;color:var(--launch-muted);margin-top:18px;max-width:48ch}
+.launch-film{position:relative;display:block;overflow:hidden;min-width:0;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.launch-film:hover{transform:translateY(-4px)}
+.launch-film img{display:block;width:100%;height:auto;aspect-ratio:16/10;object-fit:cover;object-position:top}
+.launch-film-play{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;display:grid;place-items:center;border-radius:50%;background:#e9d9be;color:#251b2e;box-shadow:0 12px 28px #0005}
+.launch-film-play svg{width:25px;height:25px}
+.launch-film-caption{position:relative;display:grid;gap:10px;padding:24px;background:var(--launch-readable-glass)}
+.launch-film-caption strong{font-size:21px;font-weight:550;letter-spacing:-.025em}
+.launch-film-caption>span{display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:14px;color:var(--launch-muted)}
+.launch-plans{max-width:1320px;margin:130px auto;scroll-margin-top:120px}
+.launch-plans-heading{display:flex;align-items:end;justify-content:space-between;gap:55px;margin-bottom:40px}
+.launch-plans-heading>p{color:var(--launch-muted);max-width:30ch}
+.launch-plan-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:64px;align-items:center}
+.launch-free{padding:36px}
+.launch-plan-title{display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--launch-edge)}
+.launch-plan-title h3{font-size:42px;font-weight:500;line-height:1}
+.launch-plan-title>span{color:var(--launch-accent);font-size:16px}
+.launch-free>p{color:var(--launch-muted);margin:23px 0}
+.launch-future h3{font-size:28px;font-weight:500;margin-bottom:16px}
+.launch-future p{color:var(--launch-muted);max-width:37ch}
+.launch-planned{display:inline-block;font-size:14px;padding:5px 12px;background:var(--launch-soft);border-radius:6px;margin-top:22px;color:var(--launch-accent)}
+.launch-page [id]{scroll-margin-top:120px}
+.launch-page[data-motion=off] *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.launch-page[data-motion=off] .launch-film:hover{transform:none}
+@media(min-width:1600px){.launch-canvas{height:610px}}
+@media(max-width:1150px){.launch-nav nav{gap:16px}.launch-nav-actions{gap:10px}.launch-hero{min-height:600px}.launch-hero h1{font-size:clamp(48px,6.5vw,74px)}.launch-canvas{height:490px}.launch-demo{gap:35px}.launch-manifesto p{display:none}}
+@media(max-width:800px){.launch-hero{min-height:0;margin-top:45px;gap:26px}.launch-hero h1{font-size:clamp(48px,8.5vw,70px);max-width:13ch}.launch-hero h1 br{display:none}.launch-hero h1 em::before{content:' '}.launch-canvas{height:460px}.launch-hero-copy>p{font-size:16px}.launch-nav{top:10px}.launch-manifesto{margin-top:30px;margin-bottom:32px;gap:14px}.launch-demo{grid-template-columns:1fr;margin:80px auto;gap:32px}.launch-film{max-width:680px}.launch-plans{margin:80px auto}.launch-plans-heading{display:block}.launch-plans-heading>p{margin-top:20px;max-width:48ch}.launch-plan-grid{gap:30px}.launch-free{padding:26px}.launch-future h3{font-size:25px}}
+@media(max-width:600px){.launch-nav{flex-wrap:wrap;padding:10px 12px;column-gap:10px;row-gap:10px}.launch-nav-actions{margin-left:auto;gap:8px}.launch-brand>span{display:none}.launch-nav .launch-icon{width:44px;height:44px}.launch-page .launch-motion{padding:8px}.launch-motion svg{display:none}.launch-nav-actions .launch-signin{gap:4px}.launch-nav-actions .launch-signin svg{display:none}.launch-nav .launch-brand strong{font-size:15px}.launch-nav .launch-brand strong>span{font-size:14px}.launch-hero h1{font-size:clamp(44px,10.2vw,60px);max-width:12ch}.launch-hero h1 br:first-child{display:block}.launch-hero .launch-canvas{height:350px}.launch-manifesto{align-items:start}.launch-manifesto>span{max-width:13ch}.launch-manifesto a{font-size:14px;gap:6px}.launch-manifesto svg{width:16px}.launch-plan-grid{grid-template-columns:1fr}.launch-future{padding:5px 0 0}.launch-film-caption{padding:20px}.launch-film-caption>span{align-items:start}.launch-plan-title{flex-wrap:wrap;gap:14px}.launch-free .launch-primary{width:100%;gap:10px;padding:13px 14px}.launch-demo h2,.launch-plans h2{font-size:36px}.launch-page p.launch-demo-note{font-size:14px}.launch-demo-copy li{font-size:15px}}
+@media(max-width:370px){.launch-nav .launch-brand{width:100%;padding:0 2px}.launch-nav .launch-brand strong>span{display:inline;margin-left:4px}.launch-nav-actions{width:100%;justify-content:space-between}.launch-hero{margin-top:32px}.launch-hero h1{font-size:43px}.launch-hero .launch-canvas{height:325px}.launch-demo h2,.launch-plans h2{font-size:32px}}

@@ -156,36 +156,36 @@
       "cssTokenPrefix": "--launch-",
       "palettes": {
         "dark": {
-          "bg": "#100a1e",
-          "ink": "#f8f1ff",
-          "muted": "#c9bdd9",
-          "glass": "rgba(43,29,65,.57)",
-          "edge": "rgba(218,195,255,.27)",
+          "bg": "#0d0a13",
+          "ink": "#f5efe5",
+          "muted": "#c6bbd3",
+          "glass": "rgba(35,26,48,.62)",
+          "edge": "rgba(213,192,238,.24)",
           "accent": "#d7baff",
-          "button": "#dfc9ff",
-          "buttonInk": "#28113e",
+          "button": "#e9d9be",
+          "buttonInk": "#251b2e",
           "soft": "rgba(211,175,255,.12)",
-          "readableGlass": "rgba(27,16,43,.95)"
+          "readableGlass": "rgba(26,19,37,.97)"
         },
         "light": {
-          "bg": "#f3eef8",
-          "ink": "#291b3c",
-          "muted": "#625173",
-          "glass": "rgba(255,255,255,.51)",
+          "bg": "#f4f0e9",
+          "ink": "#291e35",
+          "muted": "#62536f",
+          "glass": "rgba(255,252,248,.65)",
           "edge": "rgba(112,72,154,.24)",
           "accent": "#67408e",
           "button": "#59327f",
           "buttonInk": "#fff7ff",
           "soft": "rgba(119,77,161,.08)",
-          "readableGlass": "rgba(252,248,255,.95)"
+          "readableGlass": "rgba(252,248,245,.97)"
         }
       },
       "typography": {
         "family": "Launch Sans, Studio Sans, system-ui, sans-serif",
         "fontSource": "Self-hosted Manrope, /fonts/studio-sans.woff2, weights 200\u2013800",
         "body": "16px / 1.65",
-        "hero": "clamp(44px, 5.35vw, 82px) / 1.08, weight 500, tracking -0.04em",
-        "mobileHero": "42px at <=480px",
+        "hero": "clamp(50px,6.2vw,92px) / 1.04, weight 550, tracking -0.04em",
+        "mobileHero": "43px at <=370px",
         "heroBody": "17px / 1.8; 16px at <=480px",
         "profile": "24px / 1.3; 26px at <=480px",
         "profileBody": "15px / 1.8",
@@ -202,7 +202,7 @@
         "contentMaxWidth": "1520px",
         "processMaxWidth": "1320px",
         "pagePadding": "24px clamp(18px, 4.5vw, 80px) 0; 14px 16px 0 at <=480px",
-        "heroGap": "clamp(30px, 4vw, 72px)",
+        "heroGap": "36px; 26px stacked",
         "introPadding": "30px 35px; 23px mobile",
         "controlGap": "8px",
         "actionGap": "12px",
@@ -210,19 +210,23 @@
       },
       "components": {
         "glass": "Translucent themed fill, 1px edge, 16px radius and 24px blur; background token fallback without backdrop-filter.",
-        "readableGlass": "Captions and native overview dialog use 95% alpha themed surfaces. Fixed live captions disable backdrop-filter and -webkit-backdrop-filter to avoid a black compositor rectangle over active WebGL, retaining tint and border; the dialog and other glass surfaces retain blur.",
+        "readableGlass": "Captions and native overview dialog use 97% alpha themed surfaces. Fixed live captions disable backdrop-filter and -webkit-backdrop-filter to avoid a black compositor rectangle over active WebGL, retaining tint and border; the dialog and other glass surfaces retain blur.",
         "primary": "Button/buttonInk; minimum 50px high, 13px 21px padding, 12px radius, 14px weight 650.",
         "icon": "44px circular target; player play is 52px.",
         "executiveFloor": "Shared procedural Three.js robots; five pressed-state department controls, full-team/spotlight toggle and WebGL fallback.",
         "profile": "Keyed department profile slides 14px over 320ms.",
         "player": "Previous, play/pause, next and narration toggle; visible live caption plus expandable transcript.",
-        "overview": "User-opened native dialog with labelled heading, close control and native Escape dismissal."
+        "overview": "User-opened native dialog with labelled heading, close control and native Escape dismissal.",
+        "demoEntry": "Existing synthetic-recording poster opens public /getting-started; account-scoped demo retains existing registration",
+        "plans": "Free demo account CTA; further plans explicitly Planned without fabricated prices/quotas or checkout"
       },
       "breakpoints": {
         "wide": "1600px",
         "compact": "1150px",
         "stack": "800px",
-        "phone": "480px"
+        "phone": "480px",
+        "narrow": "600px",
+        "smallest": "370px"
       },
       "theme": {
         "initial": "OS prefers-color-scheme unless valid stored override",
@@ -235,7 +239,8 @@
         "profile": "320ms cubic-bezier(.16,1,.3,1)",
         "theme": "250ms",
         "reducedMotion": "Disables landing CSS animation/transitions, smooth tour scrolling and renderer idle animation",
-        "visibility": "IntersectionObserver gates scene rendering; hidden tab/pagehide stops narration and tour"
+        "visibility": "IntersectionObserver gates scene rendering; hidden tab/pagehide stops narration and tour",
+        "preference": "startup-landing-motion on/off; OS reduced motion overrides; shared renderer setReducedMotion cancels idle RAF; no automatic department advance when off"
       },
       "accessibility": {
         "focus": "3px accent outline with 4px offset",

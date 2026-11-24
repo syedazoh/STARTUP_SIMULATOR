@@ -532,6 +532,13 @@ export function createStudio(
   resize();
   if (!reducedMotion) animation = requestAnimationFrame(loop);
   return {
+    setReducedMotion(value) {
+      if (reducedMotion === !!value) return;
+      reducedMotion = !!value;
+      cancelAnimationFrame(animation);
+      render(performance.now());
+      if (!reducedMotion) animation = requestAnimationFrame(loop);
+    },
     setVisible(value) {
       visible = !!value;
       if (visible) render(performance.now());

@@ -433,3 +433,10 @@ Preserve the earlier unfinished backlog. Dependency/dates: tasks/plan.md; eviden
 - [ ] Remaining: actual new AI-generated artifact/comparison acceptance, proposal PDF mapping, real Jenkins controller, HTTPS/Supabase, production-volume recovery and authorized AWS deployment.
 
 - [x] Container fixture follow-up e750dd8: GitHub Docker Compose Wiring completed successfully; evidence: docs/evaluation/ci-e750dd8.json.
+
+## Cinematic landing — 24 November 2026
+- [x] Phase 1: public cinematic hero/3D, sticky navigation, persistent motion preference/OS override, existing captioned-demo entry and Free/Planned presentation shared by Next and Vite.
+- [x] Verify Next types/27 tests/build; Vite lint/63 tests/build; Chromium five-width dark/light and preference/demo/dialog/3D-storage-voice fallback checks. Evidence: docs/design/CINEMATIC_LANDING_PHASE_1.md.
+- [ ] Phase 2: richer agent chapters and explicit synthetic launch handoff walkthrough.
+- [ ] Define paid plan names, prices, quotas and entitlements before subscription implementation. No billing claim from landing presentation.
+- [ ] Later: actual-device/browser and performance verification; existing Vite bundle-size concern remains.

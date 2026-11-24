@@ -12,3 +12,14 @@ Palette: dark #100a1e / off-white #f8f1ff / lavender #d7baff; light #f3eef8 / in
 Functional truth: public demonstration only; no tasks, approvals, communications or spend. Speech uses browser synthesis, never auto-starts on entry, and retains captions when voice is unavailable. Actual device voice quality/availability varies. Tour is a live 3D visual presentation, not an exported/prerecorded video. Respect reduced motion, hidden tabs, offscreen rendering, storage-disabled browsers and unavailable WebGL. Theme follows OS until manually set, remembers the choice, updates browser theme-color/color-scheme and renderer clear color/lights/fog/materials.
 
 Quality bar: first viewport explains the product and exposes real 3D; all five departments reachable without audio; no horizontal overflow at320–1600px; keyboard controls and Escape dialog exit; no unsolicited audio or account mutations; themes have readable text; navigation and registration destinations match each app.
+
+## Cinematic extension — 24 November 2026
+User authorized implementation after the two reference prompts and proposal. Proceeded with the stated landing-only, cinematic product direction; no replacement stack or paid-plan promises. Phase 1 reuses the existing floor, profiles and audio, adds a stronger editorial hero, sticky navigation, explicit motion preference, synthetic-recording entry and Free/Planned sections. `/getting-started` is a public walkthrough; running the existing synthetic scenario remains account/business scoped.
+
+THESIS: Make the path from startup direction to owner decision legible before account creation.
+OWN-WORLD: Existing Executive Studio, near-black/purple and warm beige, self-hosted Manrope, genuine procedural 3D. Light mode retains readable dark text on warm pale glass.
+STORY: Invitation and floor → existing agent player → workflow explanation → demo recording → free demo account/future plans.
+FIRST VIEWPORT: Readable large invitation, executive floor and demo action on desktop; phones stack the floor immediately after the headline.
+FORM: Code-led extension of the existing glass landing, pinned to the user-supplied references and established brand. Launcher unavailable; no concept roll/comp or independent review claimed.
+
+Phase 2 remains: richer agent chapters and an explicit synthetic launch handoff walkthrough. Commercial entitlements/paid billing remain a separate undecided scope.

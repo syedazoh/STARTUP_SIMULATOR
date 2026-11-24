@@ -186,24 +186,24 @@ CSS tokens are scoped to `.launch-page` with prefix `--launch-`; light values ov
 
 | Token suffix | Dark | Light |
 | --- | --- | --- |
-| bg | `#100a1e` | `#f3eef8` |
-| ink | `#f8f1ff` | `#291b3c` |
-| muted | `#c9bdd9` | `#625173` |
-| glass | `rgba(43,29,65,.57)` | `rgba(255,255,255,.51)` |
-| edge | `rgba(218,195,255,.27)` | `rgba(112,72,154,.24)` |
+| bg | `#0d0a13` | `#f4f0e9` |
+| ink | `#f5efe5` | `#291e35` |
+| muted | `#c6bbd3` | `#62536f` |
+| glass | `rgba(35,26,48,.62)` | `rgba(255,252,248,.65)` |
+| edge | `rgba(213,192,238,.24)` | `rgba(112,72,154,.24)` |
 | accent | `#d7baff` | `#67408e` |
-| button | `#dfc9ff` | `#59327f` |
-| button-ink | `#28113e` | `#fff7ff` |
+| button | `#e9d9be` | `#59327f` |
+| button-ink | `#251b2e` | `#fff7ff` |
 | soft | `rgba(211,175,255,.12)` | `rgba(119,77,161,.08)` |
-| readable-glass | `rgba(27,16,43,.95)` | `rgba(252,248,255,.95)` |
+| readable-glass | `rgba(26,19,37,.97)` | `rgba(252,248,245,.97)` |
 
-Standard glass combines themed fill, a 1px edge, 16px radius and `blur(24px) saturate(130%)`. Unsupported backdrop filtering falls back to the opaque background token. Captions and the overview dialog use the stronger 95% alpha readable glass: moving geometry must not compete with their text. Fixed live captions explicitly disable both backdrop-filter and -webkit-backdrop-filter to avoid a black compositor rectangle over active WebGL; their tint and border remain. Other glass surfaces, including the dialog, retain blur. Agent dots preserve champagne, lavender, orchid, peach and periwinkle department identities; text and pressed state also identify selection.
+Standard glass combines themed fill, a 1px edge, 16px radius and `blur(24px) saturate(130%)`. Unsupported backdrop filtering falls back to the opaque background token. Captions and the overview dialog use the stronger 97% alpha readable glass: moving geometry must not compete with their text. Fixed live captions explicitly disable both backdrop-filter and -webkit-backdrop-filter to avoid a black compositor rectangle over active WebGL; their tint and border remain. Other glass surfaces, including the dialog, retain blur. Agent dots preserve champagne, lavender, orchid, peach and periwinkle department identities; text and pressed state also identify selection.
 
 ### Landing type, geometry and components
 
-`Launch Sans` is another alias for the same self-hosted Manrope (`/fonts/studio-sans.woff2`, weights 200–800), followed by Studio Sans/system fallbacks. Body is 16px/1.65, hero supporting copy 17px/1.8 (16px on phones), profile body 15px/1.8 and compact controls/captions 14px. The hero is `clamp(44px,5.35vw,82px)`, weight 500, line height 1.08 and tracking −.04em; the final phone override is 42px. Profile headings are 24px/1.3, growing to 26px on phones. Paragraph measure caps at 65ch.
+`Launch Sans` is another alias for the same self-hosted Manrope (`/fonts/studio-sans.woff2`, weights 200–800), followed by Studio Sans/system fallbacks. Body is 16px/1.65, hero supporting copy 17px/1.8 (16px on phones), profile body 15px/1.8 and compact controls/captions 14px. The hero is `clamp(50px,6.2vw,92px)`, weight 550, line height 1.04 and tracking −.04em; the smallest phone override is 43px. Profile headings are 24px/1.3, growing to 26px on phones. Paragraph measure caps at 65ch.
 
-Content caps at 1520px; the process section caps at 1320px. Page padding is `24px clamp(18px,4.5vw,80px) 0`, changing to `14px 16px 0` on phones. Hero gaps span 30–72px; introduction padding is 30px by 35px, reducing to 23px on phones. Process margins reduce from 140px to 75px on phones. Responsive steps are 1600, 1150, 800 and 480px. The canvas is 500px high by default, 580px wide-screen, 440px compact, 460px stacked and finally 330px on phones.
+Content caps at 1520px; the process section caps at 1320px. Page padding is `24px clamp(18px,4.5vw,80px) 0`, changing to `14px 16px 0` on phones. The hero gap is 36px (26px stacked); introduction padding is 30px by 35px, reducing to 23px on phones. Process margins reduce from 140px to 75px on phones. Responsive steps include 1600, 1150, 800, 600, 480 and 370px. The canvas is 560px high by default, 610px wide-screen, 490px compact, 460px stacked, 350px on phones and 325px on the smallest phones.
 
 - **Navigation and actions:** Glass navigation includes the theme toggle and sign-in. Primary/secondary actions use a 12px radius, 13px by 21px padding, 14px weight-650 text and minimum 50px height. Icons have 44px circular targets; play has a 52px target. Small stage controls use a 9px radius and department tabs 8px.
 - **Executive floor:** Existing procedural Three.js robots remain shared with the studio. Five labelled department buttons expose pressed selection; full-team and spotlight views are available. Loading and unavailable-WebGL copy preserve access to profiles below the canvas.
@@ -219,3 +219,11 @@ The user starts the tour or presses play before any audio. Browser speech synthe
 Focus uses a 3px accent outline with 4px offset. Labelled native controls, pressed states, a transcript and non-WebGL profiles keep the departments reachable without sound or 3D. Reduced motion disables CSS animations/transitions and smooth tour scrolling, and suppresses renderer idle animation. Phone tabs wrap; captions scroll within 38dvh and page spacing accommodates them. These are implemented behaviors, not a claim of complete accessibility certification.
 
 Both apps render `frontend/src/landing/LandingExperience.jsx` with introductions in `agents.mjs` and the shared framework-neutral `frontend/src/studio/scene.mjs`. Landing CSS is mirrored in `frontend/src/landing/landing.css` and `web/components/landing/landing.css` because their PostCSS configurations differ. Vite retains `/register`, `/login` and its authenticated `/app` redirect; Next uses `/signup` and `/login`. The direction contract is `.impeccable/briefs/glass-landing.md`. No detector or launcher exists for this work; these tokens were documented from source, without invented tool reports.
+
+### Cinematic public arrival — November 24, 2026
+
+The public landing now leads with a larger editorial invitation and the shared executive floor, a horizontal introduction/player, the existing workflow explanation, a captioned-demo entry and a Free demo simulation section. A sticky readable-glass navigation exposes the team, workflow and plans on desktop, with theme, motion and sign-in controls retained on phones. The smallest width puts the wordmark on its own navigation row. Primary public actions use beige in dark mode and purple in light mode. This does not change authenticated approval semantics or introduce paid billing.
+
+The Motion control persists `startup-landing-motion`, with OS reduced motion taking precedence and disabling the switch while active. CSS transitions and animations stop, the shared renderer cancels its animation frame through `setReducedMotion`, and the narrated introduction stops automatic department advancement. Manual department selection and opt-in narration remain available. Browser theme-color matches the public background.
+
+The demo poster reuses the existing synthetic recording and opens `/getting-started`; account creation retains the existing app-specific registration route. Further plans are explicitly Planned without invented prices or entitlements. The free account label is product presentation, not a new anonymous execution or billing system.
