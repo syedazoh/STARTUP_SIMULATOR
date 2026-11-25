@@ -1,4 +1,6 @@
 "use server";
+import {logoutSessions} from "../lib/logout-sessions";
+import {safeReturnTo} from "../lib/login-flow";
 import {linkFailure} from "../lib/account-link";
 import { redirect } from "next/navigation";
 import { supabase } from "../lib/supabase";
@@ -23,7 +25,7 @@ export async function login(form: FormData) {
   catch { redirect("/login?error=unavailable"); }
   if (result.error) redirect(`/login?error=${authErrorCode(result.error)}`);
   if (!result.data.session) redirect("/login?error=login");
-  redirect("/workspace");
+  redirect(safeReturnTo(form.get("next")));
 }
 export async function signup(form: FormData) {
   const credentials = fields(form, "/signup");
@@ -37,10 +39,8 @@ export async function signup(form: FormData) {
   redirect(signupDestination(!!result.data.session));
 }
 export async function logout() {
-  const client = await supabase();
-  const { error } = await client.auth.signOut();
-  if (error) redirect("/workspace?error=logout");
-  redirect("/login");
+  try{await logoutSessions()}catch{redirect('/workspace?error=logout')}
+  redirect('/login');
 }
 export async function linkAccount(form: FormData) {
   const client = await supabase();

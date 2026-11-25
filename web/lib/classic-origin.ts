@@ -1,0 +1,1 @@
+export function classicOriginAllowed(headers:Headers){const origin=headers.get('origin');const configured=process.env.CLASSIC_APP_URL||'http://localhost:5173';try{return headers.get('x-requested-with')==='XMLHttpRequest'&&!!origin&&origin===new URL(configured).origin}catch{return false}}

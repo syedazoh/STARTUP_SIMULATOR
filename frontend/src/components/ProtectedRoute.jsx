@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { fetchMe, restoreSession } from '../store/slices/authSlice'
 
 function ProtectedRoute() {
   const dispatch = useDispatch()
+  const location=useLocation()
   const token = useSelector((state) => state.auth.token)
   const user = useSelector((state) => state.auth.user)
   const { initialized, status } = useSelector((state) => state.auth)
@@ -21,7 +22,7 @@ function ProtectedRoute() {
 
   if (!initialized) return <p className="p-6">Restoring your session…</p>
   if (!token) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/login" replace state={{from:location.pathname+location.search}}/>
   }
   return <Outlet />
 }

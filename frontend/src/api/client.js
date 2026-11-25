@@ -30,7 +30,8 @@ export function refreshSession() {
   if (!refreshPromise) {
     const version = sessionVersion
     const refresh = () => sessionClient.post('/api/auth/refresh')
-    const request = navigator.locks ? navigator.locks.request('startup-session-refresh', refresh) : refresh()
+    const restore=async()=>{try{return await refresh()}catch(error){if(error.response?.status!==401)throw error;return sessionClient.post('/api/auth/legacy-session')}}
+    const request = navigator.locks ? navigator.locks.request('startup-session-refresh', restore) : restore()
     refreshPromise = request.then(({ data }) => {
       if (version !== sessionVersion) throw new Error('Session changed')
       setAccessToken(data.access_token)
@@ -45,7 +46,7 @@ export async function endSession() {
   // Stop an already-running refresh from restoring a token during logout.
   const token = accessToken
   clearAccessToken()
-  await sessionClient.post('/api/auth/logout', {}, {
+  await sessionClient.post('/api/auth/legacy-logout', {}, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   })
 }

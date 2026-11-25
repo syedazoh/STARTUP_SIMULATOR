@@ -1,3 +1,6 @@
+import {cookies} from "next/headers";
+import EmailLogin from "./email-login";
+import {safeReturnTo} from "../../lib/login-flow";
 import Link from "next/link";
 import { authConfigurationIssue, authNotice } from "../../lib/auth-state";
 import { login } from "../actions";
@@ -8,14 +11,14 @@ export default async function Login({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
+  const pending=(await cookies()).get("startup-pending-email")?.value||"";
   const configuration = authConfigurationIssue(process.env);
   return (
     <section className="card">
       <p className="eyebrow">Welcome back</p>
       <h1>Sign in to your workspace</h1>
       <p>
-        Use your Supabase account. Existing users can link their original login
-        after signing in.
+        Use your existing Supabase email. Enter the code here to return to your business. Original native accounts may need a one-time ownership link.
       </p>
       {params.error && (
         <p role="alert" className="error">
@@ -28,7 +31,9 @@ export default async function Login({
         </p>
       )}
       {configuration && <p role="alert" className="error">{configuration}</p>}
-      {!configuration && <form action={login}>
+      {!configuration&&<EmailLogin initialEmail={pending} next={safeReturnTo(params.next)}/>}
+      {!configuration&&<details open={params.method==="password"}><summary>Use Supabase password instead</summary><form action={login}>
+        <input type="hidden" name="next" value={safeReturnTo(params.next)}/>
         <label htmlFor="email">Email address</label>
         <input
           id="email"
@@ -49,7 +54,7 @@ export default async function Login({
           required
         />
         <Submit>Sign in</Submit>
-      </form>}
+      </form></details>}
       <p>
         New here? <Link href="/signup">Create account</Link>
       </p>

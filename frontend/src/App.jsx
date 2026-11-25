@@ -12,8 +12,7 @@ import Layout from './components/Layout'
 import PublicLayout from './components/PublicLayout'
 import AdminRoute from './components/AdminRoute'
 import AdminLayout from './components/AdminLayout'
-import Login from './pages/Login'
-import Register from './pages/Register'
+import MainSignIn from './components/MainSignIn'
 import Setup from './pages/Setup'
 import Landing from './pages/Landing'
 import GettingStarted from './pages/GettingStarted'
@@ -53,8 +52,8 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Landing />} />
           <Route path="/getting-started" element={<GettingStarted />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<MainSignIn />} />
+          <Route path="/register" element={<MainSignIn registration/>} />
         </Route>
 
         <Route element={<ProtectedRoute />}>

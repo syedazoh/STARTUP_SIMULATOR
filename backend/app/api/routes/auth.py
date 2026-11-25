@@ -110,3 +110,14 @@ async def link_supabase(payload: SupabaseLink, request: Request,
     from ...services.supabase_auth import link_identity
     await link_identity(request.app.state.db, user, payload.access_token)
     return user
+
+
+@router.post('/supabase-session', response_model=TokenOut, dependencies=[Depends(check_cookie_request)])
+async def supabase_session(request: Request, response: Response, user: UserOut = Depends(get_current_user)):
+    # A verified provider identity may enter the legacy UI without another password.
+    # get_current_user preserves explicit original-account linking and local roles.
+    if request.headers.get('x-auth-provider') != 'supabase':
+        raise HTTPException(403, 'Verified Supabase identity required')
+    session_id, refresh = await create_session(request.app.state.db, user.id)
+    set_refresh_cookie(response, refresh)
+    return TokenOut(access_token=create_access_token(subject=user.id, session_id=session_id))

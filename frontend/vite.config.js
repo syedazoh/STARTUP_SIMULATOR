@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // This address is used by Vite, not the browser. Compose resolves
         // backend via Docker DNS; local development uses localhost.
+        '/api/auth/legacy-': {target:env.MAIN_APP_PROXY_TARGET||'http://127.0.0.1:3000',changeOrigin:true},
         '/api': {
           target,
           configure(proxy) {

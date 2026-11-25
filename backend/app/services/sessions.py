@@ -27,22 +27,24 @@ def check_cookie_request(request: Request):
 
 
 def set_refresh_cookie(response: Response, token: str):
+    response.delete_cookie(COOKIE_NAME, path="/api/auth")
     response.set_cookie(
         COOKIE_NAME,
         token,
         httponly=True,
         secure=not settings.debug,
         samesite="strict",
-        path="/api/auth",
+        path="/",
         max_age=settings.refresh_token_expire_days * 86400,
     )
     response.headers["Cache-Control"] = "no-store"
 
 
 def clear_refresh_cookie(response: Response):
+    response.delete_cookie(COOKIE_NAME, path="/api/auth")
     response.delete_cookie(
         COOKIE_NAME,
-        path="/api/auth",
+        path="/",
         secure=not settings.debug,
         httponly=True,
         samesite="strict",

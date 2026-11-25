@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  try {await client.auth.getUser();} catch {/* Pages validate identity fail-closed. */}
+  try {const {data:{user}}=await client.auth.getUser();if(!user&&/^\/workspace(?:\/|$)/.test(request.nextUrl.pathname)){const destination=new URL('/login',request.url);destination.searchParams.set('next',request.nextUrl.pathname+request.nextUrl.search);const redirect=NextResponse.redirect(destination);response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));redirect.headers.set('Cache-Control','private, no-store');return redirect;}} catch {/* Pages validate identity fail-closed. */}
   return response;
 }
 export const config = {matcher: ['/((?!_next/static|_next/image|favicon.ico|media/|fonts/).*)']};

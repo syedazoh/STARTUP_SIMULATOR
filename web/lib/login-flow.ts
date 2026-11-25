@@ -1,0 +1,3 @@
+export function safeReturnTo(value:unknown){if(typeof value!=='string'||value.length>1500||/[\\\r\n]/.test(value)||!/^\/workspace(?:\/|\?|$)/.test(value)||value.startsWith('//'))return '/workspace';return value}
+export function validEmail(value:unknown){return typeof value==='string'&&value.length<=254&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())}
+export function otpNotice(error:{status?:number;code?:string}|null){if(error?.status===429)return 'Please wait before requesting another code. Use the latest email, then retry.';if((error?.status||0)>=500)return 'The email service is unavailable. Retry shortly or use your Supabase password below.';return 'The code is incorrect or expired. Use the latest code or request a new one.'}

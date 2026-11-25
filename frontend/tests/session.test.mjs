@@ -75,7 +75,7 @@ test('failed refresh signs out without a retry loop', async () => {
   client.defaults.adapter = unauthorized
   session.defaults.adapter = (config) => { refreshes++; return unauthorized(config) }
   await assert.rejects(client.get('/api/businesses'))
-  assert.equal(refreshes, 1)
+  assert.equal(refreshes, 2) // One native attempt, one verified main-session bridge; no loop.
   assert.equal(signedOut, 1)
 })
 
@@ -85,7 +85,7 @@ test('logout prevents an in-flight refresh from restoring a bearer token', async
   let started
   const entered = new Promise((resolve) => { started = resolve })
   session.defaults.adapter = async (config) => {
-    if (config.url === '/api/auth/logout') return response(config)
+    if (config.url === '/api/auth/legacy-logout') return response(config)
     started()
     await new Promise((resolve) => { release = resolve })
     return response(config, { access_token: 'stale-token' })
@@ -106,3 +106,11 @@ test('disabled browser storage does not prevent client initialization or create 
   }
   await client.get('/public-status')
 })
+
+
+test('missing native refresh restores the verified main session without another password',async()=>{
+ const {exports:api,instances:[client,session]}=await clientModule();const paths=[];
+ session.defaults.adapter=config=>{paths.push(config.url);return config.url==='/api/auth/refresh'?unauthorized(config):Promise.resolve(response(config,{access_token:'bridged-token'}))};
+ client.defaults.adapter=config=>{assert.equal(config.headers.Authorization,'Bearer bridged-token');return Promise.resolve(response(config))};
+ await api.refreshSession();await client.get('/api/businesses');assert.deepEqual(paths,['/api/auth/refresh','/api/auth/legacy-session']);
+});

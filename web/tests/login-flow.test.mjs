@@ -1,0 +1,6 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {safeReturnTo,validEmail,otpNotice} from '../lib/login-flow.ts';
+import {classicOriginAllowed} from '../lib/classic-origin.ts';
+test('sign-in return stays inside protected workspace routes',()=>{assert.equal(safeReturnTo('/workspace/original/agents/hr?tab=tasks'),'/workspace/original/agents/hr?tab=tasks');for(const path of ['https://evil.test','//evil.test','/\\evil.test','/login','/workspace\r\nX-Test: injected',null])assert.equal(safeReturnTo(path),'/workspace')});
+test('email/code errors are bounded and do not expose provider bodies or codes',()=>{assert.equal(validEmail('owner@example.com'),true);assert.equal(validEmail('wrong'),false);assert.match(otpNotice({status:429}),/wait/);assert.match(otpNotice({status:400}),/incorrect or expired/);assert.match(otpNotice({status:503}),/unavailable/)});
+test('classic session bridge requires configured origin and custom request header',()=>{assert.equal(classicOriginAllowed(new Headers({origin:'http://localhost:5173','x-requested-with':'XMLHttpRequest'})),true);for(const origin of ['https://evil.test','null','http://localhost:5174'])assert.equal(classicOriginAllowed(new Headers({origin,'x-requested-with':'XMLHttpRequest'})),false);assert.equal(classicOriginAllowed(new Headers({origin:'http://localhost:5173'})),false)});

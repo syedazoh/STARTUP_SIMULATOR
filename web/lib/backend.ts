@@ -25,6 +25,7 @@ export async function backendResponse(path: string, init: RequestInit = {}) {
           ...(init.body instanceof FormData
             ? {}
             : { "Content-Type": "application/json" }),
+          ...(init.headers||{}),
           Authorization: `Bearer ${session.access_token}`,
           "X-Auth-Provider": "supabase",
         },
