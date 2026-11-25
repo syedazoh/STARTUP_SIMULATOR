@@ -49,6 +49,7 @@ export type Business = {
   enabled_agents: string[];
 };
 export type Plan = {
+  origin?:string;
   plan_id: string;
   goal: string;
   strategy: string;
@@ -88,6 +89,7 @@ export type Workspace = {
   finances: Panel<Finances | null>;
 };
 export const safeActions = new Set([
+  "social_draft",
   "budget_request",
   "campaign_launch",
   "recruitment_request",

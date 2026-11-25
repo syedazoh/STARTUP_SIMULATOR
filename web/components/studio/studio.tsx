@@ -19,6 +19,8 @@ import {
   loadStudio,
   decideStudioTask,
 } from "../../app/workspace/[businessId]/boardroom/actions";
+import Recommendations from "../recommendations";
+import AgentConversation from "../agent-conversation";
 import Scene from "./scene";
 import Icon from "./icon";
 import type { Snapshot, Task, Transfer } from "./types";
@@ -605,6 +607,8 @@ export default function Studio({
               </div>
             </aside>
           </div>
+          <Recommendations businessId={businessId} boardroom/>
+          <AgentConversation key={businessId+selected} businessId={businessId} role={agentId(selected)||"ceo"}/>
           <section className="studio-activity">
             <div className="studio-section-title">
               <h2>Across the floor</h2>

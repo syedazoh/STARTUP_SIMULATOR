@@ -304,7 +304,7 @@
       "motion": "Decorative fixed full-scroll background; persistent pause and OS reduced-motion override",
       "avatars": "Shared procedural Three.js role identity, not simulated execution evidence",
       "navigation": "Scrollable desktop sidebars; reachable mobile agent links",
-      "classicParity": "Marketing publishing/media/connected accounts remain in Vite"
+      "classicParity": "Retained classic tools restore verified Next identity; Marketing recommendations are internal drafts"
     },
     "appearancePresets": {
       "default": "Executive Glass",
@@ -317,10 +317,28 @@
         "light",
         "dark"
       ],
-      "scope": "local-browser presentation only",
+      "scope": "Non-sensitive same-host browser preference; preserved after logout",
       "footer": "beige faceted 3D globe, no avatar",
       "motion": "persistent toggle; OS reduced motion overrides",
-      "controls": "Persistent global light/dark action and Appearance; accessible inside immersive boardroom"
+      "controls": "Persistent global light/dark action and Appearance; accessible inside immersive boardroom",
+      "palettes": [
+        "Emerald",
+        "Champagne",
+        "Lavender"
+      ]
+    },
+    "nov25Recommendations": {
+      "roles": [
+        "ceo",
+        "finance",
+        "marketing",
+        "hr",
+        "operations"
+      ],
+      "source": "Authorized records and labelled templates; model conversation is separately labelled",
+      "review": "Existing CEO plans; owner-recorded decision; idempotent simulation draft assignment",
+      "voice": "User-started English reads visible what/why/decision, text fallback",
+      "charts": "Latest 200 scoped tasks reconcile with table; dated-only trends"
     }
   },
   "components": [

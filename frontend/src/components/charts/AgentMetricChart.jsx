@@ -12,7 +12,7 @@ import { INK } from '../../theme/palette'
 // Single-series line chart. Never combine two differently-scaled metrics on one
 // axis — instantiate this once per metric instead of adding a second Y axis.
 function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
-  const hasData = data && data.length > 0
+  const hasData = data && data.length >= 2
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -22,7 +22,8 @@ function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
           <LineChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid stroke={INK.gridline} vertical={false} />
             <XAxis
-              dataKey="tick"
+              dataKey="time"
+              tickFormatter={value=>new Date(value).toLocaleDateString()}
               tick={{ fontSize: 14, fill: INK.muted }}
               stroke={INK.baseline}
               tickLine={false}
@@ -35,8 +36,9 @@ function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
               tickFormatter={valueFormatter}
             />
             <Tooltip
+              labelFormatter={value=>new Date(Number(value)).toLocaleString()}
               formatter={(value) => (valueFormatter ? valueFormatter(value) : value)}
-              contentStyle={{ fontSize: 14, borderRadius: 8 }}
+              contentStyle={{ fontSize: 14, borderRadius: 8,background:'var(--app-panel)',color:'var(--app-ink)',borderColor:'var(--app-line)' }}
             />
             <Line
               isAnimationActive={false}
@@ -51,7 +53,7 @@ function AgentMetricChart({ title, data, dataKey, color, valueFormatter }) {
         </ResponsiveContainer>
       ) : (
         <div className="h-[180px] flex items-center justify-center text-sm text-gray-400">
-          No data yet — start a simulation to see this metric evolve.
+          At least two dated observations are needed to show a trend.
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 "use client";
+import Recommendations from "../../../components/recommendations";
 import WorkforceEditor from "../../../components/workforce-editor";
 import Avatar from "../../../components/agent-avatar";
 import Icon from "../../../components/studio/icon";
@@ -329,7 +330,7 @@ export default function CommandCenter({
             Open 3D Boardroom <Icon name="chevron" />
           </a>
         </section>
-        {initialDepartment&&<div className="agent-workspace-intro"><Avatar agent={initialDepartment} caption={`${labels[initialDepartment]} avatar`}/><div><h2>Your {labels[initialDepartment]} working space</h2><p>{initialDepartment==="ceo"?"Use the planning form below to review goals and assignments. CEO review is separate from your final owner approval.":"Use the proposal form below for simulated work. Review execution mode and reasoning policy before sending requests."} Open Automation & knowledge for jobs, deadlines and documents.</p><a href={`/workspace/${encodeURIComponent(business.id)}/automation`}>Open automation & knowledge</a></div></div>}
+        {initialDepartment&&<div className="agent-workspace-intro"><Avatar agent={initialDepartment} caption={`${labels[initialDepartment]} avatar`}/><div><h2>Your {labels[initialDepartment]} working space</h2><p>{initialDepartment==="ceo"?"Use the planning form below to review goals and assignments. CEO review is separate from your final owner approval.":"Use the proposal form below for simulated work. Review execution mode and reasoning policy before sending requests."} Open Automation & knowledge for jobs, deadlines and documents.</p><Recommendations businessId={business.id} role={initialDepartment}/><a href={`/workspace/${encodeURIComponent(business.id)}/automation`}>Open automation & knowledge</a></div></div>}
         <p className="demo-label">
           Simulation workspace · Department actions change simulated business
           state. Real email, hiring, purchasing and social publication are not
@@ -398,7 +399,7 @@ export default function CommandCenter({
           outcome.
         </small>
         <div className="overview-bottom">
-          <OverviewCharts data={data} />
+          <OverviewCharts data={data} businessId={business.id}/>
           <aside className="overview-attention">
             <div>
               <span>Needs your attention</span>
@@ -546,8 +547,8 @@ export default function CommandCenter({
             <p role="alert" className="error">
               {data.plans.error}
             </p>
-          ) : data.plans.data.length ? (
-            data.plans.data.map((plan) => (
+          ) : data.plans.data.filter(p=>p.origin!=="agent_recommendation").length ? (
+            data.plans.data.filter(p=>p.origin!=="agent_recommendation").map((plan) => (
               <article className="work-item" key={plan.plan_id}>
                 <h3>{plan.goal}</h3>
                 <span className="status">{display(plan.status)}</span>

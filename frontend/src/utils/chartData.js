@@ -1,7 +1,2 @@
-// Snapshots arrive newest-first; reverse to chronological order for the x-axis.
-export function toChartData(snapshots, metricKey) {
-  return [...snapshots].reverse().map((snap, i) => ({
-    tick: i + 1,
-    [metricKey]: snap.state?.[metricKey],
-  }))
-}
+// Only dated, finite observations can support a time-series chart.
+export function toChartData(snapshots,metricKey){return snapshots.map(snap=>{const raw=snap.timestamp||snap.created_at;if(typeof raw!=='string')return null;const normalized=/^\d{4}-\d\d-\d\dT/.test(raw)&&!/(?:Z|[+-]\d\d:\d\d)$/i.test(raw)?raw+'Z':raw;const time=Date.parse(normalized),value=snap.state?.[metricKey];return Number.isFinite(time)&&typeof value==='number'&&Number.isFinite(value)?{time,tick:new Date(time).toLocaleString(),[metricKey]:value}:null}).filter(Boolean).sort((a,b)=>a.time-b.time)}

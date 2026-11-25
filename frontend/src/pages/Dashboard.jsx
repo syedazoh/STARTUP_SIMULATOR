@@ -1,3 +1,4 @@
+import TaskCharts from '../charts/TaskCharts'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
@@ -32,17 +33,21 @@ export default function Dashboard(){
  const eventError=useSelector(s=>s.events.error)
  const tasks=useSelector(s=>s.tasks.items)
  const {isRunning,isPaused,runId,tickCount,summary,terminalStatus}=useSelector(s=>s.simulation)
+ const taskRequest=useRef(0),currentBusiness=useRef(businessId);currentBusiness.current=businessId
+ const [chartTasks,setChartTasks]=useState([]),[taskChartError,setTaskChartError]=useState('')
  const [financeHistory,setFinanceHistory]=useState([])
  const [marketingHistory,setMarketingHistory]=useState([])
  const [metricError,setMetricError]=useState(false)
  const [showControls,setShowControls]=useState(true)
  const wasRunning=useRef(false)
- useEffect(()=>{dispatch(resetSimulationState());wasRunning.current=false;setFinanceHistory([]);setMarketingHistory([])},[businessId,dispatch])
+ useEffect(()=>{dispatch(resetSimulationState());wasRunning.current=false;setFinanceHistory([]);setMarketingHistory([]);taskRequest.current++;setChartTasks([]);setTaskChartError('')},[businessId,dispatch])
  useVisiblePolling(()=>{
    dispatch(fetchAgents(businessId))
    dispatch(fetchSimulationStatus(businessId))
    dispatch(fetchEvents(businessId))
    dispatch(fetchPendingTasks(businessId))
+   const chartRequest=++taskRequest.current
+   apiClient.get(`/api/businesses/${businessId}/tasks?limit=200`).then(({data})=>{if(currentBusiness.current===businessId&&chartRequest===taskRequest.current){setChartTasks(data);setTaskChartError('')}}).catch(()=>{if(currentBusiness.current===businessId&&chartRequest===taskRequest.current)setTaskChartError('Task charts unavailable. Refresh before relying on prior values.')})
    Promise.all([
      apiClient.get(`/api/businesses/${businessId}/agents/finance/history`,{params:{limit:50}}),
      apiClient.get(`/api/businesses/${businessId}/agents/marketing/history`,{params:{limit:50}})
@@ -64,6 +69,7 @@ export default function Dashboard(){
      <div className="hq-kpi"><span>OWNER REVIEWS</span><strong>{display(tasks.length)}</strong><small>Tasks awaiting action</small></div>
      <div className="hq-kpi"><span>RECORDED EVENTS</span><strong>{eventLoad==='succeeded'?display(events.length):'—'}</strong><small>Most recent 100 in memory</small></div>
    </div>
+   <TaskCharts records={chartTasks} businessId={businessId} error={taskChartError}/>
    <section className="hq-analytics"><div className="hq-section-header"><div><span className="hq-kicker">SIMULATION TELEMETRY</span><h2>Business performance</h2></div><span className="hq-quiet-badge">From agent history</span></div>{metricError&&<p className="hq-alert">Could not retrieve one or more business metrics.</p>}
    <div className="hq-chart-grid">
      <AgentMetricChart title="Finance · Budget pool" data={toChartData(financeHistory,'budget_pool')} dataKey="budget_pool" color="#b8a0ff" valueFormatter={v=>Number(v).toLocaleString()}/>

@@ -1,4 +1,5 @@
 import '../studio/avatar.css';
+import Recommendations from '../components/Recommendations'
 import AgentAvatar from '../studio/AgentAvatar';
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -8,9 +9,6 @@ import AgentStatusCard from '../components/AgentStatusCard'
 import AgentActionForm from '../components/AgentActionForm'
 import AgentModeForm from '../components/AgentModeForm'
 import AgentPolicyForm from '../components/AgentPolicyForm'
-import ConnectedAccounts from '../components/ConnectedAccounts'
-import InstagramPostForm from '../components/InstagramPostForm'
-import ReelRequestForm from '../components/ReelRequestForm'
 import ChatPanel from '../components/ChatPanel'
 import CEOSupervision from '../components/CEOSupervision'
 import DepartmentTasks from '../components/DepartmentTasks'
@@ -35,16 +33,16 @@ function AgentDetail() {
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}`)
       .then((res) => setStatus(res.data))
-      .catch((err) => console.warn('Failed to load agent status', err))
+      .catch((err) => console.warn('Agent status could not load'))
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}/history`, { params: { limit: 50 } })
       .then((res) => setHistory(res.data))
-      .catch((err) => console.warn('Failed to load agent history', err))
+      .catch((err) => console.warn('Agent history could not load'))
     if (agentKey === 'ceo') {
       apiClient
         .get(`/api/businesses/${businessId}/events`, { params: { limit: 100 } })
         .then((res) => setArbitrationEvents(res.data.filter((e) => e.event_type.startsWith('arbitration'))))
-        .catch((err) => console.warn('Failed to load arbitration events', err))
+        .catch((err) => console.warn('Arbitration events could not load'))
     }
   }
 
@@ -57,6 +55,7 @@ function AgentDetail() {
           {config ? config.label : 'CEO'} Agent
         </h1>
         <AgentAvatar agent={agentKey} loadThree={loadThree} caption={`${config?.label||'CEO'} avatar`}/>
+          <Recommendations businessId={businessId} role={agentKey}/>
         {agentKey === 'ceo' && <CEOSupervision key={businessId} businessId={businessId} />}
         <DepartmentTasks key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey === 'ceo' ? undefined : agentKey} />
         {agentKey === 'finance' && <FinancialSummary key={businessId} businessId={businessId} />}
@@ -81,13 +80,7 @@ function AgentDetail() {
             <AgentActionForm businessId={businessId} config={config} onActionComplete={poll} />
             <AgentModeForm businessId={businessId} agentKey={agentKey} />
             <AgentPolicyForm businessId={businessId} agentKey={agentKey} config={config} />
-            {agentKey === 'marketing' && (
-              <>
-                <ConnectedAccounts businessId={businessId} />
-                <InstagramPostForm businessId={businessId} onActionComplete={poll} />
-                <ReelRequestForm businessId={businessId} onActionComplete={poll} />
-              </>
-            )}
+            {agentKey==='marketing'&&<p>Instagram and Facebook work stays as reviewable drafts in Recommendations. No social account connection or publishing credential is needed.</p>}
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow p-4">
@@ -116,7 +109,7 @@ function AgentDetail() {
           </div>
         )}
 
-        <ChatPanel businessId={businessId} agentKey={agentKey} agentLabel={config ? config.label : 'CEO'} />
+        <ChatPanel key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey} agentLabel={config ? config.label : 'CEO'} />
       </main>
     </div>
   )

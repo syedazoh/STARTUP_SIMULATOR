@@ -1,3 +1,5 @@
+import ChatPanel from '../components/ChatPanel'
+import Recommendations from '../components/Recommendations'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
@@ -77,5 +79,7 @@ export default function Boardroom() {
       {communication.length === 0 && eventStatus !== 'loading' && <p className="room-empty">No matching events have been recorded. Start a simulation from the Command Center.</p>}
       <div className="room-event-list">{communication.map(({event,route}) => <article key={event.event_id} className="room-event"><span className="room-event-marker">↗</span><div><strong>{route ? `${titleCase(route.sender)} → ${titleCase(route.receiver)}` : titleCase(event.source || 'System')}</strong><p>{describe(event)}</p><details><summary>Event details</summary><pre>{JSON.stringify(event.data ?? {}, null, 2)}</pre></details></div><time>{event.timestamp ? new Date(event.timestamp).toLocaleTimeString() : '—'}</time></article>)}</div>
     </section>
-  </main>
+  <Recommendations businessId={businessId} boardroom/>
+  <ChatPanel key={`${businessId}:${selectedAgent.id}`} businessId={businessId} agentKey={selectedAgent.id} agentLabel={selectedAgent.label} screen="boardroom"/>
+</main>
 }

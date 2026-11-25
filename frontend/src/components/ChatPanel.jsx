@@ -3,7 +3,7 @@ import apiClient from '../api/client'
 import ErrorBanner from './ErrorBanner'
 import { STATUS } from '../theme/palette'
 
-function ChatPanel({ businessId, agentKey, agentLabel }) {
+function ChatPanel({ businessId, agentKey, agentLabel,screen='agent_workspace' }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -18,7 +18,7 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
     apiClient
       .get(`/api/businesses/${businessId}/agents/${agentKey}/chat`)
       .then((res) => setMessages(res.data.messages))
-      .catch((err) => console.warn('Failed to load chat thread', err))
+      .catch(() => setError('Saved conversation could not load. Check the connection and retry.'))
   }, [businessId, agentKey])
 
   useEffect(() => {
@@ -34,7 +34,7 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
     setInput('')
     try {
       const response = await apiClient.post(`/api/businesses/${businessId}/agents/${agentKey}/chat`, {
-        content,
+        content,screen_context:{screen:screen==='boardroom'?'boardroom':'agent_workspace'},
       })
       setMessages(response.data.thread.messages)
       setLastTask(response.data.task)
@@ -88,7 +88,8 @@ function ChatPanel({ businessId, agentKey, agentLabel }) {
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={`Message ${agentLabel}…`}
+          maxLength={4000}
+              placeholder={`Message ${agentLabel}…`}
           className="flex-1 border rounded px-2 py-1 text-sm"
         />
         <button

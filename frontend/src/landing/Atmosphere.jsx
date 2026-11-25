@@ -4,7 +4,7 @@ import {useEffect,useRef} from 'react';
 // Decorative real geometry only; no product state, data or network effects.
 export default function Atmosphere({loadThree,enabled,theme}) {
  const {preferences}=useAppearance();
- const canvas=useRef(null),controls=useRef(null),latest=useRef({enabled,theme,preset:preferences.preset});latest.current={enabled,theme,preset:preferences.preset};
+ const canvas=useRef(null),controls=useRef(null),latest=useRef({enabled,theme,preset:preferences.preset,palette:preferences.palette});latest.current={enabled,theme,preset:preferences.preset,palette:preferences.palette};
  useEffect(()=>{
   let disposed=false,cleanup=()=>{};
   loadThree().then(THREE=>{
@@ -20,7 +20,7 @@ export default function Atmosphere({loadThree,enabled,theme}) {
    let frame=0,last=0,visible=true;
    const draw=()=>renderer.render(scene,camera);
    const tick=now=>{if(disposed)return;if(visible&&!document.hidden&&now-last>33){sculpture.rotation.y+=.002;sculpture.rotation.z+=.0008;draw();last=now}frame=requestAnimationFrame(tick)};
-   const sync=()=>{cancelAnimationFrame(frame);const preset=latest.current.preset;sculpture.geometry=preset==='water'?waterGeometry:preset==='monolith'?monolithGeometry:geometry;material.color.set(preset==='glass'?'#e6d6ba':preset==='water'?'#d0bce3':'#c4ae89');material.roughness=preset==='monolith'?.85:preset==='water'?.08:.27;sculpture.scale.setScalar(preset==='monolith'?.7:1);draw();if(latest.current.enabled)frame=requestAnimationFrame(tick)};
+   const sync=()=>{cancelAnimationFrame(frame);rim.color.set(latest.current.palette==='emerald'?'#65b795':latest.current.palette==='champagne'?'#bba078':'#9860f7');const preset=latest.current.preset;sculpture.geometry=preset==='water'?waterGeometry:preset==='monolith'?monolithGeometry:geometry;material.color.set(preset==='glass'?'#e6d6ba':preset==='water'?'#d0bce3':'#c4ae89');material.roughness=preset==='monolith'?.85:preset==='water'?.08:.27;sculpture.scale.setScalar(preset==='monolith'?.7:1);draw();if(latest.current.enabled)frame=requestAnimationFrame(tick)};
    const resize=()=>{const box=canvas.current?.getBoundingClientRect();if(!box)return;camera.aspect=box.width/box.height;camera.updateProjectionMatrix();renderer.setSize(box.width,box.height,false);draw()};
    const observer=new ResizeObserver(resize);observer.observe(canvas.current);
    const intersection=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(visible)draw()});intersection.observe(canvas.current);
@@ -30,6 +30,6 @@ export default function Atmosphere({loadThree,enabled,theme}) {
   }).catch(()=>{/* The themed CSS atmosphere remains without WebGL. */});
   return()=>{disposed=true;cleanup()};
  },[loadThree]);
- useEffect(()=>{controls.current?.sync()},[enabled,theme,preferences.preset]);
+ useEffect(()=>{controls.current?.sync()},[enabled,theme,preferences.preset,preferences.palette]);
  return <div className="launch-sculpture" aria-hidden="true"><canvas ref={canvas}/></div>;
 }

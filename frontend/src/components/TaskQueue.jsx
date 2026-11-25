@@ -80,10 +80,11 @@ function TaskCard({ businessId, task }) {
             className="w-full border rounded px-2 py-1 text-xs"
           />
 
+          {['instagram_post','reel_request'].includes(task.action_type)&&<p>External publishing is outside this simulation. Create a reviewable social draft instead.</p>}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={busy || task.status === 'needs_changes'}
+              disabled={busy || task.status === 'needs_changes'||['instagram_post','reel_request'].includes(task.action_type)}
               onClick={() => run(approveTask({ taskId: task.id, expectedFingerprint: task.approval_fingerprint }))}
               className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
               style={{ backgroundColor: STATUS.good }}

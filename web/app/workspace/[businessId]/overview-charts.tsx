@@ -1,3 +1,4 @@
+import TaskCharts from "../../../../frontend/src/charts/TaskCharts";
 import {
   departments,
   labels,
@@ -38,11 +39,12 @@ function Bars({
     </dl>
   );
 }
-export default function OverviewCharts({ data }: { data: Workspace }) {
+export default function OverviewCharts({ data,businessId }: { data: Workspace;businessId:string }) {
   const finance = data.finances.data;
   const colors = ["#b9a0ed", "#d8c4a2", "#d99cce", "#e1b49e", "#97ace0"];
   return (
     <div className="overview-charts">
+      <TaskCharts records={data.tasks.data} businessId={businessId} error={data.tasks.error}/>
       <section className="overview-panel">
         <div className="overview-panel-heading">
           <h2>Work across the team</h2>
