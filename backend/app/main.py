@@ -11,6 +11,7 @@ from .api.routes import exports as exports_routes
 from .api.routes import distributed as distributed_routes
 from .api.routes import automation as automation_routes
 from .mcp_server import Gateway, build_server
+from .api.routes import recommendations as recommendations_routes
 from .api.routes import demo as demo_routes
 from .api.routes import supervision as supervision_routes
 from .api.routes import admin as admin_routes
@@ -162,6 +163,7 @@ app.add_middleware(
 )
 
 app.include_router(demo_routes.router)
+app.include_router(recommendations_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(supervision_routes.router)
 app.include_router(admin_routes.router)

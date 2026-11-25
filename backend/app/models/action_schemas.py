@@ -1,6 +1,6 @@
 """One validated action contract for API, chat, simulation and CEO proposals."""
 
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -46,7 +46,15 @@ class DatasetLaunchAction(Action):
     budget_minor: int = Field(strict=True, ge=0, le=10**12)
 
 
+class SocialDraftAction(Action):
+    platform: Literal['instagram','facebook']
+    caption: str = Field(min_length=1,max_length=2200)
+    audience: str = Field(min_length=1,max_length=500)
+    rationale: str = Field(min_length=1,max_length=2000)
+
+
 ACTION_CONTRACTS = {
+    "social_draft": ("marketing", SocialDraftAction),
     "dataset_launch": ("marketing", DatasetLaunchAction),
     "budget_request": ("finance", BudgetRequestAction),
     "campaign_launch": ("marketing", CampaignLaunchAction),

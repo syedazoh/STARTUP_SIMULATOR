@@ -38,10 +38,11 @@ async def post_chat_message(
 ):
     await _require_known_agent(request, business, agent_key)
     result = await send_message(
-        request.app.state.db, request.app.state.agent_registry, business, agent_key, payload.content
+        request.app.state.db, request.app.state.agent_registry, business, agent_key, payload.content, payload.screen_context.model_dump() if payload.screen_context else None
     )
     return ChatReplyOut(
         thread=ChatThreadOut(**result["thread"]),
         ai_error=result.get("ai_error"),
+        answer_source=result.get("answer_source"),intent=result.get("intent"),
         task=to_task_out(result["task"]) if result["task"] else None,
     )

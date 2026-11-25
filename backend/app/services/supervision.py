@@ -1,6 +1,7 @@
 """CEO assignment lifecycle. All effects still use the shared approval pipeline."""
 
 import asyncio
+from hashlib import sha256
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -91,10 +92,19 @@ async def propose_plan(db, registry, business, goal, plan_id=None):
     return {k: v for k, v in doc.items() if k != "_id"}
 
 
-async def activate_plan(db, registry, business, plan_id):
+async def activate_plan(db, registry, business, plan_id, expected_revision=None, decision_feedback=''):
+    original=await find_one(db['ceo_plans'],{'business_id':business.id,'plan_id':plan_id})
+    recommendation=bool(original and original.get('origin')=='agent_recommendation')
+    guard={}
+    if recommendation:
+        if expected_revision is None or original.get('revision')!=expected_revision:raise HTTPException(409,'Review the current recommendation revision in the boardroom')
+        if original['status'] in {'active','completed'}:return {k:v for k,v in original.items() if k!='_id'}
+        guard={'revision':expected_revision}
+    decision={'decision':'approve','basis':'owner_authorized_ceo_plan','reason':decision_feedback or 'Owner authorized this CEO recommendation plan.','actor_id':business.owner_user_id,'at':datetime.now(timezone.utc)}
+
     plan = await db["ceo_plans"].find_one_and_update(
-        {"business_id": business.id, "plan_id": plan_id, "status": "draft"},
-        {"$set": {"status": "assigning"}},
+        {"business_id": business.id, "plan_id": plan_id, "status": {"$in":["draft","assignment_failed"]} if recommendation else 'draft', **guard},
+        {"$set": {"status": "assigning",**({'ceo_decision':decision} if recommendation else {})}},
         return_document=ReturnDocument.AFTER,
     )
     if plan is None:
@@ -105,7 +115,7 @@ async def activate_plan(db, registry, business, plan_id):
 
     task_ids = []
     try:
-        for assignment in plan["assignments"]:
+        for index,assignment in enumerate(plan["assignments"]):
             task = await create_task(
                 db,
                 registry,
@@ -117,6 +127,8 @@ async def activate_plan(db, registry, business, plan_id):
                 plan_id=plan_id,
                 objective=assignment["objective"],
                 success_criteria=assignment["success_criteria"],
+                task_id=(sha256(f"recommendation:{business.id}:{plan_id}:{index}".encode()).hexdigest() if recommendation else None),
+                force_owner_review=recommendation,
             )
             task_ids.append(task["task_id"])
     except Exception:

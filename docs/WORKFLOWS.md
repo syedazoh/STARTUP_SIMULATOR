@@ -31,3 +31,11 @@ Resend supports application outbound and configured inbound email; it does not a
 
 ## Completion evidence
 Email: provider message ID plus delivery state; meeting: event ID plus attendee response; hiring: human decision plus accepted offer evidence; post: published provider ID/URL; ad: campaign ID/status and actual spend; purchase: order and receipt; task: expected deliverable reviewed. UI must display pending/unverified states honestly.
+
+## 25 November: saved recommendation review
+
+`GET/POST /api/businesses/{business_id}/recommendations` lists up to 50 saved records or creates one using a UUID `request_id`, an enabled existing agent, and bounded draft fields. Records remain in `ceo_plans` with `origin=agent_recommendation`. An identical key/body returns the saved record; changed content under that key conflicts. All endpoints use the existing owned-business dependency. No account/database migration is needed.
+
+`POST .../{plan_id}/decision` requires strict `expected_revision` and `approve`, `request_changes` or `reject`; revision/rejection requires feedback. `PUT .../{plan_id}` updates a reviewable Marketing draft, increments its revision and retains feedback. Stale reviews and edits to active records conflict. Generic plan activation cannot bypass recommendation review. Failed partial assignment retries use the same deterministic task identity; final execution still uses the exact owner task approval and existing ledger.
+
+The one executable example is Marketing `social_draft` for Instagram/Facebook. It stores caption/audience/rationale as an internal artifact with `published=false` and zero cost. Finance comments use the authorized simulated ledger; proposed promotion is advisory and never executed by this task. CEO decisions are owner-recorded, not autonomous AI approvals. Other roles produce advisory records and retain their existing specific proposal forms. See [delivery evidence and demo](NOV25_DELIVERY_REPORT.md).

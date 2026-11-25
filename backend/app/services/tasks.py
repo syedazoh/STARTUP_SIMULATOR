@@ -362,7 +362,9 @@ async def execute_task(
                 finance.budget_pool = spendable
             try:
                 handler = EXTERNAL_ACTION_HANDLERS.get(claimed["action_type"])
-                if handler:
+                if claimed['action_type']=='social_draft':
+                    result={'status':'draft_saved','mode':'simulation','published':False,'spent':0,'draft':claimed['payload']}
+                elif handler:
                     result = await handler(db, business, claimed["payload"])
                 else:
                     result = await runtime.agent_manager.trigger_action(

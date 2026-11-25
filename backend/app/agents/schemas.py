@@ -83,7 +83,8 @@ class ChatReply(BaseModel):
     the exact same manual/auto/threshold pipeline as every other entry
     point instead of a separate "the chatbot did it" code path.
     """
-    reply: str = Field(description="A conversational reply to the owner, written in this agent's voice")
+    intent: Literal["answer","clarify","missing_data","out_of_scope"] = "answer"
+    reply: str = Field(max_length=8000, description="A conversational reply to the owner, written in this agent's voice")
     action_requested: bool = Field(
         default=False,
         description="True only if the owner's message asked you to actually take an action, not just answer a question",
