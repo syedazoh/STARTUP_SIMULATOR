@@ -51,7 +51,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000`; sign in with an account registered in your configured **Supabase project**, choose your business and open automation. A classic FastAPI login is not automatically a Supabase account: register/confirm the same email in Supabase, then explicitly link the original login in the workspace to retain its businesses. `web/.env.local` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `BACKEND_URL=http://127.0.0.1:8000`. Backend `.env` uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` without `NEXT_PUBLIC_`. Never expose service-role/backend secrets in browser variables. Existing Vite/3D boardroom remains separately available on port 5173.
+Open `http://localhost:3000`; sign in with an account registered in your configured **Supabase project**, choose your business and open automation. A classic FastAPI login is not automatically a Supabase account: register/confirm the same email in Supabase, then explicitly link the original login in the workspace to retain its businesses. `web/.env.local` needs `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `BACKEND_URL=http://127.0.0.1:8000`. Backend `.env` uses `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` without `NEXT_PUBLIC_`. Never expose service-role/backend secrets in browser variables. Existing Vite/3D boardroom remains available on port 5173 and restores the verified Next identity through the same-host session bridge.
 
 For `ECONNREFUSED` or sign-in setup issues, run `python scripts/check_local_auth.py --ui next` (or `--ui classic`) from the repository root and see [local authentication troubleshooting](docs/LOCAL_AUTH_TROUBLESHOOTING.md). The checker prints no secret values.
 
@@ -247,12 +247,13 @@ sessions, and business records are temporary and disappear on backend restart
 or auto-reload; register again afterward. MongoDB remains required in production,
 and a failure in an actual MongoDB throttle store still blocks login.
 
-**Frontend**
+**Main frontend**
 ```bash
-cd frontend
+cd web
+npm ci
 npm run dev
 ```
-Frontend will be available at `http://localhost:5173`
+Open `http://localhost:3000`. Optional retained classic tools: run `npm run dev` in `frontend/` on 5173 after signing in through Next.
 
 #### Option 2: Docker Compose
 
@@ -307,7 +308,7 @@ npm run build
 
 Frontend CI additionally builds the development container and smoke-tests its API proxy. Docker Compose CI checks backend wiring, approvals, database writes, and restart/session behavior. Automated CI checks are not a substitute for local browser testing of the 3D scene.
 
-### After pulling an updated frontend
+### After pulling updated classic tools
 
 ```bash
 git checkout main
@@ -317,7 +318,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:5173`, sign in, and select/create a business. The relevant protected routes are:
+Sign in at `http://localhost:3000` first, then open `http://localhost:5173`; classic restores the verified identity without another password. The relevant protected routes are:
 
 - `/b/:businessId/dashboard` — Command Center
 - `/b/:businessId/boardroom` — 3D Boardroom
@@ -377,6 +378,10 @@ Container tests need repository assets alongside the image's backend tests: moun
 
 
 ### Finding existing companies and agent workspaces
-See [Local startup and account recovery](docs/LOCAL_ACCOUNT_RECOVERY.md) for the original Supabase/Mongo configuration, Windows commands, account linking and the five Next agent routes. Next runs on 3000; classic Vite tools on 5173 remain available for Marketing publishing/media/account controls.
+See [Local startup and account recovery](docs/LOCAL_ACCOUNT_RECOVERY.md) for the original Supabase/Mongo configuration, Windows commands, account linking and the five Next agent routes. Next runs on 3000; classic Vite tools on 5173 restore the same verified identity. Marketing recommendations save simulation drafts without publishing.
 
 Appearance presets and owner-reported employee breakdown are documented in [Appearance and team setup](docs/design/APPEARANCE_AND_TEAM.md). Use the existing company before creating a replacement; personalizing its appearance does not change its data.
+
+### 25 November: one sign-in and saved recommendation demo
+
+Start at **http://localhost:3000/login** using the original Supabase project and Mongo database. Request an existing-user email code, enter it on the same screen, and return to your business. Supabase’s Magic Link email template must include `{{ .Token }}`. Use localhost consistently across frontend ports. Exact settings and ownership recovery: [sign-in guide](docs/AUTH_ENTRY_2026_11_25.md). Demo steps and explicitly labelled test evidence: [delivery report](docs/NOV25_DELIVERY_REPORT.md).

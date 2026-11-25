@@ -7,12 +7,12 @@ Do not create a new Supabase project, Mongo database or company just to recover 
 | Address | Service | Purpose |
 | --- | --- | --- |
 | http://localhost:3000 | Next.js (`web/`) | Supabase sign-in, company selector, command center, five department workspaces, boardroom, shared automation and datasets |
-| http://localhost:5173 | Classic React/Vite (`frontend/`) | Original native-login agent pages, including Marketing publishing/media/connected-account controls |
+| http://localhost:5173 | Classic React/Vite (`frontend/`) | Retained agent pages with verified session restoration from Next; internal Marketing draft review |
 | http://127.0.0.1:8000 | FastAPI (`backend/`) | Authenticated business actions, task approvals, workers and MongoDB access |
 | Supabase project | Identity provider | Verifies the Next.js login; it does not replace the Mongo business database |
 | MongoDB | Business database | Stores companies, original native accounts, tasks and other simulator records |
 
-Both frontends belong to this repository and use the same backend. Their sessions are different. Do not copy a Supabase token into Vite or assume a new Supabase password is the original native account password.
+Both frontends belong to this repository and use the same backend. Sign in once through Next. The classic page restores a revocable native session through a verified same-host bridge; it does not ask for a second login. Original unlinked accounts still require explicit ownership linking. Do not copy tokens or assume a Supabase password is the original native password. See [same-screen code sign-in and exact settings](AUTH_ENTRY_2026_11_25.md).
 
 ## Check existing configuration
 
@@ -85,7 +85,7 @@ Company routes are business-scoped:
 
 Each role page exposes its recorded tasks/state/history, an avatar, relevant simulation proposal form, saved chat, and shared automation/knowledge navigation. The four department roles expose their existing execution-mode and reasoning-policy settings; CEO exposes planning instead. An auto-mode change requires explicit acknowledgement. Chat may create proposals, and existing mode/policy can execute eligible simulated requests. Navigation and avatars do not authorize work.
 
-Marketing publishing, media assets and connected-account screens still live in the classic frontend. Start it in a third terminal:
+Retained classic agent pages remain available as an optional third terminal. Marketing uses internal reviewable drafts; no social connection is needed:
 
 ```bash
 cd frontend
@@ -93,10 +93,10 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:5173 and sign in with the original native login. Agent routes are `/b/<business-id>/agents/<role>`. Backend/provider permissions and setup still apply; access to a screen does not prove live email or social publishing is configured.
+After signing in at localhost:3000, open http://localhost:5173 using the same hostname. Its verified bridge restores the same identity without a second login. Agent routes are `/b/<business-id>/agents/<role>`. Backend/provider permissions and setup still apply; access to a screen does not prove live email or social publishing is configured.
 
 
 ## Personalize and describe your team
-Use **Appearance** at the top-right to choose Executive Glass, Pearl Water or Monolith, color mode and decorative motion. Preferences stay in this browser; Reset appearance restores defaults.
+Use **Appearance** at the top-right to choose Executive Glass, Pearl Water or Monolith, Emerald/Champagne/Lavender palette, color mode and decorative motion. Preferences stay in this browser; Reset appearance restores defaults.
 
 Next: open your existing company’s Command center → **Team setup**. Classic: **Business Profile** → Team setup. For a new company, add departments/roles in the creation form. Unallocated employees remain “Not assigned yet”. These human staffing details are reported planning context, not a change to simulation HR headcount or permission to hire.

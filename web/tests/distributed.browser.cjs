@@ -5,7 +5,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,headless:true,args:['--no-sandbox']});
  try {
   const page=await browser.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.goto('http://127.0.0.1:3000/login');await page.getByLabel('Email address').fill('distributed-browser@example.com');await page.getByLabel('Password',{exact:true}).fill('test-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');
+  await page.goto('http://127.0.0.1:3000/login?method=password');await page.getByLabel('Email address').fill('distributed-browser@example.com');await page.getByLabel('Password',{exact:true}).fill('test-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');
   await page.getByText('Create a business',{exact:true}).click();await page.getByLabel('Company name').fill('Seven-role Browser Startup');await page.getByLabel('Industry',{exact:true}).fill('Software');await page.getByRole('button',{name:'Create workspace'}).click();await page.waitForURL(/workspace\/[\w-]+$/);
   await page.getByRole('link',{name:'Seven-role launch simulation & evidence →'}).click();await page.getByRole('heading',{name:'Seven-role launch simulation',exact:true}).waitFor();
   const url=page.url();await page.getByRole('button',{name:'Start synthetic analysis'}).click();await page.getByRole('heading',{name:'Launch analysis · ready for review'}).waitFor({timeout:30000});

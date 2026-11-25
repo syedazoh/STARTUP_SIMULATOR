@@ -3,7 +3,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
 (async()=>{const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH||'/usr/bin/chromium',args:['--no-sandbox']});try{
  const page=await browser.newPage({viewport:{width:1440,height:1050}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const base=process.env.DASHBOARD_BASE_URL||'http://localhost:3012';const shots='/tmp/dashboard-reference';fs.mkdirSync(shots,{recursive:true});
- await page.goto(base+'/login');await page.getByLabel('Email address').fill('studio-fixture@example.com');await page.getByLabel('Password',{exact:true}).fill('fixture-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');await page.goto(base+'/workspace/studio-business');
+ await page.goto(base+'/login?method=password');await page.getByLabel('Email address').fill('studio-fixture@example.com');await page.getByLabel('Password',{exact:true}).fill('fixture-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');await page.goto(base+'/workspace/studio-business');
  await page.getByRole('heading',{name:'Orbit Studio · test fixture',exact:true}).waitFor();
  assert.equal(await page.locator('.overview-bars').count(),2);
  assert.match(await page.locator('.overview-bars[aria-label="Recorded financial snapshot"]').innerText(),/10,000/);

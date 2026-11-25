@@ -465,3 +465,12 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [ ] Owner validates original Supabase/Mongo business access locally, then completes the presentation acceptance and authorized AWS deployment (docs/RELEASE_PLAN_2026_11.md).
 
 - [x] Keep explicit light/dark toggle plus Appearance on every UI route, including after scroll/navigation and inside immersive boardroom; cover guide/setup/admin theme surfaces and keyboard access. Next 16-route disposable acceptance and classic agent/profile checks passed.
+
+## 25 November 2026 — access and contextual demo
+- [x] Canonical same-screen existing-user Supabase code login, protected return, explicit password fallback and verified same-host classic restoration; both-session logout. Preserve original ownership linking.
+- [x] Shared scoped conversation rules; deterministic clarification/definition/task queries; bounded authorized context for model answers and source labels.
+- [x] Five retained roles including HR; shared saved what/why/decision, English narration/Stop/text fallback.
+- [x] Marketing two-caption recommendation → Finance ledger evidence → owner-recorded CEO review/revision/rejection → one internal draft task through existing plan/task approvals, including concurrency/lost-response retry.
+- [x] Emerald/Champagne/Lavender on shared surfaces; real scoped donut/workload/backing table; dated-only trends.
+- [x] Local fixture-backed browser journey and focused tests; guide and actual deterministic/mock response evidence in docs/NOV25_DELIVERY_REPORT.md.
+- [ ] Operator verification of original Supabase email delivery, original Mongo business/link and live model inference using private configuration. No deployment inferred from local tests.

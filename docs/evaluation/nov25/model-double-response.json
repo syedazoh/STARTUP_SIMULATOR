@@ -1,0 +1,5 @@
+{
+  "input": "How should we prioritize our current business workload?",
+  "response": "For this recorded workload, review the pending Marketing proposal first.",
+  "source": "deterministic FakeChatLLM test double, not live Groq"
+}

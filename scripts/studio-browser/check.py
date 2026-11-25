@@ -8,7 +8,7 @@ with sync_playwright() as p:
  browser=p.chromium.launch(executable_path=os.environ.get('STUDIO_CHROMIUM_PATH'),headless=True,args=['--no-sandbox','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
  page=browser.new_page(viewport={'width':1440,'height':1050},device_scale_factor=1)
  errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
- page.goto('http://localhost:3012/login')
+ page.goto('http://localhost:3012/login?method=password')
  page.get_by_label('Email address').fill('studio-fixture@example.com');page.get_by_label('Password',exact=True).fill('fixture-password');page.get_by_role('button',name='Sign in',exact=True).click();page.wait_for_url('**/workspace')
  page.get_by_role('link',name='Enter executive studio').click();page.wait_for_url('**/boardroom')
  page.locator('.scene-labels.is-ready').wait_for(timeout=30000)
@@ -88,7 +88,7 @@ with sync_playwright() as p:
  assert not errors,errors
  # Reduced motion still creates a real WebGL render and usable controls.
  reduced=browser.new_page(viewport={'width':1024,'height':900},reduced_motion='reduce')
- reduced.goto('http://localhost:3012/login');reduced.get_by_label('Email address').fill('studio-fixture@example.com');reduced.get_by_label('Password',exact=True).fill('fixture-password');reduced.get_by_role('button',name='Sign in',exact=True).click();reduced.wait_for_url('**/workspace');reduced.get_by_role('link',name='Enter executive studio').click();reduced.locator('.scene-labels.is-ready').wait_for()
+ reduced.goto('http://localhost:3012/login?method=password');reduced.get_by_label('Email address').fill('studio-fixture@example.com');reduced.get_by_label('Password',exact=True).fill('fixture-password');reduced.get_by_role('button',name='Sign in',exact=True).click();reduced.wait_for_url('**/workspace');reduced.get_by_role('link',name='Enter executive studio').click();reduced.locator('.scene-labels.is-ready').wait_for()
  reduced_canvas=reduced.locator('.scene-viewport canvas')
  before=reduced_canvas.screenshot()
  reduced.get_by_role('button',name='Preview a task handoff').click();reduced.wait_for_timeout(150)

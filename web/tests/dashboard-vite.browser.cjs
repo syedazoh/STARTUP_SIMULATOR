@@ -13,7 +13,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
   if(/\/agents\/(ceo|finance|marketing|hr|operations)$/.test(path))return route.fulfill({json:{agent_id:path.split('/').pop(),agent_name:path.split('/').pop(),decision_count:2}});
   if(path.endsWith('/finances'))return route.fulfill({json:{cash:10000,reserved:0,available:10000,revenue:0,expenses:0,monthly_payroll_commitment:0}});
   if(path.endsWith('/profile'))return route.fulfill({json:{}});
-  if(path.endsWith('/history'))return route.fulfill({json:[5,4,3,2,1].map(i=>({state:{budget_pool:10000-i*200,customer_base:i*20,brand_value:i*5},synthetic:true}))});
+  if(path.endsWith('/history'))return route.fulfill({json:[5,4,3,2,1].map(i=>({timestamp:`2026-11-${String(26-i).padStart(2,'0')}T12:00:00Z`,state:{budget_pool:10000-i*200,customer_base:i*20,brand_value:i*5},synthetic:true}))});
   const response=await fetch('http://127.0.0.1:8012'+path+url.search);return route.fulfill({status:response.status,body:await response.text(),contentType:'application/json'});
  });
  await page.goto('http://127.0.0.1:5173/b/studio-business/dashboard');await page.getByRole('heading',{name:'Your startup at a glance.'}).waitFor({timeout:10000}).catch(async error=>{console.log(page.url(),(await page.locator('body').innerText()).slice(0,1500),errors);throw error});await page.locator('.recharts-line').first().waitFor();

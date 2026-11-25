@@ -1,0 +1,27 @@
+[
+  {
+    "input": "What is a T?",
+    "response": "Where did you see \u201cT\u201d in the simulator?",
+    "source": "actual deterministic service output, no model call"
+  },
+  {
+    "input": "It is the total in the task-status donut chart.",
+    "response": "The center total in the task-status donut is the number of loaded tasks for Acme Inc: 0. Each task contributes once to a status segment. The chart is limited to the latest 200 tasks, not a lifetime total.",
+    "source": "actual deterministic service output, no model call"
+  },
+  {
+    "input": "What does runway mean?",
+    "response": "Runway is how long a startup can keep operating before its cash runs out. A simple estimate is available cash divided by monthly net cash burn; no account data is needed to define the term.",
+    "source": "actual deterministic service output, no model call"
+  },
+  {
+    "input": "Can we afford this campaign?",
+    "response": "I do not have a recorded available balance for this business. Check Finance\u2019s simulated ledger and tell me which campaign budget you want reviewed.",
+    "source": "actual deterministic service output, no model call"
+  },
+  {
+    "input": "Give me a pancake recipe",
+    "response": "I can help with your startup and this simulator. Would you like to review your team\u2019s pending tasks?",
+    "source": "actual deterministic service output, no model call"
+  }
+]

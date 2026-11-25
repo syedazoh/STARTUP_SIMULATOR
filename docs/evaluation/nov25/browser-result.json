@@ -1,0 +1,11 @@
+{
+  "provider": "local mock, no real email",
+  "database": "mongomock, real app services",
+  "model": "no live model; record-backed answers",
+  "selected_business": "studio-business",
+  "task_count": 4,
+  "social_draft_count": 1,
+  "publication": false,
+  "payment": false,
+  "errors": []
+}

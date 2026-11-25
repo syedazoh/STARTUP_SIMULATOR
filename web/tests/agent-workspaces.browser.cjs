@@ -2,7 +2,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs');
 (async()=>{const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox','--enable-unsafe-swiftshader']});try{
  const page=await browser.newPage({viewport:{width:1440,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));const base=process.env.AGENTS_BASE_URL||'http://localhost:3015';fs.mkdirSync('/tmp/agent-workspaces',{recursive:true});
- await page.goto(base+'/login');await page.getByLabel('Email address').fill('studio-fixture@example.com');await page.getByLabel('Password',{exact:true}).fill('fixture-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');
+ await page.goto(base+'/login?method=password');await page.getByLabel('Email address').fill('studio-fixture@example.com');await page.getByLabel('Password',{exact:true}).fill('fixture-password');await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.waitForURL('**/workspace');
  await page.getByRole('link',{name:'Finance workspace',exact:true}).click();await page.getByRole('heading',{name:'Finance workspace',exact:true}).waitFor();
  for(const [role,label] of [['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],['hr','HR'],['operations','Operations']]){
   await page.goto(base+`/workspace/studio-business/agents/${role}`);await page.getByRole('heading',{name:`${label} workspace`,exact:true}).waitFor();await page.locator('.agent-presence[data-scene=ready]').waitFor();
