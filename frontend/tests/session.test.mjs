@@ -114,3 +114,10 @@ test('missing native refresh restores the verified main session without another 
  client.defaults.adapter=config=>{assert.equal(config.headers.Authorization,'Bearer bridged-token');return Promise.resolve(response(config))};
  await api.refreshSession();await client.get('/api/businesses');assert.deepEqual(paths,['/api/auth/refresh','/api/auth/legacy-session']);
 });
+
+test('identity lookup carries the active bearer; credential endpoints do not',async()=>{
+ const {exports:api,instances:[client]}=await clientModule();api.setAccessToken('identity-token');
+ const seen=[];client.defaults.adapter=config=>{seen.push([config.url,config.headers.Authorization]);return Promise.resolve(response(config))};
+ await client.get('/api/auth/me');await client.post('/api/auth/login',{email:'fixture@example.com',password:'fixture-password'});await client.post('/api/auth/register',{email:'fixture@example.com',password:'fixture-password'});
+ assert.deepEqual(seen,[['/api/auth/me','Bearer identity-token'],['/api/auth/login',undefined],['/api/auth/register',undefined]]);
+});

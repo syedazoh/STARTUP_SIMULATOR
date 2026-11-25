@@ -1,3 +1,5 @@
+import {redirect} from "next/navigation";
+import {supabase} from "../../lib/supabase";
 import {cookies} from "next/headers";
 import EmailLogin from "./email-login";
 import {safeReturnTo} from "../../lib/login-flow";
@@ -13,6 +15,9 @@ export default async function Login({
   const params = await searchParams;
   const pending=(await cookies()).get("startup-pending-email")?.value||"";
   const configuration = authConfigurationIssue(process.env);
+  let signedIn=false;
+  if(!configuration){try{const client=await supabase();const {data:{user}}=await client.auth.getUser();signedIn=!!user}catch{}}
+  if(signedIn)redirect(safeReturnTo(params.next));
   return (
     <section className="card">
       <p className="eyebrow">Welcome back</p>

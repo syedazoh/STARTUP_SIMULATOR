@@ -19,12 +19,12 @@ function fields(form: FormData, page = "/login") {
 }
 export async function login(form: FormData) {
   const credentials = fields(form);
-  if (authConfigurationIssue(process.env)) redirect("/login?error=configuration");
+  if (authConfigurationIssue(process.env)) redirect("/login?error=configuration&method=password");
   let result;
   try { const client = await supabase(); result = await client.auth.signInWithPassword(credentials); }
-  catch { redirect("/login?error=unavailable"); }
-  if (result.error) redirect(`/login?error=${authErrorCode(result.error)}`);
-  if (!result.data.session) redirect("/login?error=login");
+  catch { redirect("/login?error=unavailable&method=password"); }
+  if (result.error) redirect(`/login?error=${authErrorCode(result.error)}&method=password`);
+  if (!result.data.session) redirect("/login?error=login&method=password");
   redirect(safeReturnTo(form.get("next")));
 }
 export async function signup(form: FormData) {

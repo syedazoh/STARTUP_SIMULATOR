@@ -52,13 +52,13 @@ export async function endSession() {
 }
 
 apiClient.interceptors.request.use((config) => {
-  if (accessToken && !config.url.startsWith('/api/auth/')) config.headers.Authorization = `Bearer ${accessToken}`
+  if (accessToken && !['/api/auth/login','/api/auth/register'].includes(config.url.split('?')[0])) config.headers.Authorization = `Bearer ${accessToken}`
   return config
 })
 
 apiClient.interceptors.response.use((response) => response, async (error) => {
   const config = error.config
-  if (error.response?.status === 401 && config && !config.url.startsWith('/api/auth/')) {
+  if (error.response?.status === 401 && config && !['/api/auth/login','/api/auth/register'].includes(config.url.split('?')[0])) {
     if (!config._retried) {
       config._retried = true
       try {
