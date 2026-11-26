@@ -130,3 +130,15 @@ html[data-appearance] .recharts-default-tooltip .recharts-tooltip-item{color:var
 
 /* Compact legend must not inherit operating-list row spacing. */
 .task-charts .task-donut-layout ul{display:block;gap:0}.task-charts .task-donut-layout li{margin:0;padding:0;border:0}.task-charts .task-donut-layout li button{margin:0;min-height:44px}.task-charts .task-donut-layout{align-items:center}
+
+/* Classic legacy styles use !important dark colors. Theme both sides of each pair. */
+html[data-appearance] .hq-app-shell{background:var(--app-bg)!important;color:var(--app-ink)!important}
+html[data-appearance] .hq-app-shell .hq-dashboard{background:transparent!important;color:var(--app-ink)!important}
+html[data-appearance] .hq-app-shell :is(.hq-sidebar,.hq-kpi,.hq-analytics,.hq-activity,.hq-review-section,.hq-mini-agents,.hq-inspector,.hq-header-status){background:var(--app-shine),var(--app-glass)!important;color:var(--app-ink)!important;border-color:var(--app-line)!important}
+html[data-appearance] .hq-app-shell :is(h1,h2,h3,h4,.hq-kpi>strong,.hq-nav-heading,.hq-nav-link,.hq-brand strong){color:var(--app-ink)!important}
+html[data-appearance] .hq-app-shell :is(.hq-page-header p,.hq-kpi>span,.hq-kpi>small,.hq-header-status small,.hq-sidebar small,.hq-sidebar label,.hq-event p,.hq-event time){color:var(--app-muted)!important}
+html[data-appearance] .hq-app-shell :is(.hq-sidebar a,.hq-sidebar-footer button,.hq-mini-agents a,.hq-section-header a,.hq-control-title button){color:var(--app-link)!important}
+html[data-appearance] .hq-app-shell .hq-sidebar :is(.active,a:hover){background:var(--app-raised)!important;color:var(--app-ink)!important}
+html[data-appearance] .hq-app-shell :is(.hq-event,.hq-event pre){background:var(--app-panel)!important;color:var(--app-ink)!important;border-color:var(--app-line)!important}
+html[data-appearance] .hq-app-shell [role=alert]{background:#402334!important;color:#f7d4e1!important;border-color:#a94d66!important}
+html[data-interface-theme=light] .hq-app-shell [role=alert]{background:#f8e3e8!important;color:#702338!important}

@@ -100,3 +100,13 @@ After signing in at localhost:3000, open http://localhost:5173 using the same ho
 Use **Appearance** at the top-right to choose Executive Glass, Pearl Water or Monolith, Emerald/Champagne/Lavender palette, color mode and decorative motion. Preferences stay in this browser; Reset appearance restores defaults.
 
 Next: open your existing company’s Command center → **Team setup**. Classic: **Business Profile** → Team setup. For a new company, add departments/roles in the creation form. Unallocated employees remain “Not assigned yet”. These human staffing details are reported planning context, not a change to simulation HR headcount or permission to hire.
+
+## Old login, setup loop or unreadable classic light mode
+
+The current classic `/login` redirects to Next, and Appearance includes a Color palette selector. A separate classic email/password form or a selector without that option indicates an older bundle/process or checkout; a screenshot alone cannot tell which local folder or commit is running. Stop both frontend dev servers with Ctrl+C, run `git status --short` and `git pull --ff-only origin main` from the intended root, then restart `web` on 3000. Hard-refresh localhost:3000/login with Ctrl+Shift+R. Restart optional `frontend` separately; localhost:5173/login should redirect to 3000. Do not discard local files if Git reports a conflict; inspect its output first.
+
+A failed business lookup is not an empty business list. The classic route guard now shows a connection/account-access error with Retry instead of misleadingly opening new-company onboarding. If a successful lookup is empty, check the original Mongo URL/database and explicit account link. Never create a replacement business to recover old records.
+
+Classic fixed-dark stylesheet overrides previously won against light-theme surfaces while text changed to dark. Semantic surface/text pairs now override those rules together for the shell, sidebar, KPI/analytics panels and event rows. This is a UI repair, not a database issue.
+
+A campaign can exceed **unreserved funds** even when a budget-pool chart shows a larger number: existing allocations reserve cash. Approval failure now preserves actionable API conflicts such as “Insufficient unreserved funds for this task” rather than replacing them with a generic message. Check the shared Finance ledger and revise the proposal through normal review; do not bypass budget or exact-payload approval checks. The screenshot's CEO warning suggests a budget constraint, but the actual local network response is needed to establish that particular failure.

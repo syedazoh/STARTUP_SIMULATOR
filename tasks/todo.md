@@ -474,3 +474,10 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [x] Emerald/Champagne/Lavender on shared surfaces; real scoped donut/workload/backing table; dated-only trends.
 - [x] Local fixture-backed browser journey and focused tests; guide and actual deterministic/mock response evidence in docs/NOV25_DELIVERY_REPORT.md.
 - [ ] Operator verification of original Supabase email delivery, original Mongo business/link and live model inference using private configuration. No deployment inferred from local tests.
+
+## 27 November 2026 — screenshot follow-up
+- [x] Repair classic light-mode legacy CSS overrides as coordinated surface/text pairs.
+- [x] Distinguish failed business lookup from a successful empty list; expose Retry without onboarding on errors.
+- [x] Preserve actionable task approval/rejection errors without weakening exact-payload or funding checks.
+- [x] Add unit and intercepted-browser regression coverage; document safe local restart/version checks.
+- [ ] Verify the owner's local checkout/running server, original Mongo database and exact reported approval response from private local configuration.

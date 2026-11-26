@@ -12,15 +12,35 @@ export const fetchPendingTasks = createAsyncThunk('tasks/fetchPending', async (b
   return response.data.filter((task) => ACTIONABLE_STATUSES.has(task.status))
 })
 
-export const approveTask = createAsyncThunk('tasks/approve', async (task) => {
+function taskError(error, fallback) {
+  const status = error.response?.status
+  if (status === 401) return 'Your session expired. Sign in again before reviewing this task.'
+  if (status === 403) return 'You do not have permission to update this task.'
+  if (status === 429) return 'Too many requests. Wait briefly, then refresh before retrying.'
+  const detail = error.response?.data?.detail
+  if ([400, 404, 409, 422].includes(status) && typeof detail === 'string' && detail.trim()) {
+    return detail.slice(0, 600)
+  }
+  return fallback
+}
+
+export const approveTask = createAsyncThunk('tasks/approve', async (task, { rejectWithValue }) => {
   const taskId = typeof task === 'string' ? task : task.taskId
-  const response = await apiClient.post(`/api/tasks/${taskId}/approve`, { expected_fingerprint: typeof task === 'string' ? undefined : task.expectedFingerprint })
-  return response.data
+  try {
+    const response = await apiClient.post(`/api/tasks/${taskId}/approve`, { expected_fingerprint: typeof task === 'string' ? undefined : task.expectedFingerprint })
+    return response.data
+  } catch (error) {
+    return rejectWithValue(taskError(error, 'Could not approve the task. Check the backend connection and refresh its current status before retrying.'))
+  }
 })
 
-export const rejectTask = createAsyncThunk('tasks/reject', async ({ taskId, ownerFeedback }) => {
-  const response = await apiClient.post(`/api/tasks/${taskId}/reject`, { owner_feedback: ownerFeedback })
-  return response.data
+export const rejectTask = createAsyncThunk('tasks/reject', async ({ taskId, ownerFeedback }, { rejectWithValue }) => {
+  try {
+    const response = await apiClient.post(`/api/tasks/${taskId}/reject`, { owner_feedback: ownerFeedback })
+    return response.data
+  } catch (error) {
+    return rejectWithValue(taskError(error, 'Could not reject the task. Check the backend connection and refresh before retrying.'))
+  }
 })
 
 export const requestTaskChanges = createAsyncThunk(
@@ -33,7 +53,7 @@ export const requestTaskChanges = createAsyncThunk(
       })
       return response.data
     } catch (error) {
-      return rejectWithValue(typeof error.response?.data?.detail === 'string' ? error.response.data.detail : 'Could not request a revision. Your task may still be processing; refresh before retrying.')
+      return rejectWithValue(taskError(error, 'Could not request a revision. Your task may still be processing; refresh before retrying.'))
     }
   },
 )
