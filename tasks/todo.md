@@ -481,3 +481,10 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [x] Preserve actionable task approval/rejection errors without weakening exact-payload or funding checks.
 - [x] Add unit and intercepted-browser regression coverage; document safe local restart/version checks.
 - [ ] Verify the owner's local checkout/running server, original Mongo database and exact reported approval response from private local configuration.
+
+## 27 November 2026 — native sign-in only for now
+- [x] Replace active Supabase/code/link steps with the original simulator email/password on Next; retain pages and ownership enforcement.
+- [x] Native HttpOnly sessions, protected return, refresh/revocation, logout, deliberate registration and classic continuity.
+- [x] Disable provider verification by default without deleting accounts, keys or mappings; preserve explicitly opted-in provider validation tests.
+- [x] Update local instructions and fixtures; verify native browser flow with zero Supabase calls.
+- [ ] Confirm the owner's private original account/database; Supabase-only users require deliberate native-password recovery rather than automatic ownership transfer.

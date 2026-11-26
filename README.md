@@ -1,3 +1,5 @@
+> **Current login:** Supabase sign-in is turned off for now. Open localhost:3000/login and use your original simulator email/password. See [current setup](docs/NATIVE_SIGN_IN.md). Older Supabase/code-login sections below are historical.
+
 # Startup Simulator - Multi-Agent AI-powered Business Simulation Platform
 
 ## FYP release verification — 24 November 2026

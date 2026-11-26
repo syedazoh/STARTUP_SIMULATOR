@@ -45,10 +45,11 @@ const assert = require("node:assert/strict");
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("http://127.0.0.1:5173/login");
-  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.waitForURL("**/login?next=*");
+  await page.getByLabel("Email address", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(`**/b/${business}/dashboard`).catch(async (error) => {
+  await page.waitForURL("**/workspace").catch(async (error) => {
     console.log(
       "Disposable login diagnostic:",
       page.url(),

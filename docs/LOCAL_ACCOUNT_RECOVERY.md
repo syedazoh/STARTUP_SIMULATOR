@@ -1,3 +1,5 @@
+> **Current sign-in has changed:** Supabase sign-in is disabled for now. Follow [native sign-in instructions](NATIVE_SIGN_IN.md). The older Supabase instructions below are historical and are not required.
+
 # Local startup and existing-account recovery
 
 Do not create a new Supabase project, Mongo database or company just to recover existing work. Keep your current `.env` files and the original MongoDB database. Never paste passwords, tokens or connection-string credentials into chat.

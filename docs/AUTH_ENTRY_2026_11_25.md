@@ -1,3 +1,5 @@
+> **Current sign-in has changed:** Supabase sign-in is disabled for now. Follow [native sign-in instructions](NATIVE_SIGN_IN.md). The older Supabase instructions below are historical and are not required.
+
 # One entry point — 25 November 2026
 
 Open **http://localhost:3000**. The documented `cd web; npm run dev` serves Next.js. The historical `cd frontend; npm run dev` serves Vite at 5173. Before this change these used independent Supabase and native-password sessions. The native session did not restore a Supabase login, return paths were discarded, and an unlinked identity correctly received an ownership conflict rather than another user's business. None of these findings establishes the state of the owner's private Windows configuration.

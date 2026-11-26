@@ -41,7 +41,7 @@ const assert = require("node:assert/strict");
     .click();
   await page.getByRole("button", { name: "Approve and execute" }).click();
   await page.getByText("Approval processed.", { exact: false }).waitFor();
-  await page.getByText("executed", { exact: true }).first().waitFor();
+  await page.locator(".work-item .status").filter({hasText:/^executed$/}).first().waitFor();
   console.log(
     "Finance proposal, explicit approval, saved execution and report passed",
   );
@@ -61,12 +61,12 @@ const assert = require("node:assert/strict");
   await page
     .getByRole("button", { name: "All departments", exact: true })
     .click();
-  await page.getByText("Prepare supplies", { exact: true }).first().waitFor();
+  await page.getByRole("heading", {name:"Prepare supplies",exact:true}).first().waitFor();
   console.log(
     "CEO draft, reviewed activation and delegated department tasks passed",
   );
   await page.reload();
-  await page.getByText("Prepare supplies", { exact: true }).first().waitFor();
+  await page.getByRole("heading", {name:"Prepare supplies",exact:true}).first().waitFor();
   const id = page.url().split("/").pop();
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 });

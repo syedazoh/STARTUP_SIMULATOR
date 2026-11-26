@@ -28,8 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:8101
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: fixture-key
+      CLASSIC_APP_URL: http://127.0.0.1:5173
+      VITE_MAIN_APP_URL: http://127.0.0.1:3000
+      SUPABASE_AUTH_ENABLED: 'false'
       BACKEND_URL: http://127.0.0.1:8001
       SIMULATOR_BROWSER_TEST: '1'
       HF_HUB_OFFLINE: '1'
@@ -52,7 +53,7 @@ jobs:
         working-directory: web
       - run: npx playwright install --with-deps chromium
         working-directory: web
-      - name: Start disposable identity, database and API fixtures
+      - name: Start disposable native accounts, database and API fixtures
         run: cd backend && PYTHONPATH=. python tests/workspace_browser_fixture.py > /tmp/workspace-api.log 2>&1 &
       - name: Build and serve the production Next app
         run: |

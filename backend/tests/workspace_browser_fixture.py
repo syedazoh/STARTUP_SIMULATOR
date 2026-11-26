@@ -183,6 +183,20 @@ async def fixture_worker(app):
         group.create_task(original_worker(app))
         group.create_task(role_loop())
 jobs.worker_loop = fixture_worker
+# Seed native passwords explicitly; browser tests no longer provision via Supabase.
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from app.core.security import hash_password
+from app.core.crypto import encrypt_data_key, generate_data_key
+_original_lifespan=app.router.lifespan_context
+@asynccontextmanager
+async def native_fixture_lifespan(application):
+    async with _original_lifespan(application):
+        for email in ['demo@example.com','other@example.com','distributed-browser@example.com','automation-browser@example.com']:
+            await application.state.db['users'].insert_one({'user_id':str(uuid.uuid4()),'email':email,'hashed_password':hash_password('test-password'),'encrypted_data_key':encrypt_data_key(generate_data_key()),'role':'owner','created_at':datetime.now(timezone.utc)})
+        yield
+app.router.lifespan_context=native_fixture_lifespan
+
 threading.Thread(
     target=lambda: uvicorn.run(
         provider, host="127.0.0.1", port=8101, log_level="warning"

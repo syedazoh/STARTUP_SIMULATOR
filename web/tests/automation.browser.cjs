@@ -14,7 +14,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.getByRole('button',{name:'Create workspace'}).click();await page.waitForURL(/workspace\/[\w-]+$/);
  await page.getByRole('button',{name:'Finance',exact:true}).click();await page.getByLabel('Requested amount',{exact:true}).fill('25');
  await page.getByRole('button',{name:'Submit proposal'}).click();await page.getByRole('button',{name:'Review owner decision'}).first().waitFor();
- await page.getByRole('link',{name:'Jobs, deadlines, knowledge & MCP →'}).click();
+ await page.locator('a[href$="/automation"]').first().click();
  await page.getByRole('heading',{name:'Automation & knowledge',exact:true}).waitFor();
  await page.getByText('Worker: enabled',{exact:false}).waitFor();
  await page.getByRole('button',{name:'Queue task-status brief'}).click();
