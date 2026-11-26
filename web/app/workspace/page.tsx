@@ -1,8 +1,9 @@
 import {workspaceIssue} from "../../lib/account-link";
 import { redirect } from "next/navigation";
-import { supabase } from "../../lib/supabase";
+import {ACCESS_COOKIE,nativeUser} from "../../lib/native-session";
+import {cookies} from "next/headers";
 import { backend } from "../../lib/backend";
-import { logout, linkAccount } from "../actions";
+import { logout } from "../actions";
 import CreateBusiness from "./create-business";
 import { Submit } from "../../components/submit";
 export const dynamic = "force-dynamic";
@@ -12,12 +13,8 @@ export default async function Workspace({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const client = await supabase();
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser();
-  if (error || !user) redirect("/login");
+  let user;try{user=await nativeUser((await cookies()).get(ACCESS_COOKIE)?.value)}catch{ return <section className="card"><h1>Account service unavailable</h1><p role="alert">Check FastAPI and your original MongoDB connection, then retry.</p><a href="/workspace">Retry</a></section> }
+  if(!user)redirect('/login');
   const params = await searchParams;
   let businesses: Business[] = [];
   let issue = "";
@@ -77,39 +74,11 @@ export default async function Workspace({
             ))}
           </ul>
         ) : (
-          <p>No businesses are attached to this login yet. If you already had a company, use Link existing account below before creating another one.</p>
+          <p>No businesses are attached to this login yet. If you already had a company, check that the backend uses your original MongoDB database and that you signed in to the original account before creating another.</p>
         )}
       </section>
       {!issue && <CreateBusiness />}
-      <details className="card" id="link-existing" open={typeof params.error==="string"&&(params.error.startsWith("link")||params.error==="input")}>
-        <summary>Link existing account</summary>
-        <p>
-          Enter your original Startup Simulator login to retain business
-          ownership and encrypted credentials. Use the original account password, not a newly created Supabase password. Frontend and backend must point to the same Supabase project; the backend must use your original MongoDB database.
-        </p>
-        <form action={linkAccount}>
-          <label htmlFor="old-email">Original email</label>
-          <input
-            id="old-email"
-            name="email"
-            type="email"
-            defaultValue={user.email}
-            autoComplete="username"
-            required
-          />
-          <label htmlFor="old-password">Original password</label>
-          <input
-            id="old-password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            minLength={8}
-            maxLength={128}
-            required
-          />
-          <Submit>Link my existing account</Submit>
-        </form>
-      </details>
+
     </>
   );
 }

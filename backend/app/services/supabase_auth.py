@@ -15,6 +15,8 @@ from ..models.auth_schemas import UserOut
 
 
 async def verify_identity(token):
+    if not settings.supabase_auth_enabled:
+        raise HTTPException(503, "Supabase sign-in is disabled; use the original simulator login")
     url = settings.supabase_url
     key = settings.supabase_publishable_key
     if not url or not key:

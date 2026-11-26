@@ -1,20 +1,12 @@
 import "server-only";
 import { apiError } from "./api-errors";
-import { supabase } from "./supabase";
+import {cookies} from "next/headers";
+import {ACCESS_COOKIE} from "./native-session";
 export async function backendResponse(path: string, init: RequestInit = {}) {
   if (!path.startsWith("/api/") || path.includes(".."))
     throw new Error("Invalid API path");
-  const client = await supabase();
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser();
-  if (error || !user)
-    throw new Error("Your session ended. Please sign in again.");
-  const {
-    data: { session },
-  } = await client.auth.getSession();
-  if (!session) throw new Error("Please sign in again.");
+  const access=(await cookies()).get(ACCESS_COOKIE)?.value;
+  if(!access)throw new Error("Your session ended. Please sign in again.");
   let res: Response;
   try {
     res = await fetch(
@@ -26,8 +18,8 @@ export async function backendResponse(path: string, init: RequestInit = {}) {
             ? {}
             : { "Content-Type": "application/json" }),
           ...(init.headers||{}),
-          Authorization: `Bearer ${session.access_token}`,
-          "X-Auth-Provider": "supabase",
+          Authorization: `Bearer ${access}`,
+
         },
         cache: "no-store",
         signal: init.signal || AbortSignal.timeout(12000),

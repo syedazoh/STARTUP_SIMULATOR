@@ -13,6 +13,11 @@ from app.services import supabase_auth as auth
 from app.models.auth_schemas import UserOut
 
 
+@pytest.fixture(autouse=True)
+def enabled_integration(monkeypatch):
+    monkeypatch.setattr(settings,"supabase_auth_enabled",True)
+
+
 @pytest.fixture
 def db():
     return AsyncMongoMockClient().auth_test
@@ -181,3 +186,11 @@ async def test_local_role_is_authoritative(db, provider):
     await auth.resolve_user(db, "valid")
     await db.users.update_one({"email": provider[1]}, {"$set": {"role": "viewer"}})
     assert (await auth.resolve_user(db, "valid")).role == "viewer"
+
+@pytest.mark.asyncio
+async def test_disabled_provider_never_contacts_supabase(monkeypatch):
+    monkeypatch.setattr(settings,'supabase_auth_enabled',False)
+    def forbidden(*args,**kwargs):raise AssertionError('Disabled provider must not use network')
+    monkeypatch.setattr(auth.httpx,'AsyncClient',forbidden)
+    with pytest.raises(HTTPException) as error:await auth.verify_identity('unused')
+    assert error.value.status_code==503

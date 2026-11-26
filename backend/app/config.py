@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # Explicit local-only opt-in; ignored when debug=False.
     allow_in_memory_login: bool = False
 
+    supabase_auth_enabled: bool = False
     supabase_url: Optional[str] = None
     supabase_publishable_key: Optional[str] = None
 

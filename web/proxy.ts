@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import {ACCESS_COOKIE,REFRESH_COOKIE,restoreNative,refreshedCookie,accessOptions} from "./lib/native-session";
 import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());
@@ -13,25 +13,21 @@ export async function proxy(request: NextRequest) {
     const result = NextResponse.next({request: {headers}});
     result.headers.set('Content-Security-Policy', csp);
     result.headers.set('Cache-Control', 'private, no-store');
+    // Retire the old scoped refresh cookie without replacing the current root cookie.
+    result.headers.append('Set-Cookie', `${REFRESH_COOKIE}=; Path=/api/auth; Max-Age=0; HttpOnly; SameSite=Strict${process.env.NODE_ENV==='production'?'; Secure':''}`);
     return result;
   }
   let response = next();
   // Public pages need a CSP nonce, not a provider round trip.
   if (!/^\/(workspace|auth)(\/|$)/.test(request.nextUrl.pathname)) return response;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL, key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return response;
-  const client = createServerClient(url, key, {
-    cookieOptions: {httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/'},
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll(values) {
-        values.forEach(({name,value})=>request.cookies.set(name,value));
-        response=next();
-        values.forEach(({name,value,options})=>response.cookies.set(name,value,options));
-      },
-    },
-  });
-  try {const {data:{user}}=await client.auth.getUser();if(!user&&/^\/workspace(?:\/|$)/.test(request.nextUrl.pathname)){const destination=new URL('/login',request.url);destination.searchParams.set('next',request.nextUrl.pathname+request.nextUrl.search);const redirect=NextResponse.redirect(destination);response.cookies.getAll().forEach(cookie=>redirect.cookies.set(cookie));redirect.headers.set('Cache-Control','private, no-store');return redirect;}} catch {/* Pages validate identity fail-closed. */}
+  if(!request.nextUrl.pathname.startsWith('/workspace'))return response;
+  try{
+    const session=await restoreNative(request.cookies.get(ACCESS_COOKIE)?.value,request.cookies.get(REFRESH_COOKIE)?.value);
+    if(!session){const destination=new URL('/login',request.url);destination.searchParams.set('next',request.nextUrl.pathname+request.nextUrl.search);return NextResponse.redirect(destination)}
+    request.cookies.set(ACCESS_COOKIE,session.access);response=next();
+    response.cookies.set(ACCESS_COOKIE,session.access,accessOptions());
+    if(session.response){const refresh=refreshedCookie(session.response);if(refresh){request.cookies.set(refresh.name,refresh.value);response.cookies.set(refresh.name,refresh.value,refresh.options)}}
+  }catch{/* Data routes still validate the existing bearer; failures never grant access. */}
   return response;
 }
 export const config = {matcher: ['/((?!_next/static|_next/image|favicon.ico|media/|fonts/).*)']};
