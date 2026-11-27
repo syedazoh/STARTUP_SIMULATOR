@@ -1,6 +1,6 @@
 // The current EventBus publishes a source and event type, not a generic receiver.
 // Only route established agent interactions; never animate unsupported claims.
-const AGENTS = new Set(["ceo", "finance", "marketing", "hr", "operations"]);
+const AGENTS = new Set(["ceo", "finance", "marketing", "hr", "operations", "strategy"]);
 export function normalizeAgent(value) {
   if (typeof value !== "string") return null;
   const id = value.toLowerCase();

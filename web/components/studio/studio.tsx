@@ -37,6 +37,7 @@ const initials: Record<string, string> = {
   finance: "FN",
   marketing: "MK",
   hr: "HR",
+  strategy: "ST",
   operations: "OP",
 };
 export default function Studio({
@@ -607,7 +608,7 @@ export default function Studio({
               </div>
             </aside>
           </div>
-          <Recommendations businessId={businessId} boardroom/>
+          <details><summary>Earlier saved recommendation records</summary><Recommendations businessId={businessId} boardroom/></details>
           <AgentConversation key={businessId+selected} businessId={businessId} role={agentId(selected)||"ceo"}/>
           <section className="studio-activity">
             <div className="studio-section-title">

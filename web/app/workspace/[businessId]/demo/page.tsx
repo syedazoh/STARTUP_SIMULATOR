@@ -1,5 +1,6 @@
 import { backend } from "../../../../lib/backend";
 import Demo from "./demo";
+import RetailData from "../../../../components/retail-data";
 
 export default async function DemoPage({
   params,
@@ -17,13 +18,12 @@ export default async function DemoPage({
       </a>
       <section className="hero compact">
         <p className="eyebrow">Synthetic business laboratory</p>
-        <h1>Product launch</h1>
+        <h1>Data laboratory</h1>
         <p>
-          One shared dataset. Five department reviews. Your approval before
-          simulated execution.
+          Historical retail and fictional startup data stay distinct. Use the shared workspaces for the new five-agent launch.
         </p>
       </section>
-      <Demo businessId={businessId} initial={initial} />
+      <RetailData businessId={businessId}/><Demo businessId={businessId} initial={initial} />
     </>
   );
 }

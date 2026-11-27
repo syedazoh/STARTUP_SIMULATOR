@@ -10,7 +10,7 @@ import BusinessSwitcher from './BusinessSwitcher'
 import './layout.css'
 
 const loadThree=()=>import('three')
-const agentLinks=[['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],['hr','HR'],['operations','Operations']]
+const agentLinks=[['ceo','CEO'],['finance','Finance'],['marketing','Marketing'],['strategy','Strategy'],['operations','Operations']]
 const primary=[['dashboard','◫','Command Center'],['boardroom','◉','3D Boardroom'],['decision-log','☷','Decision History'],['memory-inspector','◇','Agent Memory'],['profile','▤','Business Profile']]
 export default function Layout(){
  const { businessId }=useParams()
@@ -33,7 +33,7 @@ export default function Layout(){
      <nav aria-label="Workspace navigation">
        <small className="hq-nav-heading">WORKSPACE</small>
        {primary.map(([route,icon,label])=><NavLink key={route} to={`/b/${businessId}/${route}`} end={route==='dashboard'} className={({isActive})=>'hq-nav-link '+(isActive?'active':'')} onClick={()=>setOpen(false)}><span aria-hidden="true">{icon}</span>{label}</NavLink>)}
-       <small className="hq-nav-heading hq-nav-agents">EXECUTIVE AGENTS</small>
+       <small className="hq-nav-heading hq-nav-agents">EXECUTIVE AGENTS</small><Link className="hq-nav-link" to={`/b/${businessId}/agents/hr`}>Legacy HR records</Link>
        {agentLinks.map(([key,label])=><NavLink key={key} to={`/b/${businessId}/agents/${key}`} className={({isActive})=>'hq-nav-link '+(isActive?'active':'')} onClick={()=>setOpen(false)}><span aria-hidden="true" className={'hq-agent-dot hq-'+key}/>{label}</NavLink>)}
      </nav>
      <div className="hq-sidebar-footer"><Link to="/getting-started">Product demo &amp; quick start</Link>{isAdmin&&<Link to="/admin">Admin workspace ↗</Link>}<button type="button" onClick={doLogout}>Sign out ↗</button>{logoutError&&<p role="alert">{logoutError}</p>}</div>

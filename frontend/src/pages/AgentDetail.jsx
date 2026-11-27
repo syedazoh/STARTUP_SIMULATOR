@@ -9,7 +9,7 @@ import AgentStatusCard from '../components/AgentStatusCard'
 import AgentActionForm from '../components/AgentActionForm'
 import AgentModeForm from '../components/AgentModeForm'
 import AgentPolicyForm from '../components/AgentPolicyForm'
-import ChatPanel from '../components/ChatPanel'
+import AgentWorkflow from '../components/AgentWorkflow'
 import CEOSupervision from '../components/CEOSupervision'
 import DepartmentTasks from '../components/DepartmentTasks'
 import FinancialSummary from '../components/FinancialSummary'
@@ -55,7 +55,7 @@ function AgentDetail() {
           {config ? config.label : 'CEO'} Agent
         </h1>
         <AgentAvatar agent={agentKey} loadThree={loadThree} caption={`${config?.label||'CEO'} avatar`}/>
-          <Recommendations businessId={businessId} role={agentKey}/>
+          <AgentWorkflow businessId={businessId} role={agentKey}/>{agentKey!=="strategy"&&<details><summary>Earlier saved recommendation records</summary><Recommendations businessId={businessId} role={agentKey}/></details>}
         {agentKey === 'ceo' && <CEOSupervision key={businessId} businessId={businessId} />}
         <DepartmentTasks key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey === 'ceo' ? undefined : agentKey} />
         {agentKey === 'finance' && <FinancialSummary key={businessId} businessId={businessId} />}
@@ -75,14 +75,14 @@ function AgentDetail() {
           </div>
         )}
 
-        {config ? (
+        {config && !config.readOnly ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <AgentActionForm businessId={businessId} config={config} onActionComplete={poll} />
             <AgentModeForm businessId={businessId} agentKey={agentKey} />
             <AgentPolicyForm businessId={businessId} agentKey={agentKey} config={config} />
             {agentKey==='marketing'&&<p>Instagram and Facebook work stays as reviewable drafts in Recommendations. No social account connection or publishing credential is needed.</p>}
           </div>
-        ) : (
+        ) : agentKey==='strategy' ? <p>Strategy provides read-only positioning and risk analysis. Submit shared launch briefs above; owner decisions remain in the boardroom.</p> : (
           <div className="bg-white rounded-lg shadow p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Arbitration Activity</h3>
             <p className="text-xs text-gray-400 mb-3">
@@ -109,7 +109,7 @@ function AgentDetail() {
           </div>
         )}
 
-        <ChatPanel key={`${businessId}:${agentKey}`} businessId={businessId} agentKey={agentKey} agentLabel={config ? config.label : 'CEO'} />
+
       </main>
     </div>
   )

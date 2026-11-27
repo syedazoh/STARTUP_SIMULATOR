@@ -240,7 +240,8 @@ export default function Demo({
       {dashboard.imports.length === 0 && (
         <p>No active demo dataset. Import a sample to begin.</p>
       )}
-      {dashboard.imports.map((item) => (
+      {dashboard.imports.filter(item=>item.data.dataset_id==='sprout-five-agent-v2').map(item=><section className="card" key={item.import_id}><h2>{item.data.company.name}</h2><p>This fictional dataset supports the shared CEO, Finance, Marketing, Operations and Strategy conversation demo.</p><a href={`/workspace/${encodeURIComponent(businessId)}/agents/ceo`}>Open the five-agent launch workspace →</a></section>)}
+      {dashboard.imports.filter(item=>item.data.dataset_id!=='sprout-five-agent-v2').map((item) => (
         <section className="card" key={item.import_id}>
           <h2>{item.data.company.name}</h2>
           <p>Dataset: {item.data.dataset_id}</p>

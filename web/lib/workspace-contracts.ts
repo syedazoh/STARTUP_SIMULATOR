@@ -1,20 +1,9 @@
 /** Commands exposed by the Next workspace. Live publishing is deliberately absent. */
-export const departments = [
-  "ceo",
-  "finance",
-  "marketing",
-  "hr",
-  "operations",
-] as const;
-export type Department = (typeof departments)[number];
-export type Operator = Exclude<Department, "ceo">;
-export const labels: Record<Department, string> = {
-  ceo: "CEO",
-  finance: "Finance",
-  marketing: "Marketing",
-  hr: "HR",
-  operations: "Operations",
-};
+export type Department = 'ceo'|'finance'|'marketing'|'operations'|'strategy'|'hr';
+export const departments:readonly Department[]=['ceo','finance','marketing','operations','strategy'];
+export const allDepartments:readonly Department[]=[...departments,'hr'];
+export type Operator = Exclude<Department,'ceo'|'strategy'>;
+export const labels:Record<Department,string>={ceo:'CEO',finance:'Finance',marketing:'Marketing',operations:'Operations',strategy:'Strategy',hr:'HR (legacy)'};
 export type Task = {
   id: string;
   business_id: string;
@@ -90,6 +79,7 @@ export type Workspace = {
 };
 export const safeActions = new Set([
   "social_draft",
+  "agent_brief",
   "budget_request",
   "campaign_launch",
   "recruitment_request",
@@ -98,7 +88,7 @@ export const safeActions = new Set([
 ]);
 export function decisionAllowed(task: Task) {
   return (
-    safeActions.has(task.action_type) && task.status === "pending_approval"
+    safeActions.has(task.action_type) && task.status === "pending_approval" && (task.action_type!=="agent_brief"||!!task.payload.submission_id)
   );
 }
 export function requireDecision(

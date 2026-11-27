@@ -57,6 +57,7 @@ const AGENT_CONFIG = {
       auto_deny_min: 'Auto-deny resource requests at or above quantity',
     },
   },
+  strategy: {label:'Strategy',metricKeys:[],readOnly:true},
   ceo: null,
 }
 

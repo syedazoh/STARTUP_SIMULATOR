@@ -1,4 +1,5 @@
 "use client";
+import AgentWorkflow from "../../../components/agent-workflow";
 import Recommendations from "../../../components/recommendations";
 import WorkforceEditor from "../../../components/workforce-editor";
 import Avatar from "../../../components/agent-avatar";
@@ -302,7 +303,7 @@ export default function CommandCenter({
             <Icon name="play" />
             Launch laboratory
           </a>
-          <div className="command-agent-heading">Agent workspaces</div>{departments.map(role=><a key={role} aria-current={initialDepartment===role?'page':undefined} href={`/workspace/${encodeURIComponent(business.id)}/agents/${role}`}><Icon name="cube"/>{labels[role]}</a>)}
+          <div className="command-agent-heading">Agent workspaces</div><a href={`/workspace/${encodeURIComponent(business.id)}/agents/hr`}>Legacy HR records</a>{departments.map(role=><a key={role} aria-current={initialDepartment===role?'page':undefined} href={`/workspace/${encodeURIComponent(business.id)}/agents/${role}`}><Icon name="cube"/>{labels[role]}</a>)}
         </nav>
         <div className="command-sidebar-bottom">
           <a href="/getting-started">Product demo & guide</a>
@@ -330,7 +331,7 @@ export default function CommandCenter({
             Open 3D Boardroom <Icon name="chevron" />
           </a>
         </section>
-        {initialDepartment&&<div className="agent-workspace-intro"><Avatar agent={initialDepartment} caption={`${labels[initialDepartment]} avatar`}/><div><h2>Your {labels[initialDepartment]} working space</h2><p>{initialDepartment==="ceo"?"Use the planning form below to review goals and assignments. CEO review is separate from your final owner approval.":"Use the proposal form below for simulated work. Review execution mode and reasoning policy before sending requests."} Open Automation & knowledge for jobs, deadlines and documents.</p><Recommendations businessId={business.id} role={initialDepartment}/><a href={`/workspace/${encodeURIComponent(business.id)}/automation`}>Open automation & knowledge</a></div></div>}
+        {initialDepartment&&<div className="agent-workspace-intro"><Avatar agent={initialDepartment} caption={`${labels[initialDepartment]} avatar`}/><div><h2>Your {labels[initialDepartment]} working space</h2><p>{initialDepartment==="ceo"?"Use the planning form below to review goals and assignments. CEO review is separate from your final owner approval.":"Use the proposal form below for simulated work. Review execution mode and reasoning policy before sending requests."} Open Automation & knowledge for jobs, deadlines and documents.</p><AgentWorkflow businessId={business.id} role={initialDepartment}/>{initialDepartment!=="strategy"&&<details><summary>Earlier saved recommendation records</summary><Recommendations businessId={business.id} role={initialDepartment}/></details>}<a href={`/workspace/${encodeURIComponent(business.id)}/automation`}>Open automation & knowledge</a></div></div>}
         <p className="demo-label">
           Simulation workspace · Department actions change simulated business
           state. Real email, hiring, purchasing and social publication are not
@@ -442,7 +443,7 @@ export default function CommandCenter({
                 onClick={() => setDepartment(key)}
               >
                 {labels[key]}{" "}
-                {business.enabled_agents.includes(key) ? "" : "· disabled"}
+                {(business.enabled_agents.includes(key)||(key==='strategy'&&business.enabled_agents.includes('ceo'))) ? "" : "· disabled"}
               </button>
             ))}
           </div>}
@@ -458,7 +459,7 @@ export default function CommandCenter({
                   <article key={key} className="department-card">
                     <h3>{labels[key]}</h3>
                     <p>
-                      {business.enabled_agents.includes(key)
+                      {(business.enabled_agents.includes(key)||(key==='strategy'&&business.enabled_agents.includes('ceo')))
                         ? "Enabled"
                         : "Disabled"}{" "}
                       ·{" "}
@@ -482,7 +483,7 @@ export default function CommandCenter({
             </div>
           )}
           {department !== "all" &&
-            department !== "ceo" &&
+            department !== "ceo" && department !== "strategy" &&
             business.enabled_agents.includes(department) && (
               <form
                 key={department}

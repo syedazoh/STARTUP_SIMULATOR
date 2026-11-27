@@ -108,7 +108,7 @@ test("the visual preview starts with the requested CEO to Finance budget example
 
 test("collaboration preview gives every executive sending and receiving roles", () => {
   const rows = previewTransfers();
-  for (const id of ["ceo", "finance", "marketing", "hr", "operations"]) {
+  for (const id of ["ceo", "finance", "marketing", "strategy", "operations"]) {
     assert.ok(
       rows.some((t) => t.sender === id),
       `${id} never sends`,
@@ -148,3 +148,5 @@ test("participant roles name the actual counterpart without claiming task accept
 test("revision requests travel from owner to department, not in reverse", () => {
  assert.equal(taskTransfer({...pending,status:"needs_changes"},pending).sender,"owner");
 });
+
+ test("primary Strategy delegation is rendered alongside legacy HR records",()=>{ assert.equal(agentId("strategy"),"strategy"); assert.equal(taskTransfer({id:"strategy-new",agent:"strategy",source:"ceo",plan_id:"saved",status:"pending_approval"}).receiver,"strategy"); assert.equal(agentId("hr"),"hr"); });

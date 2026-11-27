@@ -1,4 +1,5 @@
 import "./globals.css";
+import "../components/workflow.css";
 import "../components/appearance.css";
 import Appearance from "../components/appearance";
 import "../components/agent-avatar.css";

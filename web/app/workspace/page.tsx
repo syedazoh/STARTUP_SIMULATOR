@@ -5,6 +5,7 @@ import {cookies} from "next/headers";
 import { backend } from "../../lib/backend";
 import { logout } from "../actions";
 import CreateBusiness from "./create-business";
+import {openSharedDemo} from "./shared-demo-actions";
 import { Submit } from "../../components/submit";
 export const dynamic = "force-dynamic";
 type Business = { id: string; company_name: string; industry: string };
@@ -67,7 +68,7 @@ export default async function Workspace({
                 <a href={`/workspace/${b.id}/automation`}>
                   Automation &amp; knowledge
                 </a>
-                <div className="workspace-agent-links" aria-label={`${b.company_name} agent workspaces`}>{["ceo","finance","marketing","hr","operations"].map(role=><a key={role} href={`/workspace/${encodeURIComponent(b.id)}/agents/${role}`}>{role==="ceo"?"CEO":role==="hr"?"HR":role.charAt(0).toUpperCase()+role.slice(1)} workspace</a>)}</div>
+                <div className="workspace-agent-links" aria-label={`${b.company_name} agent workspaces`}>{["ceo","finance","marketing","operations","strategy"].map(role=><a key={role} href={`/workspace/${encodeURIComponent(b.id)}/agents/${role}`}>{role==="ceo"?"CEO":role==="hr"?"HR":role.charAt(0).toUpperCase()+role.slice(1)} workspace</a>)}</div>
                 {" · "}
                 <a href={`/workspace/${b.id}/demo`}>Synthetic launch demo</a>
               </li>
@@ -77,7 +78,7 @@ export default async function Workspace({
           <p>No businesses are attached to this login yet. If you already had a company, check that the backend uses your original MongoDB database and that you signed in to the original account before creating another.</p>
         )}
       </section>
-      {!issue && <CreateBusiness />}
+      <section className="card"><h2>Try the five-agent launch</h2><p>Open a separate fictional Sprout business with USD 300 simulated cash, a brand guide, catalog and launch deadline. This preserves your existing companies and reopens prior demo work.</p><form action={openSharedDemo}><Submit>Open fictional five-agent demo</Submit></form><a href="/datasets/shared-launch-v2.json" download>Download the labelled fictional dataset</a></section>{!issue && <CreateBusiness />}
 
     </>
   );

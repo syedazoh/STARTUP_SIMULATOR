@@ -1,4 +1,5 @@
 import TaskCharts from '../charts/TaskCharts'
+import RetailData from '../components/RetailData'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
@@ -65,7 +66,7 @@ export default function Dashboard(){
    </header>
    <div className="hq-kpi-grid">
      <div className="hq-kpi"><span>SIMULATION CYCLE</span><strong>{display(tickCount)}</strong><small>{status}</small></div>
-     <div className="hq-kpi"><span>AGENTS CONNECTED</span><strong>{agentLoad==='succeeded'?Object.keys(statuses).length:'—'} <small>/ 5</small></strong><small>From backend snapshot</small></div>
+     <div className="hq-kpi"><span>AGENTS CONNECTED</span><strong>{agentLoad==='succeeded'?Object.keys(statuses).filter(role=>EXECUTIVES.some(agent=>agent.id===role)).length:'—'} <small>/ 5</small></strong><small>From backend snapshot</small></div>
      <div className="hq-kpi"><span>OWNER REVIEWS</span><strong>{display(tasks.length)}</strong><small>Tasks awaiting action</small></div>
      <div className="hq-kpi"><span>RECORDED EVENTS</span><strong>{eventLoad==='succeeded'?display(events.length):'—'}</strong><small>Most recent 100 in memory</small></div>
    </div>
@@ -82,7 +83,7 @@ export default function Dashboard(){
      <div><span className="hq-kicker">EXECUTIVE COLLABORATION</span><h2>Your AI team is in session.</h2><p>Follow real agent discussions in the dedicated immersive boardroom. Here you can focus on budgets, tasks, performance and approvals.</p><div className="hq-command-agent-row">{EXECUTIVES.map(agent=><Link key={agent.id} to={`/b/${businessId}/agents/${agent.id}`} className="hq-command-agent-pill"><i style={{background:agent.color}}/>{agent.label} · {tasks.filter(t=>t.agent===agent.id).length} pending reviews</Link>)}</div></div>
      <Link className="hq-command-boardroom-link" to={`/b/${businessId}/boardroom`}>Enter 3D Boardroom <span aria-hidden="true">↗</span></Link>
    </section>
-   <div className="hq-bottom-grid">
+   <details className="hq-analytics"><summary>Historical retail data · import and explore</summary><RetailData businessId={businessId}/></details><div className="hq-bottom-grid">
      <section className="hq-activity"><div className="hq-section-header"><div><span className="hq-kicker">ACTIVITY / TRACEABILITY</span><h2>Agent communications</h2></div><span className="hq-quiet-badge">Backend events · polling</span></div>
        {eventLoad==='loading'&&events.length===0&&<p>Loading event history…</p>}
        {eventLoad==='succeeded'&&events.length===0&&<p>No activity recorded yet. Start a simulation to generate backend events.</p>}

@@ -40,9 +40,9 @@ function Assignment({ task, businessId, refresh }) {
       {task.status === 'awaiting_asset' && <AssetUploadCard businessId={businessId} task={task} />}
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
       <div className="flex flex-wrap gap-3 text-sm">
-        {task.status === 'pending_approval' && <button disabled={busy} onClick={() => run('approve')}>Approve execution</button>}
+        {task.action_type!=='agent_brief'&&task.status === 'pending_approval' && <button disabled={busy} onClick={() => run('approve')}>Approve execution</button>}
         {['pending_ceo_review', 'needs_revision', 'ceo_reviewing'].includes(task.status) && <button disabled={busy} onClick={() => run('ceo-review')}>Retry CEO review</button>}
-        {editable.has(task.status) && <>
+        {task.action_type!=='agent_brief'&&editable.has(task.status) && <>
           <button disabled={busy} onClick={() => { setProposal(task.payload); setObjective(task.objective || ''); setEditing(!editing) }}>Revise proposal</button>
           <button disabled={busy} onClick={() => run('reject')}>Reject</button>
         </>}
@@ -51,7 +51,7 @@ function Assignment({ task, businessId, refresh }) {
       {editing && <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); run('revise', { payload: proposal, objective }) }}>
         <label className="block text-sm">Objective<input required className="block border rounded w-full p-1" value={objective} onChange={(e) => setObjective(e.target.value)} /></label>
         {Object.entries(proposal).map(([key, value]) => <label key={key} className="block text-sm">
-          {AGENT_CONFIG[task.agent]?.actionFields.find((f) => f.name === key)?.label || label(key)}
+          {AGENT_CONFIG[task.agent]?.actionFields?.find((f) => f.name === key)?.label || label(key)}
           <input required className="block border rounded w-full p-1" type={typeof value === 'number' ? 'number' : 'text'} step="any" min={typeof value === 'number' ? 0 : undefined} value={value} onChange={(e) => setProposal({ ...proposal, [key]: typeof value === 'number' ? Number(e.target.value) : e.target.value })} />
         </label>)}
         <button disabled={busy} type="submit">Submit for new CEO authorization</button>

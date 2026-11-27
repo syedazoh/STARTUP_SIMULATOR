@@ -17,4 +17,5 @@ export const workspaceIssues:Record<string,string>={
  input:'Enter the original account email and a password of 8–128 characters.'
 };
 
-export function workspaceIssue(code:string){return Object.hasOwn(workspaceIssues,code)?workspaceIssues[code]:"The request could not finish. Retry or check the connection message below."}
+export function workspaceIssue(code:string){
+ if(code==='demo_setup')return 'The fictional demo could not finish loading. Check backend/Mongo connectivity and retry; existing companies are unchanged.';return Object.hasOwn(workspaceIssues,code)?workspaceIssues[code]:"The request could not finish. Retry or check the connection message below."}

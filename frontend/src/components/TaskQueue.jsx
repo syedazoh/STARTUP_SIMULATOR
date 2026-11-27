@@ -84,7 +84,7 @@ function TaskCard({ businessId, task }) {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              disabled={busy || task.status === 'needs_changes'||['instagram_post','reel_request'].includes(task.action_type)}
+              disabled={busy || (task.action_type==='agent_brief'&&!task.payload.submission_id)||task.status === 'needs_changes'||['instagram_post','reel_request'].includes(task.action_type)}
               onClick={() => run(approveTask({ taskId: task.id, expectedFingerprint: task.approval_fingerprint }))}
               className="px-3 py-1 rounded text-white text-xs font-medium disabled:opacity-50"
               style={{ backgroundColor: STATUS.good }}

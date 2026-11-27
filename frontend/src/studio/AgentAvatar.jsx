@@ -10,7 +10,7 @@ export default function AgentAvatar({agent,loadThree,caption='Department avatar'
   setSceneState('loading');let disposed=false;const reduced=matchMedia('(prefers-reduced-motion: reduce)');
   const update=()=>engine.current?.setReducedMotion(reduced.matches||!motion.current);let observer;
   Promise.all([loadThree(),import('./scene.mjs')]).then(([THREE,{createStudio}])=>{
-   if(disposed)return;engine.current=createStudio(THREE,canvas.current,{reducedMotion:reduced.matches||!motion.current});engine.current.showOnly(agent);engine.current.select(agent);setSceneState('ready');
+   if(disposed)return;engine.current=createStudio(THREE,canvas.current,{reducedMotion:reduced.matches||!motion.current});const visualRole=agent==='hr'?'strategy':agent;engine.current.showOnly(visualRole);engine.current.select(visualRole);setSceneState('ready');
    observer=new IntersectionObserver(([entry])=>engine.current?.setVisible(entry.isIntersecting));observer.observe(canvas.current);
   }).catch(()=>{if(!disposed)setSceneState('unavailable')});
   reduced.addEventListener('change',update);

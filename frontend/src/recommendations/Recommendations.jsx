@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useId } from "react";
 import { AGENTS } from "../studio/model.mjs";
-const labels = Object.fromEntries(AGENTS.map((agent) => [agent.id, agent.label]));
+const labels = {...Object.fromEntries(AGENTS.map((agent) => [agent.id, agent.label])),hr:'HR (legacy)'};
 let activeSpeech = null;
 function Narration({ text }) {
   const [status, setStatus] = useState(""), own = useRef(null);

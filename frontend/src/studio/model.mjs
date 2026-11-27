@@ -22,9 +22,9 @@ export const AGENTS = [
     position: [3.7, 0, -1.1],
   },
   {
-    id: "hr",
-    label: "HR",
-    role: "People & hiring",
+    id: "strategy",
+    label: "Strategy",
+    role: "Growth & positioning",
     color: "#e5b8a2",
     position: [-2.9, 0, 2.5],
   },
@@ -36,6 +36,8 @@ export const AGENTS = [
     position: [2.9, 0, 2.5],
   },
 ];
+const LEGACY_HR = {id:"hr",label:"HR",role:"Legacy people records",color:"#e5b8a2",position:[-2.9,0,2.5]};
+const ALL_AGENTS = [...AGENTS, LEGACY_HR];
 export const humanize = (value) =>
   String(value || "unknown")
     .replaceAll("_", " ")
@@ -43,7 +45,7 @@ export const humanize = (value) =>
 export const agentId = (value) => {
   if (typeof value !== "string") return null;
   return (
-    AGENTS.find(
+    ALL_AGENTS.find(
       (a) =>
         value === a.id ||
         new RegExp(
@@ -139,12 +141,12 @@ export function previewTransfers() {
       "Budget review",
       "Share the campaign budget limits",
     ],
-    ["marketing", "hr", "Staffing request", "Plan the launch support team"],
+    ["marketing", "strategy", "Positioning request", "Compare launch positioning"],
     [
-      "hr",
+      "strategy",
       "operations",
-      "Staffing handoff",
-      "Share the proposed staffing schedule",
+      "Positioning handoff",
+      "Share the launch assumptions",
     ],
     ["operations", "finance", "Cost review", "Review delivery resource costs"],
     [
@@ -172,8 +174,8 @@ export function previewTransfers() {
       "Delivery handoff",
       "Coordinate the launch schedule",
     ],
-    ["operations", "hr", "Readiness update", "Confirm launch support coverage"],
-    ["hr", "ceo", "Team update", "Share the launch staffing plan"],
+    ["operations", "strategy", "Readiness update", "Confirm launch support coverage"],
+    ["strategy", "ceo", "Strategy update", "Share the launch positioning brief"],
   ].map(([sender, receiver, label, title], i) => ({
     id: `preview-${i + 1}`,
     sender,
@@ -193,8 +195,8 @@ export function previewTransfers() {
 // These describe the visual exchange, never an inferred backend acceptance.
 export function collaborationRoles(transfer, stage) {
   const name = (id) =>
-    AGENTS.find((a) => a.id === id)?.label || (id === "owner" ? "Owner" : id);
-  return AGENTS.map((agent) => {
+    ALL_AGENTS.find((a) => a.id === id)?.label || (id === "owner" ? "Owner" : id);
+  return (transfer && [transfer.sender,transfer.receiver].includes("hr") ? ALL_AGENTS : AGENTS).map((agent) => {
     const sending = transfer?.sender === agent.id;
     const receiving = transfer?.receiver === agent.id;
     return {
@@ -218,7 +220,7 @@ export function layoutLabels(positions, width, height) {
     .sort((a, b) => a[1][1] - b[1][1]);
   if (positions.owner) entries.push(["owner", positions.owner]);
   for (const [id, point] of entries) {
-    const label = AGENTS.find((a) => a.id === id)?.label || "Approval desk";
+    const label = ALL_AGENTS.find((a) => a.id === id)?.label || "Approval desk";
     const w = id === "owner" ? 90 : Math.max(48, label.length * 8 + 28),
       h = id === "owner" ? (width < 550 ? 26 : 42) : 36;
     const x = Math.max(w / 2 + 8, Math.min(width - w / 2 - 8, point[0]));

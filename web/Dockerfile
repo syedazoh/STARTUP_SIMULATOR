@@ -11,17 +11,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 COPY --from=dependencies /app/web/node_modules ./web/node_modules
 COPY web ./web
-COPY frontend/tests/studio.test.mjs ./frontend/tests/studio.test.mjs
-COPY frontend/tests/task-charts.test.mjs ./frontend/tests/task-charts.test.mjs
-COPY frontend/src/utils/chartData.js ./frontend/src/utils/chartData.js
-COPY frontend/src/studio ./frontend/src/studio
-COPY frontend/src/landing ./frontend/src/landing
-COPY frontend/src/onboarding ./frontend/src/onboarding
-COPY frontend/src/appearance ./frontend/src/appearance
-COPY frontend/src/charts ./frontend/src/charts
-COPY frontend/src/recommendations ./frontend/src/recommendations
-COPY frontend/src/config/agentConfig.js ./frontend/src/config/agentConfig.js
-COPY frontend/src/components/boardroom ./frontend/src/components/boardroom
+# Shared modules and tests, with frontend dependencies excluded by .dockerignore.
+# One copy avoids repeated source-layer snapshots as shared features grow.
+COPY frontend/src ./frontend/src
+COPY frontend/tests ./frontend/tests
 WORKDIR /app/web
 RUN npm test && npm run build && npm run typecheck
 

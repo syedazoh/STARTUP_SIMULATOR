@@ -1,0 +1,9 @@
+import '../workflow/workflow.css';
+import SharedWorkflow from '../workflow/AgentWorkflow';
+import api from '../api/client';
+const root=id=>`/api/businesses/${encodeURIComponent(id)}`;
+const failure=error=>typeof error.response?.data?.detail==='string'?error.response.data.detail:'Workflow unavailable. Check the backend and refresh before retrying.';
+async function read(businessId,role){try{const base=root(businessId)+'/workflow';const [conversation,launch,images]=await Promise.all([api.get(`${base}/${role}/conversation`),api.get(base+'/launch/state'),api.get(`${base}/${role}/images`)]);return {ok:true,data:{conversation:conversation.data,launch:launch.data,images:images.data}}}catch(error){return {ok:false,error:failure(error)}}}
+async function command(businessId,role,command,payload,id=''){try{const base=root(businessId),target=encodeURIComponent(id),paths={turn:`${base}/workflow/${role}/turns`,draft:`${base}/workflow/${role}/drafts`,image:`${base}/workflow/${role}/images`,plan:`${base}/workflow/launch/plans`,activate:`${base}/workflow/launch/plans/${target}/activate`,submit:`${base}/workflow/launch/tasks/${target}/submit`,approve:`/api/tasks/${target}/approve`,changes:`/api/tasks/${target}/request-changes`,reject:`/api/tasks/${target}/reject`,retry:`${base}/jobs/${target}/retry`};if(!paths[command])throw Error('Unknown command');return {ok:true,data:(await api.post(paths[command],payload)).data}}catch(error){return {ok:false,error:failure(error)}}}
+async function readImage(businessId,role,id){return (await api.get(`${root(businessId)}/workflow/${role}/artifacts/${encodeURIComponent(id)}/image`,{responseType:'blob'})).data}
+export default function AgentWorkflow(props){return <SharedWorkflow key={`${props.businessId}:${props.role}:${props.boardroom}`} {...props} workspaceBase={`/b/${encodeURIComponent(props.businessId)}/agents`} read={read} command={command} readImage={readImage}/>}
