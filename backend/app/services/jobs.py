@@ -14,6 +14,7 @@ from ..config import settings
 from ..database.mongodb import InMemoryDatabase
 
 SAFE_ACTIONS = {
+    "agent_brief",
     "budget_request",
     "campaign_launch",
     "recruitment_request",
@@ -178,6 +179,9 @@ async def handle(db, registry, job):
             or p["department"] not in grant["departments"]
         ):
             raise HTTPException(403, "MCP capability expired or revoked")
+    if kind == 'agent_image':
+        from .workflow_images import perform
+        return await perform(db,business,job)
     if kind == "ceo_plan":
         from .supervision import propose_plan
 

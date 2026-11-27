@@ -115,6 +115,9 @@ async def create_task(
             if old["status"] == "pending_ceo_review":
                 return await review_task(db, agent_registry, business, old)
             return old
+    elif action_type=='agent_brief':
+        from .workflow_roles import require_role
+        require_role(business,agent)
     else:
         runtime = await agent_registry.get_or_create(business)
         if (
@@ -147,6 +150,9 @@ async def create_task(
         "decided_at": None,
         "executed_at": None,
     }
+    if action_type=='agent_brief':
+        from datetime import datetime as dt
+        task['due_at']=payload['due_at'];task['due_ts']=dt.fromisoformat(payload['due_at']).timestamp()
     if task_id:
         task["_id"] = task_id
     if demo:
@@ -362,7 +368,11 @@ async def execute_task(
                 finance.budget_pool = spendable
             try:
                 handler = EXTERNAL_ACTION_HANDLERS.get(claimed["action_type"])
-                if claimed['action_type']=='social_draft':
+                if claimed['action_type']=='agent_brief':
+                    from .workflow_launch import validate_brief
+                    saved=await validate_brief(db,business,claimed,True)
+                    result={'status':'submission_approved','mode':'simulation','artifact_id':saved['artifact_id'],'image_artifact_ids':claimed['payload'].get('image_artifact_ids',[]),'published':False,'spent':0}
+                elif claimed['action_type']=='social_draft':
                     result={'status':'draft_saved','mode':'simulation','published':False,'spent':0,'draft':claimed['payload']}
                 elif handler:
                     result = await handler(db, business, claimed["payload"])

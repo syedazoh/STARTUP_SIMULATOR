@@ -7,7 +7,7 @@ from uuid import uuid4
 import re
 import logging
 
-AGENTS = {"ceo", "finance", "marketing", "hr", "operations"}
+AGENTS = {"ceo", "finance", "marketing", "hr", "operations", "strategy"}
 RECEIVERS = {
     "budget_request": "finance",
     "budget_negotiation": "marketing",

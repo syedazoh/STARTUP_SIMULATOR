@@ -1,0 +1,538 @@
+{
+  "synthetic_fixture": true,
+  "cases": 40,
+  "model_status": "BLOCKED: no successful current-model responses; structured service/fallback outputs only",
+  "scoring": "No accuracy claim. Expected answers were never passed into prompts. Several authored scenarios need additional setup; inspect fixture notes.",
+  "date": "2026-11-27",
+  "fixture_limit": "Isolated USD 300 business per case. Scenario-specific brand/deadline/image/submission prerequisites not set up by this runner; those behaviors have separate workflow tests.",
+  "sources": {
+    "structured_fallback": 25,
+    "structured_records": 17
+  },
+  "cases_review": [
+    {
+      "id": "ceo-launch",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-compare",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-unclear",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200,
+        200
+      ],
+      "sources": [
+        "structured_records",
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-revision",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-missing-deadline",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-approval-boundary",
+      "agent": "ceo",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-held-reference",
+      "agent": "ceo",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "ceo-held-unrelated",
+      "agent": "ceo",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-affordability",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-reserves",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-unclear",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200,
+        200
+      ],
+      "sources": [
+        "structured_records",
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-missing-data",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-definition",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-historical-retail",
+      "agent": "finance",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-held-currency",
+      "agent": "finance",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "finance-held-approval",
+      "agent": "finance",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-two-options",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-image-revision",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-unclear",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-image-brief",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-missing-brand",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-draft-only",
+      "agent": "marketing",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-held-followup",
+      "agent": "marketing",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "marketing-held-false-claims",
+      "agent": "marketing",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-capacity",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-staffing",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-saved-deadline",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-unclear",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-missing-schedule",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-revision",
+      "agent": "operations",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-held-unrelated",
+      "agent": "operations",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "operations-held-image",
+      "agent": "operations",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-positioning",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-historical-limits",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-unclear",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_records"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-risk",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-missing-market",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-shared-image",
+      "agent": "strategy",
+      "split": "development",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-held-foreign",
+      "agent": "strategy",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    },
+    {
+      "id": "strategy-held-approval",
+      "agent": "strategy",
+      "split": "held_out",
+      "http_statuses": [
+        200
+      ],
+      "sources": [
+        "structured_fallback"
+      ],
+      "conversation_created_no_tasks": true,
+      "behavioral_score": null
+    }
+  ]
+}

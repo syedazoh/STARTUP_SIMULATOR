@@ -84,6 +84,10 @@ async def _create_indexes(db) -> None:
         db["decision_logs"], [("business_id", 1), ("simulation_run_id", 1), ("tick", 1)]
     )
     await ensure_index(db["chat_threads"], [("business_id", 1), ("agent", 1)])
+    await ensure_index(db["conversation_turns"], [("conversation_id", 1), ("status", 1), ("created_at", -1)])
+    await ensure_index(db["agent_artifacts"], [("business_id", 1), ("conversation_id", 1), ("created_at", -1)])
+    await ensure_index(db["agent_artifacts"], [("business_id", 1), ("task_id", 1), ("created_at", -1)])
+    await ensure_index(db["retail_imports"], [("business_id", 1), ("created_at", -1)])
     await ensure_index(db["credentials"], [("business_id", 1), ("provider", 1)])
     await ensure_index(db["audit_logs"], [("business_id", 1), ("timestamp", -1)])
     await ensure_index(db["collaboration_events"], [("business_id", 1), ("timestamp", -1)])
@@ -211,3 +215,10 @@ app.include_router(distributed_routes.router)
 app.include_router(automation_routes.router)
 app.include_router(automation_routes.task_router)
 app.mount("/mcp", Gateway())
+
+from .api.routes import retail as retail_routes
+app.include_router(retail_routes.router)
+from .api.routes import workflow as workflow_routes
+app.include_router(workflow_routes.router)
+from .api.routes import shared_demo as shared_demo_routes
+app.include_router(shared_demo_routes.router)

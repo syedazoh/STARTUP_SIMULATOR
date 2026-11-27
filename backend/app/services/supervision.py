@@ -94,7 +94,7 @@ async def propose_plan(db, registry, business, goal, plan_id=None):
 
 async def activate_plan(db, registry, business, plan_id, expected_revision=None, decision_feedback=''):
     original=await find_one(db['ceo_plans'],{'business_id':business.id,'plan_id':plan_id})
-    recommendation=bool(original and original.get('origin')=='agent_recommendation')
+    recommendation=bool(original and original.get('origin') in {'agent_recommendation','conversational_launch'})
     guard={}
     if recommendation:
         if expected_revision is None or original.get('revision')!=expected_revision:raise HTTPException(409,'Review the current recommendation revision in the boardroom')

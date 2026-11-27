@@ -46,6 +46,12 @@ class DatasetLaunchAction(Action):
     budget_minor: int = Field(strict=True, ge=0, le=10**12)
 
 
+class AgentBriefAction(Action):
+    request:str=Field(min_length=5,max_length=2000)
+    due_at:str=Field(min_length=10,max_length=80)
+    submission_id:str|None=Field(default=None,max_length=80)
+    image_artifact_ids:list[str]=Field(default_factory=list,max_length=4)
+
 class SocialDraftAction(Action):
     platform: Literal['instagram','facebook']
     caption: str = Field(min_length=1,max_length=2200)
@@ -68,6 +74,12 @@ ACTION_CONTRACTS = {
 def validate_action(
     agent: str, action_type: str, payload: dict[str, Any]
 ) -> dict[str, Any]:
+    if action_type=='agent_brief':
+        if agent not in {'ceo','finance','marketing','operations','strategy','hr'}:raise ValueError('Unknown brief owner')
+        from pydantic import TypeAdapter,AwareDatetime
+        value=AgentBriefAction.model_validate(payload).model_dump()
+        TypeAdapter(AwareDatetime).validate_python(value['due_at'])
+        return value
     contract = ACTION_CONTRACTS.get(action_type)
     if contract is None or contract[0] != agent:
         raise ValueError("Unsupported action for this department")

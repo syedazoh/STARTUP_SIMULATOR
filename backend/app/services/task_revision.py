@@ -87,6 +87,10 @@ async def request_revision(db, registry, business, task, feedback, preview_filte
         target_id=task["task_id"],
         details={"owner_feedback": feedback},
     )
+    if task['action_type']=='agent_brief':
+        from .collaboration import best_effort_handoff
+        await best_effort_handoff(db,business.id,'ceo',task['agent'],'changes_requested',feedback,task_id=task['task_id'],plan_id=task.get('plan_id'))
+        return changed
     claim = {
         "task_id": task["task_id"],
         "business_id": business.id,

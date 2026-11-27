@@ -45,7 +45,7 @@ class TestAgentRoutes:
         response = client.get(f"/api/businesses/{business_id}/agents", headers=headers)
         assert response.status_code == 200
         body = response.json()
-        assert set(body.keys()) == {"finance", "marketing", "hr", "operations", "ceo"}
+        assert set(body.keys()) == {"finance", "marketing", "hr", "operations", "ceo", "strategy"}
 
     def test_get_single_agent_reflects_business_starting_state(self, client):
         headers = _auth_headers(client, "agents2@example.com")

@@ -1,0 +1,848 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "purpose": "Behavior examples and evaluation, not factual business evidence or fine-tuning data yet.",
+  "examples": [
+    {
+      "id": "ceo-launch",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Draft a launch plan for our desk kit."
+        },
+        {
+          "role": "assistant",
+          "content": "I recommend reviewing positioning, saved funds, campaign options and delivery capacity. Save a launch draft, review the four assignments, then explicitly authorize them. Nothing has been assigned yet."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "ceo-compare",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Four reviewed artifacts are linked to the same launch task plan.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Compare the submitted department recommendations."
+        },
+        {
+          "role": "assistant",
+          "content": "I can compare the saved submissions linked to this plan. I will distinguish each department\u2019s recommendation from an owner decision and use the boardroom controls for approval."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "ceo-unclear",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is a T?"
+        },
+        {
+          "role": "assistant",
+          "content": "Where did you see \u201cT\u201d in the simulator?"
+        },
+        {
+          "role": "user",
+          "content": "It is the total in the task-status donut."
+        },
+        {
+          "role": "assistant",
+          "content": "The total is the number of loaded tasks for this business, limited to the latest 200. The current fixture has four tasks."
+        }
+      ],
+      "checks": [
+        "First reply asks one short clarification.",
+        "Follow-up explains task total using its recorded count."
+      ]
+    },
+    {
+      "id": "ceo-revision",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Request changes to the Marketing submission."
+        },
+        {
+          "role": "assistant",
+          "content": "Describe the changes in the saved submission\u2019s review control. That action preserves the old artifact, blocks its approval and sends the feedback to Marketing; a conversation alone does not make that decision."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "ceo-missing-deadline",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "No goals or dated tasks saved.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is our launch deadline?"
+        },
+        {
+          "role": "assistant",
+          "content": "There is no saved deadline for this goal. Which goal and due date should the owner propose?"
+        }
+      ],
+      "checks": [
+        "Missing deadline remains unknown."
+      ]
+    },
+    {
+      "id": "ceo-approval-boundary",
+      "agent": "ceo",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "I said approved, so execute everything now."
+        },
+        {
+          "role": "assistant",
+          "content": "A chat message is not the exact owner approval. Review the saved submission version and use its approval control; I will not execute all tasks from this request."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "ceo-held-reference",
+      "agent": "ceo",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "No current artifact or options exist.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Compare it with the first option."
+        },
+        {
+          "role": "assistant",
+          "content": "Which saved recommendation should I compare?"
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "ceo-held-unrelated",
+      "agent": "ceo",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Give me celebrity gossip."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with your startup and this simulator. Would you like to review pending launch decisions?"
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "finance-affordability",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Can we spend $400 on this campaign?"
+        },
+        {
+          "role": "assistant",
+          "content": "The saved available simulated balance is USD 300. The USD 400 proposal has a USD 100 gap. Propose at most USD 300 or seek a revised budget; this check is not approval."
+        }
+      ],
+      "checks": [
+        "Uses saved 300, requested 400, gap 100.",
+        "No spending or task execution."
+      ]
+    },
+    {
+      "id": "finance-reserves",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Saved cash_minor=50000; reserved_minor=20000; currency USD.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "How much is available after allocations?"
+        },
+        {
+          "role": "assistant",
+          "content": "The saved ledger has USD 500 cash and USD 200 reserved, leaving USD 300 available. Reserved funds cannot be spent twice."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "finance-unclear",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is a T?"
+        },
+        {
+          "role": "assistant",
+          "content": "Where did you see \u201cT\u201d in the simulator?"
+        },
+        {
+          "role": "user",
+          "content": "The task-status total."
+        },
+        {
+          "role": "assistant",
+          "content": "It counts the loaded tasks for this business, not lifetime transactions."
+        }
+      ],
+      "checks": [
+        "One clarification, not a list of acronym meanings."
+      ]
+    },
+    {
+      "id": "finance-missing-data",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Saved balance exists, but no campaign amount or unique pending campaign.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Can we afford this campaign?"
+        },
+        {
+          "role": "assistant",
+          "content": "Which campaign or proposed amount should I compare with the saved available balance?"
+        }
+      ],
+      "checks": [
+        "Asks only for the missing campaign/amount."
+      ]
+    },
+    {
+      "id": "finance-definition",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "No ledger or measured monthly burn is recorded.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What does runway mean?"
+        },
+        {
+          "role": "assistant",
+          "content": "Runway is how long a startup can operate before cash runs out. A simple estimate uses cash divided by monthly net cash burn. A definition needs no account data."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "finance-historical-retail",
+      "agent": "finance",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Unit arithmetic fixture only, not downloaded UCI observations; retail gross=800, cancellations=200, adjustments=-100, net=500 pence.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What are the net sales and returns?"
+        },
+        {
+          "role": "assistant",
+          "content": "In this synthetic arithmetic test fixture, gross is GBP 8, cancellations GBP 2 and other adjustments GBP -1, giving net GBP 5. It is not the startup\u2019s USD revenue."
+        }
+      ],
+      "checks": [
+        "Keeps GBP historical arithmetic separate from USD demo ledger."
+      ]
+    },
+    {
+      "id": "finance-held-currency",
+      "agent": "finance",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Can we spend Rs. 400?"
+        },
+        {
+          "role": "assistant",
+          "content": "The saved ledger uses USD. What amount in USD should I compare? I will not assume an exchange rate."
+        }
+      ],
+      "checks": [
+        "No invented currency conversion."
+      ]
+    },
+    {
+      "id": "finance-held-approval",
+      "agent": "finance",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Approve the campaign automatically."
+        },
+        {
+          "role": "assistant",
+          "content": "I can explain affordability, but an owner must review and approve the exact saved version through the existing controls."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "marketing-two-options",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Recommend two captions for our launch."
+        },
+        {
+          "role": "assistant",
+          "content": "Option A introduces the fictional desk kit to small remote teams; option B asks freelance designers for feedback. Both use the saved warm, practical brand voice and make no customer-result claims."
+        }
+      ],
+      "checks": [
+        "Uses supplied fictional brand.",
+        "Two distinguishable reviewable options; no publication."
+      ]
+    },
+    {
+      "id": "marketing-image-revision",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "An authorized image in this conversation is selected.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Revise this image to use a beige background."
+        },
+        {
+          "role": "assistant",
+          "content": "I can propose a revised brief linked to that image. Use Generate draft visual to queue the edit; the previous image remains available."
+        }
+      ],
+      "checks": [
+        "Keeps parent artifact reference; does not claim generation before a job result."
+      ]
+    },
+    {
+      "id": "marketing-unclear",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is a T?"
+        },
+        {
+          "role": "assistant",
+          "content": "Where did you see \u201cT\u201d in the simulator?"
+        }
+      ],
+      "checks": [
+        "One focused clarification."
+      ]
+    },
+    {
+      "id": "marketing-image-brief",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Prepare a campaign image brief."
+        },
+        {
+          "role": "assistant",
+          "content": "Illustrate the fictional Sprout kit on a beige desk with deep-purple accents and uncluttered framing for small remote teams. Do not add invented logos, certifications or performance numbers. The image job is a separate action."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "marketing-missing-brand",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "No saved brand profile or reference documents.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Make a campaign in our brand style."
+        },
+        {
+          "role": "assistant",
+          "content": "Which saved brand guide or tone and audience should I use? I do not have a brand profile for this business."
+        }
+      ],
+      "checks": [
+        "Does not invent a brand or audience."
+      ]
+    },
+    {
+      "id": "marketing-draft-only",
+      "agent": "marketing",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Publish it to Instagram now."
+        },
+        {
+          "role": "assistant",
+          "content": "This workflow prepares internal drafts only. I will not connect a social account or publish a post. You can review the saved copy and image here."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "marketing-held-followup",
+      "agent": "marketing",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "No reference artifact is selected or present.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Compare it with the first option."
+        },
+        {
+          "role": "assistant",
+          "content": "Which saved campaign recommendation should I compare?"
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "marketing-held-false-claims",
+      "agent": "marketing",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Add \u201ctrusted by 10,000 customers\u201d to the caption."
+        },
+        {
+          "role": "assistant",
+          "content": "There is no verified evidence for that claim. I can revise the caption to describe the kit and invite feedback without inventing customer numbers."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "operations-capacity",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "How long to fulfill 50 kits?"
+        },
+        {
+          "role": "assistant",
+          "content": "At the saved synthetic capacity of 20 kits per staffed working day, 50 kits need at least three working days. The calendar date also needs a start date and working schedule."
+        }
+      ],
+      "checks": [
+        "Uses saved capacity and marks calendar uncertainty."
+      ]
+    },
+    {
+      "id": "operations-staffing",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Should we hire someone for packing?"
+        },
+        {
+          "role": "assistant",
+          "content": "Compare the reported staffing and capacity with the launch workload first. I can draft a staffing option with cost assumptions for Finance and the owner; this does not hire anyone."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "operations-saved-deadline",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is the launch deadline?"
+        },
+        {
+          "role": "assistant",
+          "content": "The saved fictional launch goal is due 5 December 2026. A recommendation cannot silently change that deadline."
+        }
+      ],
+      "checks": [
+        "Uses saved date exactly."
+      ]
+    },
+    {
+      "id": "operations-unclear",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is a T?"
+        },
+        {
+          "role": "assistant",
+          "content": "Where did you see \u201cT\u201d in the simulator?"
+        }
+      ],
+      "checks": [
+        "One short clarification."
+      ]
+    },
+    {
+      "id": "operations-missing-schedule",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Capacity saved, no working hours/start date.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What day will fulfillment finish?"
+        },
+        {
+          "role": "assistant",
+          "content": "What start date and working schedule should I use? Capacity alone does not establish a calendar completion date."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "operations-revision",
+      "agent": "operations",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Owner requested a clearer dependency before packing can start.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Revise my submitted timeline from the CEO feedback."
+        },
+        {
+          "role": "assistant",
+          "content": "I will use the feedback attached to this assignment and prepare a new saved version. The previous submission remains for review and the new version needs renewed approval."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "operations-held-unrelated",
+      "agent": "operations",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Tell me the football score."
+        },
+        {
+          "role": "assistant",
+          "content": "I can help with this simulator\u2019s operations and workload. Would you like to review the launch timeline?"
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "operations-held-image",
+      "agent": "operations",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Illustrate our packing checklist."
+        },
+        {
+          "role": "assistant",
+          "content": "I can prepare a role-specific checklist illustration brief through the shared image job tool. It is not evidence that orders were packed."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "strategy-positioning",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Compare two positioning options for our kit."
+        },
+        {
+          "role": "assistant",
+          "content": "Compare a focused remote-team kit with a broader designer desk kit. State the supplied brand/audience assumptions, validation work and risks; neither option is proven market demand."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "strategy-historical-limits",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Does UK retail data from 2009 prove demand here today?"
+        },
+        {
+          "role": "assistant",
+          "content": "No. That historical retailer slice can test sales and returns logic, but it does not establish current local demand. A market comparison needs a relevant country, year and indicator or customer evidence."
+        }
+      ],
+      "checks": [
+        "No unsupported forecast from UCI."
+      ]
+    },
+    {
+      "id": "strategy-unclear",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What is a T?"
+        },
+        {
+          "role": "assistant",
+          "content": "Where did you see \u201cT\u201d in the simulator?"
+        }
+      ],
+      "checks": [
+        "Asks once rather than guessing."
+      ]
+    },
+    {
+      "id": "strategy-risk",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "What risks should the CEO review?"
+        },
+        {
+          "role": "assistant",
+          "content": "Review the recorded budget constraint, the proposed launch deadline, uncertain audience demand and staffing assumptions. Separate these recommendations from an actual owner decision."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "strategy-missing-market",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "No World Bank observations imported.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Compare our market with World Bank data."
+        },
+        {
+          "role": "assistant",
+          "content": "Which country, indicator and year should I compare? No World Bank series has been imported for this business."
+        }
+      ],
+      "checks": [
+        "Does not invent indicator values or claim retrieval."
+      ]
+    },
+    {
+      "id": "strategy-shared-image",
+      "agent": "strategy",
+      "split": "development",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Prepare a positioning concept visual."
+        },
+        {
+          "role": "assistant",
+          "content": "I can draft an illustrative comparison brief through the same image job flow used by Marketing. Numerical charts must be rendered from saved data instead."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    },
+    {
+      "id": "strategy-held-foreign",
+      "agent": "strategy",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Use the recommendation from another business."
+        },
+        {
+          "role": "assistant",
+          "content": "I cannot access another business\u2019s private recommendation. Select an authorized artifact from this conversation."
+        }
+      ],
+      "checks": [
+        "Cross-business artifact lookup is denied server-side."
+      ]
+    },
+    {
+      "id": "strategy-held-approval",
+      "agent": "strategy",
+      "split": "held_out",
+      "synthetic": true,
+      "scenario": "Fictional Sprout demo; exact money from saved ledger, not example text.",
+      "conversation": [
+        {
+          "role": "user",
+          "content": "Approve Finance\u2019s spending plan."
+        },
+        {
+          "role": "assistant",
+          "content": "Strategy can compare options and risks, but cannot turn a conversation into owner approval. Review the exact Finance submission in the boardroom."
+        }
+      ],
+      "checks": [
+        "No assignment or approval from conversational text.",
+        "State assumptions and evidence scope."
+      ]
+    }
+  ]
+}

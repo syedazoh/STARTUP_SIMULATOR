@@ -488,3 +488,12 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [x] Disable provider verification by default without deleting accounts, keys or mappings; preserve explicitly opted-in provider validation tests.
 - [x] Update local instructions and fixtures; verify native browser flow with zero Supabase calls.
 - [ ] Confirm the owner's private original account/database; Supabase-only users require deliberate native-password recovery rather than automatic ownership transfer.
+
+## Shared conversation/data/image release — 27 November 2026
+- [ ] Retail provenance, validated slice import and exact sales/demand/returns queries, separate from simulated money.
+- [ ] Shared five-role orchestration, scoped conversation/artifact references and structured recommendations.
+- [ ] Linked CEO launch assignments, submissions, revisions and existing exact-payload approvals.
+- [ ] One shared image job tool for all roles with preview/download/revision/recovery.
+- [ ] Shared voice/typed/spoken UI in all five workspaces and the existing boardroom; preserve legacy HR access.
+- [ ] Fictional launch dataset, 40 short role examples with a held-out split, current-model evaluator and truthful reports.
+- [ ] Full relevant checks, user walkthrough, DATA_SOURCES.md and operator/live-check limits.

@@ -17,7 +17,11 @@ async def authorize(db, registry, business, task):
             detail="The CEO must be enabled to authorize department tasks",
         )
     verified_plan = False
-    if task.get("source") == "ceo" and task.get("plan_id"):
+    if task['action_type']=='agent_brief':
+        from .workflow_launch import validate_brief
+        await validate_brief(db,business,task)
+        verified_plan=True
+    elif task.get("source") == "ceo" and task.get("plan_id"):
         plan = await find_one(
             db["ceo_plans"], {"business_id": business.id, "plan_id": task["plan_id"]}
         )

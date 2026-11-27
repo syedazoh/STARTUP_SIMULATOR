@@ -73,7 +73,7 @@ async def list_tasks(
 ):
     query = {"business_id": business.id}
     if agent is not None:
-        if agent not in {"finance", "marketing", "hr", "operations"}:
+        if agent not in {"finance", "marketing", "hr", "operations", "strategy"}:
             raise HTTPException(status_code=422, detail="Unknown department")
         query["agent"] = agent
     if source is not None:
@@ -111,6 +111,10 @@ async def approve_task(
 ):
     task, business = owned["task"], owned["business"]
     preview_filter = _preview_filter(task, payload)
+    if task['action_type']=='agent_brief':
+        if not payload or not payload.expected_fingerprint:raise HTTPException(422,'Review the exact submitted version before approving')
+        from ...services.workflow_launch import validate_brief
+        await validate_brief(request.app.state.db,business,task,True)
     if task["status"] == "needs_changes":
         raise HTTPException(
             409, "Owner changes are outstanding. Revise the proposal before approval."
@@ -403,6 +407,9 @@ async def revise_task(
         proposal = validate_action(task["agent"], task["action_type"], payload.payload)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="Invalid revised proposal") from exc
+    if task['action_type']=='agent_brief':
+        from ...services.workflow_launch import validate_brief
+        await validate_brief(request.app.state.db,business,{**task,'payload':proposal,'objective':payload.objective or task.get('objective')},True)
     if proposal == task["payload"] and (
         payload.objective is None or payload.objective == task.get("objective")
     ):
@@ -421,7 +428,7 @@ async def revise_task(
         "objective": payload.objective or task.get("objective"),
     }
     changed = await request.app.state.db["tasks"].find_one_and_update(
-        {"task_id": task["task_id"], "status": task["status"]},
+        {"task_id": task["task_id"], **{field: task.get(field) for field in APPROVAL_FIELDS}},
         {"$set": update},
         return_document=ReturnDocument.AFTER,
     )

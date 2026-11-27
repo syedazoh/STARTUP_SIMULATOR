@@ -42,6 +42,8 @@ class Settings(BaseSettings):
 
     chroma_persist_dir: str = "./chroma_data"
 
+    openai_api_key: Optional[str] = None
+    image_model: str = 'gpt-image-1'
     groq_api_key: Optional[str] = None
     groq_model: str = "openai/gpt-oss-120b"
     ai_min_request_interval_seconds: float = Field(default=2.0, ge=0, le=60, allow_inf_nan=False)

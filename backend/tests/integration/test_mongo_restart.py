@@ -22,6 +22,9 @@ def test_linked_business_and_pending_task_survive_backend_restart(monkeypatch):
     database = "nov45_test_" + uuid4().hex
     control = MongoClient(uri, serverSelectionTimeoutMS=5000)
     control.admin.command("ping")  # An unavailable configured server is a FAILURE.
+    # This test deliberately exercises the retained opt-in legacy identity bridge.
+    # Native sessions remain the default application configuration.
+    monkeypatch.setattr(settings, "supabase_auth_enabled", True)
     monkeypatch.setattr(settings, "mongodb_url", uri)
     monkeypatch.setattr(settings, "mongodb_db_name", database)
     subject = str(uuid4())
