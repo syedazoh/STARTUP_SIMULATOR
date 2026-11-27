@@ -44,6 +44,17 @@ def record_reply(role,text,context,reference,history_messages):
         return WorkflowReply(spoken_response='Which saved recommendation or image should I revise or compare?',intent='clarify')
     if 'first option' in low and reference and len(reference.get('recommendation',{}).get('options',[]))<2:
         return WorkflowReply(spoken_response='This saved draft does not have two options. Which alternatives should I compare?',intent='clarify')
+    if role=='operations' and re.search(r'how (many|long)|working days|packing capacity|fulfil|fulfill',low) and re.search(r'\b(kits|units|packing|working days|fulfil\w*)\b',low):
+        units=re.search(r'(\d[\d,]*)\s*(?:kits|units|orders)',low)
+        capacity=(context.get('capacity') or {}).get('staffed_units_per_day')
+        targets=[g.get('target_units') for g in context.get('goals',[]) if g.get('target_units')]
+        if units and len(units.group(1).replace(',',''))>9:return WorkflowReply(spoken_response='Please give a proposed quantity of at most 999,999,999 units for this small planning simulation.',intent='clarify')
+        quantity=int(units.group(1).replace(',','')) if units else targets[0] if len(targets)==1 else None
+        if not capacity or not quantity:
+            return WorkflowReply(spoken_response='I need a saved staffed-day capacity and a specific proposed unit quantity before calculating working days.',intent='missing_data')
+        days=(quantity+capacity-1)//capacity
+        answer=f'At the saved synthetic capacity of {capacity} units per staffed working day, {quantity} proposed units require {days} staffed working days. Confirm the working schedule and start date before promising a calendar completion.'
+        return WorkflowReply(spoken_response=answer,recommendation=Recommendation(what='Review the staffed-day capacity plan.',why_now=answer,decision_needed='Confirm schedule and dependencies; this does not hire anyone or change a saved deadline.',evidence_ids=['dataset:capacity','dataset:goals'],assumptions=['Capacity remains constant and all units are available; calendar working hours/start date are not assumed.']))
     if context.get('retail') and any(x in low for x in ['sales total','net sales','product demand','best selling','returns','cancellations']):
         s=context['retail'];details=f"Historical imported slice: gross GBP {s['gross_sales_minor']/100:,.2f}; cancellations GBP {s['cancellations_minor']/100:,.2f}; other adjustments GBP {s['other_adjustments_minor']/100:,.2f}; net GBP {s['net_sales_minor']/100:,.2f}."
         if any(x in low for x in ['demand','best selling']):details+=' Highest gross-unit demand: '+', '.join(f"{p['stock_code']} ({p['gross_units']} sold, {p['returned_units']} cancelled units)" for p in s['products'][:3])+'.'
@@ -58,6 +69,7 @@ def record_reply(role,text,context,reference,history_messages):
         return WorkflowReply(spoken_response=response[:1200],recommendation=Recommendation(what='Review the linked launch submissions together.',why_now=response[:1200],decision_needed='Use the boardroom exact-submission controls to approve, reject, or request changes.',assumptions=['Comparison summarizes saved submissions; it does not approve them.']))
     amount=re.search(r'(?:spend|afford|budget|campaign|promotion)[^\d]{0,25}(\d[\d,]*(?:\.\d{1,2})?)',low)
     if role in {'finance','ceo'} and amount and any(w in low for w in ['spend','afford','campaign','promotion']):
+        if len(amount.group(1).replace(',','').split('.')[0])>12 or re.search(r'-\s*(?:[$£€]\s*)?\d',low):return WorkflowReply(spoken_response='Please give a nonnegative spending amount of at most 12 digits, with its currency. Negative amounts need a separate refund or adjustment context.',intent='clarify')
         currency=context['currency']
         if re.search(r'\b(rs\.?|pkr|rupees)\b',low) and currency!='PKR':return WorkflowReply(spoken_response=f'The saved ledger uses {currency}. What amount in {currency} should I compare? I will not assume an exchange rate.',intent='clarify')
         if 'available_minor' not in context:return WorkflowReply(spoken_response='There is no saved available balance yet. Open Finance and check its ledger before comparing spending.',intent='missing_data')

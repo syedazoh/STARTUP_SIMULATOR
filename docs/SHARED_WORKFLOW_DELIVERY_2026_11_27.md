@@ -1,0 +1,33 @@
+# Shared workflow delivery — 27 November 2026
+
+## Implemented
+CEO, Finance, Marketing, Operations and Strategy use one authorized conversation service and shared React UI in both clients. Native password auth and legacy HR records remain. Typed/dictated input, explicit transcript review, short visible/spoken responses, interruption, typed fallback, record-based calculations, existing document retrieval, recommendations and immutable artifacts are connected.
+
+CEO plans create four zero-cost brief assignments through existing owner activation, task/approval and reporting services. Submissions/images remain linked to a plan/task. Changes requested appear on the assigned dashboard; prior versions remain; renewed approvals bind exact content. Shared images use existing durable jobs, authorized preview/download, parent revisions, confirmed-failure retry and uncertain-outcome reconciliation. Provider-start fencing avoids silent duplicate generation on recovery.
+
+The separate fictional Sprout company includes USD 300 cash, catalog, brand, proposed budget/deadline, capacity and team composition. Reopening preserves prior work and existing companies. Historical GBP CSV/JSON preview/import, validation/digest binding and exact totals/demand/cancellations are implemented separately from simulated money and external effects. Forty synthetic authored conversations are split 30 development/10 held out, with current-service evaluation and an official-workbook preparation script.
+
+## Verified evidence
+- Broad offline backend checkpoint: **529 passed, 3 skipped** (integration URL absent). Covers native sessions, authorization, isolation, approvals, tasks, data and image/revision protections.
+- Real-Mongo integration: automation restart, independent worker processes/crash recovery, retained explicitly opted-in identity bridge, and new shared conversation/image/launch restart checks passed in the final integrated run's first four tests. Full-suite final totals follow below.
+- Frontend: **74 classic tests and 43 Next/shared tests passed**, applicable lint, TypeScript and both builds. Vite retains its existing chunk-size warning. No new frontend dependencies.
+- Browser fixtures: all five workspaces, four linked submissions, request changes/revision/new exact approvals, retained versions, Marketing and Strategy image jobs/preview/download/revision, voice review-before-send/Stop/typed fallback, stale recognition after role change, exact USD 100 budget gap, synthetic GBP preview/import/query, native continuity, both clients and desktop/390px light/dark. Real application routes/services with **mock model/image/speech**, no live owner records.
+- Current-service example runner: **42 HTTP 200 turns across 40 examples**, 17 structured-record responses and 25 explicit model-unavailable fallbacks; no tasks created by chat. No live-model accuracy score or fine-tuning. Richer scenario prerequisites are not all set up by the small evaluator fixture; those workflows have separate tests. See `docs/evaluation/shared-agent-current-service-2026-11-27.json`.
+
+## Remaining gates
+- **Official UCI acquisition and metadata verification blocked:** `archive.ics.uci.edu` still returns environment-policy HTTP 403. No real UCI observations are bundled or claimed imported. Arithmetic fixtures are synthetic. Obtain/attribute/transform the official workbook before presenting real-data results; see DATA_SOURCES.md.
+- **Live inference blocked:** provider credentials unavailable. Mocks verify adapter/job behavior, permissions and recovery, not live output quality, account access or latency.
+- Physical microphone permissions/OS voices, original owner account/Mongo recovery, live communications/social integration and AWS deployment are not proven. No environment publication, external post/email/hire/payment or production deployment occurred. Passing local tests does not establish a bug-free application.
+- Container packaging initially exhausted host disk; only rebuildable Docker build cache was cleaned, leaving accounts/data/volumes intact. Final packaging result follows below.
+
+## Run the demo
+Use `docs/SHARED_AGENT_WORKFLOW.md` for local startup and numbered steps. Backend: original Mongo settings/signing/encryption keys, `GROQ_API_KEY` for live inference, `BACKGROUND_JOBS_ENABLED=True`, optional server-only `OPENAI_API_KEY`/`IMAGE_MODEL`. Next: `BACKEND_URL`; Supabase login is not required. Run FastAPI on 8000 and Next on 3000, sign in with the original native account, explicitly open the fictional demo, then draft → authorize assignments → discuss/submit four briefs → request changes → revise/resubmit → approve exact versions.
+
+Historical backlog/deployment gates remain in tasks/todo.md; this release does not mark Gmail/Meta, live owner access or AWS delivery complete.
+
+Additional checks: the production Next image builds successfully with web-only dependencies, its bundled tests/build/typecheck pass, and runtime user is `node`. The environment's TLS inspection CA was supplied as a BuildKit secret; TLS verification stayed enabled. Browser delayed-response coverage confirms newer input is retained without obsolete speech. Operations' staffed-day calculation now uses integer backend arithmetic (50 kits / 20 per staffed day rounds up to three working days), with no calendar-date promise. Budget queries reject oversized/negative amounts with clarification instead of raising formatting errors. A clock-sensitive existing login-budget test was isolated to one fixed test window; production throttling is unchanged and separate rollover tests remain intact.
+
+Packaged acceptance: the same five-agent browser scenario passed against the built Docker image, including four departmental submissions, request changes/revision/approvals, Marketing/Strategy image preview/download/revision, reviewed dictation, typed fallback and delayed-response audio cancellation. Packaged `/login` returned HTTP 200 with distinct per-request CSP nonces and private caching; runtime user is `node`. This remains disposable provider-fixture acceptance, not live provider or AWS evidence.
+
+## Final totals
+The final comprehensive backend run passed **533 tests, zero skips**, including all four real-Mongo integration checks (267.29 seconds). One existing Pydantic settings annotation warning remains. After the last record-arithmetic refinement, all five focused shared-demo/conversation tests passed; the auth/throttle regression group also passed. Both frontend suites, classic lint, Next TypeScript, production builds, packaged image and browser acceptance passed as detailed above. These are local/disposable results, not a claim that every live service is configured or that no bugs remain.

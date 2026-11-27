@@ -19,6 +19,10 @@ def main():
     parser.add_argument('--split', choices=['development', 'held_out', 'all'], default='development')
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
+    args.output = args.output.resolve()
+    # Match normal backend startup so its private .env configures the current model.
+    # The Mongo client is still replaced with a fresh mock before lifespan startup.
+    os.chdir(ROOT / 'backend')
     # Prevent the fixture evaluator from starting workers or downloading models.
     os.environ['BACKGROUND_JOBS_ENABLED'] = 'false'
     os.environ['RAG_ALLOW_MODEL_DOWNLOAD'] = 'false'

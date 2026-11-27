@@ -7,7 +7,8 @@ CEO, Finance, Marketing, Operations and Strategy share one conversation service,
 Use the existing original MongoDB connection and signing/encryption keys in private `backend/.env`. Do not create a replacement database to recover a missing business. From the repository root, activate the Python environment and run:
 
 ```bash
-uvicorn app.main:app --app-dir backend --reload --port 8000
+cd backend
+uvicorn app.main:app --reload --port 8000
 ```
 
 In a second terminal:

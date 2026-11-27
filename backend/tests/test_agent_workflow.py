@@ -35,6 +35,7 @@ def test_clarification_scope_budget_and_foreign_references_use_records(client,mo
     answer=send(client,root,owner,'finance','Can we spend $400 on a campaign?').json();assert '100.00' in answer['reply']['spoken_response'];assert '300.00' in answer['reply']['spoken_response'];assert answer['source']=='structured_records'
     assert send(client,root,owner,'finance','Can we spend Rs. 400 on a campaign?').json()['reply']['intent']=='clarify'
     assert send(client,root,owner,'marketing','Revise that.',reference_id=answer['artifact_id']).status_code==404
+    assert send(client,root,owner,'finance','Can we spend $'+'9'*1500+' on a campaign?').json()['reply']['intent']=='clarify'
     assert model.calls==0
 
 def test_turn_retry_replays_one_saved_artifact_and_reference_stays_in_conversation(client,monkeypatch):

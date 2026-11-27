@@ -10,6 +10,8 @@ async def load(db,business,role,question):
     tasks=await db['tasks'].find({'business_id':business.id}).sort('created_at',-1).to_list(length=200)
     retail=await retail_data.latest(db,business.id)
     result={'company':business.company_name,'industry':business.industry,'facts':[],'tasks':[], 'currency':profile.get('finance',{}).get('currency','USD'),'brand':{k:str(v)[:1200] for k,v in profile.get('brand',{}).items()},'product':{k:str(v)[:1200] for k,v in profile.get('product',{}).items()},'capacity':business.workforce.model_dump() if business.workforce else None,'retrieval_mode':'no_documents'}
+    if result['brand']:
+        result['facts'].append({'id':'profile:brand','label':'Saved brand profile','value':result['brand'],'basis':'owner-supplied business profile'})
     if account:
         available=account['cash_minor']-account['reserved_minor'];result['available_minor']=available
         result['facts'].append({'id':'ledger:available','label':'Available simulated balance','value_minor':available,'currency':result['currency'],'basis':'saved ledger, not real bank cash'})
@@ -17,6 +19,7 @@ async def load(db,business,role,question):
         data=dataset['data'];result['goals']=data['goals'];result['catalog']=data['inventory'];result['dataset_id']=data['dataset_id']
         result['facts'].append({'id':'dataset:goals','label':'Fictional startup goals and dates','value':data['goals'],'basis':'synthetic dataset'})
         result['capacity']={'staffed_units_per_day':data['company']['staffed_units_per_day'],'basis':'synthetic planning capacity'}
+        result['facts'].append({'id':'dataset:capacity','label':'Fictional staffed-day capacity','value':result['capacity'],'basis':'synthetic dataset'})
     if retail:
         summary={**retail['summary'],'products':retail['summary']['products'][:10]};result['retail']=summary
         result['facts'].append({'id':'retail:summary','label':'Historical retail slice','value':summary,'basis':retail['source_claim']})

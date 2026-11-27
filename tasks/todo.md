@@ -490,10 +490,13 @@ Evidence: docs/design/LANDING_VIDEO_CORRECTION.md.
 - [ ] Confirm the owner's private original account/database; Supabase-only users require deliberate native-password recovery rather than automatic ownership transfer.
 
 ## Shared conversation/data/image release — 27 November 2026
-- [ ] Retail provenance, validated slice import and exact sales/demand/returns queries, separate from simulated money.
-- [ ] Shared five-role orchestration, scoped conversation/artifact references and structured recommendations.
-- [ ] Linked CEO launch assignments, submissions, revisions and existing exact-payload approvals.
-- [ ] One shared image job tool for all roles with preview/download/revision/recovery.
-- [ ] Shared voice/typed/spoken UI in all five workspaces and the existing boardroom; preserve legacy HR access.
-- [ ] Fictional launch dataset, 40 short role examples with a held-out split, current-model evaluator and truthful reports.
-- [ ] Full relevant checks, user walkthrough, DATA_SOURCES.md and operator/live-check limits.
+- [x] Validated bounded GBP CSV/JSON preview/import, exact sales/demand/cancellation queries and provenance contract, separate from simulated money.
+- [ ] Acquire and attribute the actual official UCI slice: archive.ics.uci.edu remains environment-policy blocked (403); synthetic arithmetic fixtures are not UCI data.
+- [x] Shared five-role orchestration, scoped conversation/artifact references, structured recommendations and saved evidence.
+- [x] Linked CEO launch assignments, submissions, revisions and existing exact-payload approvals; stale concurrent revisions are rejected.
+- [x] One shared image job tool for all roles with authorized preview/download/revision/recovery and uncertain-outcome fencing; provider paths verified with mocks.
+- [x] Shared voice/typed/spoken UI in all five workspaces and existing boardroom in both clients; preserve legacy HR access. Delayed replies preserve newer input and suppress stale speech.
+- [x] Fictional startup JSON/CSV/dictionary, 40 short examples (30 development/10 held out), current-service evaluator and truthful fixture report.
+- [ ] Run live model/image quality acceptance after private backend provider configuration; no successful live inference or fine-tuning is claimed.
+- [x] Relevant unit/build/lint/browser checks and real-Mongo restart coverage; DATA_SOURCES.md, operator/demo guide and delivery report document exact evidence and limits.
+- [ ] Owner verifies original local account/database and presentation hardware/microphone; authorized AWS deployment remains a separate gate.

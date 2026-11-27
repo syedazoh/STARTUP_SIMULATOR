@@ -1,5 +1,7 @@
 """Test authentication routes (Addendum Phase 1)"""
 import pytest
+import time
+from types import SimpleNamespace
 from fastapi.testclient import TestClient
 from mongomock_motor import AsyncMongoMockClient
 
@@ -10,6 +12,13 @@ from app.main import app
 @pytest.fixture
 def client(monkeypatch):
     monkeypatch.setattr(mongodb_module, "AsyncIOMotorClient", lambda *a, **kw: AsyncMongoMockClient())
+    # These cases test attempts within ONE budget window. Real wall-clock rollover
+    # made the sixth-attempt assertion flaky in the full integration run. Pin only
+    # the throttle clock, far enough ahead that mongomock's real TTL cannot expire
+    # its fixture mid-test. Separate throttle tests cover rollover explicitly.
+    from app.core import login_throttle
+    fixed = time.time() + login_throttle.WINDOW_SECONDS
+    monkeypatch.setattr(login_throttle, "time", SimpleNamespace(time=lambda: fixed))
     with TestClient(app) as test_client:
         yield test_client
 
